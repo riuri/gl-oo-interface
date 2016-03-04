@@ -34,13 +34,13 @@ void VideoRecorder::ToggleRecord()
 
 void VideoRecorder::Update()
 {
-  if ((mIsRecording) && (mCurrentFrame%5 == 1))
+  if (mIsRecording)
   {
     char name[30];
     sprintf(name, "videos/%03d.jpg", mCurrentFrame/5);
     VideoRecorder::SaveScreenshot(name);
+    mCurrentFrame++;
   }
-  mCurrentFrame++;
 }
 
 void VideoRecorder::UpdateSize(int windowWidth, int windowHeight)
