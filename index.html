@@ -33,19 +33,19 @@
 <p>This multi-platform library provides classes for creating and rendering meshes using the shader-based OpenGL 4.0.
 It is currently under development. I started implementing to help with my projects during Computer Graphics course at USC. Check out two applications here.</p>
 
-<p>It includes:</p>
+<h3>Features:</h3>
 
 <ul>
-<li>Mesh: geometric data which is uploaded to GPU;</li>
-<li>Texture: images loaded from .jpeg files that are settable to shaders;</li>
-<li>Material: defines colorful materials according to Phong shading model;</li>
-<li>SceneObject: encapsulates mesh, texture and material for rendering according to its position, orientation and lighting;</li>
-<li>Camera: implemented to use as first-person view camera, editor-camera or object-reference camera;</li>
-<li>Light: created accordingly to Phong shading model;</li>
-<li>Scene: makes possible displaying multiple objects, lights, camera and changing current cameras.</li>
-<li>Basic Object Library: has many primitive objects such as rgb-axis, grid, textured spheres, textured terrain (optionally with heightmap loader) to render with small number of calls.</li>
-<li>Video Recorder: records and takes screenshots during program execution;</li>
-<li>GlutProgram: an abstract class which has an interface for general GLUT programs (keyboard, mouse).</li>
+<li> <b> Mesh: </b> encapsulates geometric data and automatically manages GPU buffers through a neat interface, such as Load() and Update(). It also stores the per-vertex data tightly packed so that the number of cache misses is minimized. </li>
+<li> <b> Texture: </b> handles images loaded from .jpeg files that are settable to shaders;</li>
+<li> <b> Material: </b> defines colorful materials according to Phong shading model;</li>
+<li> <b> SceneObject: </b> contains mesh, texture and material for rendering according to its position, orientation and lighting;</li>
+<li> <b>Camera: </b> implemented to use as first-person view camera, editor-camera or object-reference camera;</li>
+<li> <b> Light: </b> created accordingly to Phong shading model;</li>
+<li> <b> Scene: </b> makes possible displaying multiple objects, lights, camera and changing current cameras.</li>
+<li> <b> Basic Object Library: </b> has many primitive objects such as rgb-axis, grid, textured spheres, textured terrain (optionally with heightmap loader) to render with small number of calls.</li>
+<li> <b> Video Recorder: </b>  records and takes screenshots during program execution;</li>
+<li> <b> GlutProgram: </b> an abstract class which has an interface for general GLUT programs (keyboard, mouse).</li>
 </ul>
 
 <h3> Sample applications using gl-oo-interface </h3>
