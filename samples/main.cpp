@@ -7,7 +7,7 @@
 
 #include "roller_coaster_program.h"
 
-RollerCoasterProgram* program = nullptr;
+GlutProgram* program = nullptr;
 
 // GLUT Callbacks ---------------------------------------
 void DisplayFunc() 
@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
 {
   program = new RollerCoasterProgram();
   program->Init(&argc, argv, "CSCI 420 Homework II - Roller Coaster Simulator");
-  program->InitScene(argc, argv);
 
   // NOTE: Next section is based on starter code.
   glutDisplayFunc(DisplayFunc); // tells glut to use a particular display function to redraw 
