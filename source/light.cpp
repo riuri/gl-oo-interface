@@ -1,6 +1,6 @@
 #include "light.h"
 
-void Light::Position(OpenGLMatrix& viewMatrix) 
+void Light::Position(OpenGLMatrix& viewMatrix, int id) 
 {
   // In order to compute specular component, the light position
   // and fragment position are in camera coordinates.
@@ -17,23 +17,23 @@ void Light::Position(OpenGLMatrix& viewMatrix)
   GLuint location;
 
   // Postion.
-  location = glGetUniformLocation(mProgramHandle, "light.position");
+  location = glGetUniformLocation(mProgramHandle, std::string("light[" + std::to_string(id) + "].position").c_str());
   glUniform3f(location, p[0], p[1], p[2]);
 
   // Normal (orientation).
-  location = glGetUniformLocation(mProgramHandle, "light.normal");
+  location = glGetUniformLocation(mProgramHandle, std::string("light[" + std::to_string(id) + "].normal").c_str());
   glUniform3f(location, n[0], n[1], n[2]);
 
   // Ambient component.
-  location = glGetUniformLocation(mProgramHandle, "light.La");
+  location = glGetUniformLocation(mProgramHandle, std::string("light[" + std::to_string(id) + "].La").c_str());
   glUniform1f(location, mLa);
 
   // Specular component.
-  location = glGetUniformLocation(mProgramHandle, "light.Ld");
+  location = glGetUniformLocation(mProgramHandle, std::string("light[" + std::to_string(id) + "].Ld").c_str());
   glUniform1f(location, mLd);
 
   // Specular component.
-  location = glGetUniformLocation(mProgramHandle, "light.Ls");
+  location = glGetUniformLocation(mProgramHandle, std::string("light[" + std::to_string(id) + "].Ls").c_str());
   glUniform1f(location, mLs);
 }
 

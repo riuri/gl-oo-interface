@@ -26,38 +26,44 @@ out vec4 c;
 
 // Uniforms.
 uniform int tex_on;
-uniform sampler2D tex;
-
 uniform int light_on;
-uniform Light light;
+uniform int material_on;
+
+uniform int numLights;
+uniform Light light[8];
+
+uniform sampler2D tex;
 uniform Material material;
 
 void main()
 {
-  // float d = min(length(f_pos)/100.0, 1);  // The depth is just the norm of f_pos (camera coordinates).
-  // color = d*vec4(1.0, 1.0, 1.0, 1) + (1-d)*color;
-
   if (light_on == 1)
   {
-    vec3 position = vec3(0, 3, 0);
-    vec3 normal   = normalize(vec3(0, -1, 1));
-
-    vec3 l = normalize(position - f_pos.xyz);  // Vector from frag to light.
-    vec3 n = normalize(v_normal);                    //
+    vec3 Kd = material_on*material.Kd + (1-material_on)*vec3(1, 1, 1);
+    vec3 Ka = material_on*material.Ka;
+    vec3 Ks = material_on*material.Ks;
+    
+    // Note: since f_pos is in camera coordinates, the incident ray is simply f_pos.xyz.
+    vec3 n = normalize(v_normal);
     vec3 r = reflect(f_pos.xyz, n);                  // Compute reflection for camera ray.
-    float alpha = 1.0f;
-    // Note: since f_pos is in camera coordinates, the incident ray is simply f_pos.xyz.          
+    
+    vec3 Id = vec3(0);
+    vec3 Ia = vec3(0);
+    vec3 Is = vec3(0);
 
-    float q = length(position - f_pos.xyz);
-    float att = 1;///(1 + 1e-6*q*q);
+    for (int i = 0; i < numLights; i++) 
+    { 
+      vec3 l = normalize(light[i].position - f_pos.xyz);  // Vector from frag to light.
+      float q = length(light[i].position - f_pos.xyz);
 
-    // Basic lighting - Phong model.
-    vec3 Ia = material.Ka *(light.La);
-    vec3 Id = material.Kd *(light.Ld * max(dot(l, n), 0.0))*att;
-    vec3 Is = material.Ks *(light.Ls * pow(max(dot(l, r), 0.0), alpha))*att;
+      // Basic lighting - Phong model.
+      Ia += Ka * (light[i].La);
+      Id += Kd * (light[i].Ld * max(dot(l, n), 0.0));
+      Is += Ks * (light[i].Ls * pow(max(dot(l, r), 0.0), /* alpha = */ 1.0f));
+    }
 
-    //c = color * (Ia + Id + Is) * dot(light.normal, l);
-    vec4 color = (1-tex_on)*vec4(1, 1, 1, 1) + (tex_on)*texture(tex, v_tex_coord);
+    //c = color * (Ia + Id + Is) * dot(light[i].normal, l);  // (Spotlight).
+    vec4 color = (1-tex_on)*vec4(1) + (tex_on)*texture(tex, v_tex_coord);
     c = color * vec4((Ia + Id + Is), 1.0);
   }
   else

@@ -34,9 +34,11 @@ public:
   virtual void ChangeCamera();
   virtual Camera* GetCurrentCamera() { return mCameras[mCurrentCamera]; };
 
-  virtual void AddCamera(Camera::CameraType type);
-  virtual void AddCamera(Camera* camera);
-  virtual void AddObject(SceneObject* object);
+  virtual void Add(Camera::CameraType type);
+  virtual void Add(Camera* camera);
+
+  virtual void Add(Light* light);
+  virtual void Add(SceneObject* object);
 
   virtual void Load() {  }
 

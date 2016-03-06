@@ -6,13 +6,19 @@ void SceneObject::Render() const
   {
     mPipelineProgram->SetModelMatrix(mModelMatrix);
 
+    GLuint matLoc = glGetUniformLocation(mProgramHandle, "material_on");
     if (HasMaterial())
     {
       mMaterial->Bind(mProgramHandle);
+      glUniform1i(matLoc, 1);
+    }
+    else
+    {
+      glUniform1i(matLoc, 0); 
     }
 
     GLuint texLoc = glGetUniformLocation(mProgramHandle, "tex_on");
-    if (HasTexture())
+    if (HasTexture() && mTexture->Valid())
     {
       mTexture->Bind(mProgramHandle);
       glUniform1i(texLoc, 1);

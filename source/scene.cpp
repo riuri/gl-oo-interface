@@ -16,14 +16,18 @@ void Scene::Render()
 {
   if (Scene::IsInitialized())
   { 
+    int numLights = mLights.size();
+    GLuint numLightsLoc = glGetUniformLocation(mProgramHandle, "numLights");
+    glUniform1i(numLightsLoc, numLights);
+
     // Position current camera.
     mCameras[mCurrentCamera]->Position();
     OpenGLMatrix& currentView = mCameras[mCurrentCamera]->GetViewMatrix();
 
     // Set all lights.
-    for (auto light : mLights)
+    for (int i = 0; i < numLights; i++)
     {
-      light->Position(currentView);
+      mLights[i]->Position(currentView, i);
     }
 
     // Render all objects.
@@ -87,7 +91,7 @@ void Scene::Clean()
   }
 }
 
-void Scene::AddCamera(Camera::CameraType type)
+void Scene::Add(Camera::CameraType type)
 {
   // Add a default camera.
   Camera* camera = new Camera(mPipelineProgram, mProgramHandle);
@@ -95,7 +99,7 @@ void Scene::AddCamera(Camera::CameraType type)
   mCameras.push_back(camera);
 }
 
-void Scene::AddCamera(Camera* camera)
+void Scene::Add(Camera* camera)
 {
   if (camera) 
   {
@@ -103,12 +107,17 @@ void Scene::AddCamera(Camera* camera)
   }
 }
 
-void Scene::AddObject(SceneObject* object)
+void Scene::Add(SceneObject* object)
 {
   if (object)
   {
     mObjects.push_back(object);
   }
+}
+
+void Scene::Add(Light* light)
+{
+  mLights.push_back(light);
 }
 
 
