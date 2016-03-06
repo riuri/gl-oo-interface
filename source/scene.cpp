@@ -5,6 +5,11 @@ void Scene::Init(BasicPipelineProgram* pipelineProgram, GLuint programHandle)
   mPipelineProgram = pipelineProgram;
   mProgramHandle = programHandle;
   mInitialized = true;
+
+  // Add a default camera.
+  Camera* defaultCamera = new Camera(pipelineProgram, programHandle);
+  defaultCamera->SetCameraType(Camera::EDITOR);
+  mCameras.push_back(defaultCamera);
 }
 
 void Scene::Render()
@@ -81,3 +86,30 @@ void Scene::Clean()
     delete camera;
   }
 }
+
+void Scene::AddCamera(Camera::CameraType type)
+{
+  // Add a default camera.
+  Camera* camera = new Camera(mPipelineProgram, mProgramHandle);
+  camera->SetCameraType(type);
+  mCameras.push_back(camera);
+}
+
+void Scene::AddCamera(Camera* camera)
+{
+  if (camera) 
+  {
+    mCameras.push_back(camera);  
+  }
+}
+
+void Scene::AddObject(SceneObject* object)
+{
+  if (object)
+  {
+    mObjects.push_back(object);
+  }
+}
+
+
+
