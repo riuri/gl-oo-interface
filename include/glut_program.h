@@ -43,12 +43,12 @@ public:
   virtual void ReshapeFunc(int w, int h);      // Window resize callback.
 
 
-  void PassiveMotionFunc(int x, int y);                 // Mouse motion callback.
-  void MouseFunc(int button, int state, int x, int y);  // Mouse button callback.
-  void MotionFunc(int x, int y);                        // Mouse drag callback.
+  virtual void PassiveMotionFunc(int x, int y);                 // Mouse motion callback.
+  virtual void MouseFunc(int button, int state, int x, int y);  // Mouse button callback.
+  virtual void MotionFunc(int x, int y);                        // Mouse drag callback.
   
-  void KeyboardFunc(unsigned char key, int x, int y);  // Key pressed.
-  void Run() { glutMainLoop(); }
+  virtual void KeyboardFunc(unsigned char key, int x, int y);  // Key pressed.
+  virtual void Run() { glutMainLoop(); }
 
 protected:
   BasicPipelineProgram *mPipelineProgram { nullptr };

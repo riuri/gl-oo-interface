@@ -28,8 +28,19 @@ public:
   virtual void ReshapeScreen(int w, int h);
   bool IsInitialized() const { return mInitialized; }
   
-  void ChangeCamera();
-  Camera* GetCurrentCamera() { return mCameras[mCurrentCamera]; };
+  virtual void OnMouseLeftClick(int x, int y, int w, int h)   { }
+  virtual void OnMouseRightClick(int x, int y, int w, int h)  { }
+
+  virtual void ChangeCamera();
+  virtual Camera* GetCurrentCamera() { return mCameras[mCurrentCamera]; };
+
+  virtual void Add(Camera::CameraType type);
+  virtual void Add(Camera* camera);
+
+  virtual void Add(Light* light);
+  virtual void Add(SceneObject* object);
+
+  virtual void Load() {  }
 
   void SetPipelineProgramParam(BasicPipelineProgram *pipelineProgram, GLuint programHandle);
 

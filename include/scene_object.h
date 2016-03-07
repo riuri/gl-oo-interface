@@ -41,6 +41,7 @@ struct Texture
   GLuint mBuffer { 0 }; // Texture buffer object id.  
 
   inline void Bind(GLuint programHandle) { glBindTexture(GL_TEXTURE_2D, mBuffer); }
+  inline bool Valid() { return (mBuffer != 0); }
 
   void Load(int width, int height);
   void Load(ImageIO* source);

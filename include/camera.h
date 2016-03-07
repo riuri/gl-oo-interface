@@ -82,7 +82,7 @@ private:
 inline
 void Camera::LookAt(const glm::vec3& pos, const glm::vec3& dir, const glm::vec3& upVec)
 {
-  mPos = pos + upVec;
+  mPos = pos;
   mDir = dir;
   mUpVec = upVec;
 }
