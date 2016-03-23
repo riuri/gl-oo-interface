@@ -42,6 +42,8 @@ public:
 
   virtual void Load() {  }
 
+  SceneObject* SelectObject(int x, int y, int w, int h);
+
   void SetPipelineProgramParam(BasicPipelineProgram *pipelineProgram, GLuint programHandle);
 
   virtual ~Scene() { Scene::Clean(); }

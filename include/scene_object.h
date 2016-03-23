@@ -14,6 +14,8 @@
 #include "imageIO.h"
 #include "mesh.h"
 
+using namespace gloo;
+
 struct Texture;
 struct Material;
 
@@ -58,7 +60,7 @@ public:
   SceneObject(BasicPipelineProgram* pipelineProgram, GLuint programHandle) 
   : mPipelineProgram(pipelineProgram), mProgramHandle(programHandle)
   { 
-    mModelMatrix.SetMatrixMode(OpenGLMatrix::ModelView); 
+    mModelMatrix.SetMatrixMode(OpenGLMatrix::ModelView);
   }
 
   // Render method - must be called in Scene::Render().
@@ -72,6 +74,8 @@ public:
   inline bool IsInitialized() const { return (mMesh != nullptr);     }
   inline bool HasMaterial()   const { return (mMaterial != nullptr); }
   inline bool HasTexture()    const { return (mTexture  != nullptr); }
+
+  virtual bool IntersectRay(const glm::vec3& ray, const glm::vec3& C) const;
 
   // Getter and setters.
   void SetMeshOwner(bool isOwner) { mIsMeshOwner = isOwner; }

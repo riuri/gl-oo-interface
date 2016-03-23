@@ -34,13 +34,23 @@
 //  |  It also uses element arrays and the draw mode  |
 //  |  is configurable.                               |
 //  +-------------------------------------------------+
- 
+   
+
+namespace gloo 
+{
+
 class Mesh
 {
 public:
+  enum StorageType  // Tells how vertices are stored in GPU.
+  {
+    kTightlyPacked,   // All per-vertex data is stored together (i.e. array of vertices).
+    kSubBuffered,     // Each attribute is store in a different sub buffer (i.e. arrays 
+                      // of pos, rgb, uv, ...).
+  };
+
   // Constructors.
   Mesh() { }
-  //Mesh(const ObjMesh* objMesh);
 
   // TODO: COMMENT!!
   virtual void Render() const;                    // Renders the geometry at the current origin.
@@ -52,11 +62,34 @@ public:
   // You  may want to use PositionAt, ColorAt, NormalAt, TexCoordAt and IndexAt to edit the geometry.
   virtual void Preallocate(int numVertices, int numIndices, bool hasColors, bool hasNormals, bool hasTexCoord);
 
-  virtual void LoadFromObj(const std::string& objFilename);
+  // Generic load methods.
+  virtual bool Load(const GLfloat* positions,
+                    const GLfloat* colors   , 
+                    const GLfloat* normals  ,
+                    const GLfloat* texCoords,
+                    const GLuint* indices  ,
+                    int numVertices,
+                    int numIndices,
+                    GLenum drawMode         = GL_TRIANGLES,
+                    StorageType storageType = kTightlyPacked
+                  );
+
+  // Load from tightly packed GLfloat array.
+  virtual bool Load(const GLfloat* vertices, 
+                    const GLuint* indices, 
+                    int numVertices,  
+                    int numIndices, 
+                    bool hasColors,   
+                    bool hasNormals, 
+                    bool hasTexCoord, 
+                    GLenum drawMode = GL_TRIANGLES
+                  );
+
+  virtual void LoadFromObj(const std::string & objFilename);
 
   // Following methods help to load primitive objects such as a curve, a sequence of points with
   // uniform color and probably without lighting.
-  virtual void LoadFromPositions(const std::vector<glm::vec3>& positions, GLenum drawMode = GL_POINTS, 
+  virtual void LoadFromPositions(const std::vector<glm::vec3> & positions, GLenum drawMode = GL_POINTS, 
                                  float r = 1, float g = 1, float b = 1);
   virtual void UpdateFromPositions(const std::vector<glm::vec3>& positions);
 
@@ -79,6 +112,7 @@ public:
   GLfloat* ColorAt(int index);      // Address to vertex[index] RGB color.
   GLfloat* NormalAt(int index);     // Address to vertex[index] 3D normal vector.
   GLfloat* TexCoordAt(int index);   // Address to vertex[index] 2D texture coordinates.
+  
   GLuint*  IndexAt(int index);      // Address to element_array[index].
 
   // Destructor.
@@ -104,6 +138,7 @@ protected:
   int mVertexSize  { 0 };
 
   // OpenGL Buffers parameters.
+  StorageType mStorageType { kTightlyPacked };
   GLenum mDrawMode { GL_TRIANGLES };
   GLuint mEab { 0 };
   GLuint mVao { 0 };  
@@ -139,3 +174,5 @@ GLuint* Mesh::IndexAt(int index)
 {
   return &mIndices[index];
 }
+
+} // namespace gloo.

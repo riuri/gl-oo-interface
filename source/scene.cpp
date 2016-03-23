@@ -91,6 +91,23 @@ void Scene::Clean()
   }
 }
 
+SceneObject* Scene::SelectObject(int x, int y, int w, int h)
+{
+  // Cast ray from the camera to the environment.
+  glm::vec3 r = mCameras[mCurrentCamera]->ComputeRayAt(x, y, w, h);
+  glm::vec3 C = mCameras[mCurrentCamera]->GetCenterCoordinates();
+
+  for (auto object : mObjects)
+  {
+    if(object->IntersectRay(r, C))
+    {
+      return object;
+    }
+  }
+
+  return nullptr;
+}
+
 void Scene::Add(Camera::CameraType type)
 {
   // Add a default camera.

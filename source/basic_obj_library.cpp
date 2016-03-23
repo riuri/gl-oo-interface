@@ -1,103 +1,35 @@
 #include "basic_obj_library.h"
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AxisMesh::Load()
-{
-  mNumVertices = 6;
-  mNumIndices  = 6;
-  mDrawMode = GL_LINES;
-
-  GLfloat vertices[] = {0.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
-                        1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
-                        
-                        0.0f, 0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
-                        0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0.0f,
-
-                        0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,
-                        0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f
-                       };
-  GLuint indices[] = {0, 1, 2, 3, 4, 5};
-
-  mVertexSize = 6;
-  mHasColors  = true;
-  mHasNormals = false;
-  mHasTexCoord = false;
-
-  mVertices = new GLfloat [mVertexSize * mNumVertices];
-  mIndices  = new GLuint  [mNumIndices];
-
-  memcpy(mVertices, vertices, sizeof(vertices));
-  memcpy(mIndices,  indices,  sizeof(indices));
-
-  mInitialized = true;
-  Mesh::UploadGLBuffers();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SquareMesh::Load()
-{
-  mNumVertices = 4;
-  mNumIndices  = 4;
-  mDrawMode = GL_TRIANGLE_STRIP;
-
-  GLfloat vertices[] = {-1.0f, -1.0f, 0.0f,   0.0f, 0.0f,
-                        -1.0f, +1.0f, 0.0f,   0.0f, 1.0f,
-                        +1.0f, +1.0f, 0.0f,   1.0f, 1.0f,
-                        +1.0f, -1.0f, 0.0f,   1.0f, 0.0f
-                       };
-  GLuint indices[] = {1, 0, 2, 3};
-
-  mVertexSize = 5;
-  mHasColors  = false;
-  mHasNormals = false;
-  mHasTexCoord = true;
-
-  mVertices = new GLfloat [mVertexSize * mNumVertices];
-  mIndices  = new GLuint  [mNumIndices];
-
-  memcpy(mVertices, vertices, sizeof(vertices));
-  memcpy(mIndices,  indices,  sizeof(indices));
-
-  mInitialized = true;
-  Mesh::UploadGLBuffers();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define INDEX(a, b) (((w) * (b)) + a)
 
-void GridMesh::Load()
+void GridObject::Load(int w, int h)
 {
-  int w = mWidth;
-  int h = mHeight;
+  mWidth  = w;
+  mHeight = h;
+  int numVertices = (w * h);
+  int numIndices  = (2 * w * h);
 
-  mNumVertices = (w * h);
-  mNumIndices = (2 * w * h);
-  mDrawMode = GL_LINE_STRIP;
+  std::vector<GLfloat> vertices;
+  std::vector<GLuint> indices; 
 
-  mVertexSize = 6;
-  mHasColors  = true;
-  mHasNormals = false;
-  mHasTexCoord = false;
-
-  mVertices = new GLfloat [mVertexSize * mNumVertices];
-  mIndices  = new GLuint  [mNumIndices];
+  vertices.reserve(numVertices * 6);
+  indices.reserve(numIndices);
 
   // Initialize vertices.
   for (int y = 0; y < h; y++)
   {
     for (int x = 0; x < w; x++)
     {
-      GLfloat* position = PositionAt(INDEX(x, y));
-      GLfloat* color = ColorAt(INDEX(x, y));
-      position[0] = static_cast<float>(x - w/2)/w;
-      position[1] = 0.0;
-      position[2] = static_cast<float>(y - h/2)/h;
-      color[0] = 0.45f;
-      color[1] = 0.45f;
-      color[2] = 0.45f;
+      // Positions x, y, z.
+      vertices.push_back(static_cast<float>(x - w/2)/w);
+      vertices.push_back(0.0);
+      vertices.push_back(static_cast<float>(y - h/2)/h);
+
+      // Colors RGB.
+      vertices.push_back(0.45f);
+      vertices.push_back(0.45f);
+      vertices.push_back(0.45f);
     }
   }
 
@@ -112,7 +44,7 @@ void GridMesh::Load()
   {
     x = ((dx == 1) ? 0 : w-1);
     for (int k = 0; k < w; k++, x += dx)
-      mIndices[index++] = INDEX(x, y);
+      indices.push_back(INDEX(x, y));
     dx *= -1;
   }
 
@@ -124,32 +56,34 @@ void GridMesh::Load()
   {
     y = ((dy == 1) ? 0 : h-1);
     for (int j = 0; j < h; j++, y += dy)
-      mIndices[index++] = INDEX(x, y);
+      indices.push_back(INDEX(x, y));
     dy *= -1;
   }
 
-  mInitialized = true;
-  Mesh::UploadGLBuffers();
+  mMesh = new Mesh();
+  mMesh->SetProgramHandle(mProgramHandle);
+  mMesh->Load(&vertices[0], &indices[0], numVertices, numIndices, true, false, false, GL_LINE_STRIP);
+  SceneObject::SetScale(w, 1.0f, h);
+  mIsMeshOwner = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TexturedSphereMesh::Load(bool completeDome)
+void TexturedSphere::Load(const std::string& fileName, bool completeDome, int detailLevel)
 {
+  mDetailLevel = detailLevel;
   int n = mDetailLevel + 1;
   int h = mDetailLevel + 1;
+  int numVertices = (n * h);
+  int numIndices  = 2*(h-2)*n + 2*n + 2*(h-2);
 
-  mNumVertices = (n * h);
-  mNumIndices  = 2*(h-2)*n + 2*n + 2*(h-2);
-  mDrawMode = GL_TRIANGLE_STRIP;
+  std::vector<GLfloat> vertices;
+  std::vector<GLuint> indices;
 
-  mVertexSize  = 8;
-  mHasColors   = false;
-  mHasNormals  = true;
-  mHasTexCoord = true;
+  vertices.reserve((3 + 3 + 2) * numVertices);
+  indices.reserve(numIndices);
 
-  mVertices = new GLfloat [mVertexSize * mNumVertices];
-  mIndices  = new GLuint  [mNumIndices];
+  GLfloat position[3];
 
   // Initialize vertices.
   for (int v = 0; v < h; v++)
@@ -160,39 +94,41 @@ void TexturedSphereMesh::Load(bool completeDome)
       GLfloat theta_u = (2*M_PI * u) / (n-1);
       GLfloat theta_v = (M_PI * v) / (h-1);
 
-      GLfloat* position = PositionAt(index);
-      GLfloat* texCoord = TexCoordAt(index);
-      GLfloat* normal = NormalAt(index);
-      
-      texCoord[0] = 1 - static_cast<float>(u) / (n-1);
-      if (completeDome)
-      {
-        texCoord[1] = 1 - static_cast<float>(v) / (h-1);
-      }
-      else
-      {
-        texCoord[1] = 2 - 2*static_cast<float>(v) / (h-1);
-      }
-      
       position[0] = cos(theta_u) * sin(theta_v);
       position[2] = sin(theta_u) * sin(theta_v);
       position[1] = cos(theta_v);
 
-      normal[0] = 2*position[0];
-      normal[1] = 2*position[1];
-      normal[2] = 2*position[2];
+      // Positions.
+      vertices.push_back(position[0]);
+      vertices.push_back(position[1]);
+      vertices.push_back(position[2]);
+
+      // Normals.
+      vertices.push_back(2*position[0]);
+      vertices.push_back(2*position[1]);
+      vertices.push_back(2*position[2]);
+      
+      // Texture UV.
+      vertices.push_back(1 - static_cast<float>(u) / (n-1));
+      if (completeDome)
+      {
+        vertices.push_back(1 - static_cast<float>(v) / (h-1));
+      }
+      else
+      {
+        vertices.push_back(2 - 2*static_cast<float>(v) / (h-1));
+      }
     }
   }
 
   // Initialize indices.
-  int index = 0;
   for (int v = 0; v < h-1; v++)
   {
     // Zig-zag pattern: alternate between top and bottom.
     for (int u = 0; u < n; u++)
     {
-      mIndices[index++] = ((v+0)*n + u);
-      mIndices[index++] = ((v+1)*n + u);
+      indices.push_back((v+0)*n + u);
+      indices.push_back((v+1)*n + u);
     }
 
     // Triangle row transition: handle discontinuity.
@@ -200,66 +136,77 @@ void TexturedSphereMesh::Load(bool completeDome)
     {
       // Repeat last vertex and the next row first vertex to generate 
       // two invalid triangles and get continuity in the mesh.
-      mIndices[index++] = ((v+1)*n + (n-1)); //INDEX(this->width-1, y+1);
-      mIndices[index++] = ((v+1)*n + 0);     //INDEX(0, y+1);
+      indices.push_back((v+1)*n + (n-1)); //INDEX(this->width-1, y+1);
+      indices.push_back((v+1)*n + 0);     //INDEX(0, y+1);
     }
   }
 
-  mInitialized = true;
-  Mesh::UploadGLBuffers();
-}
+  mMesh = new Mesh();
+  mMesh->SetProgramHandle(mProgramHandle);
+  mMesh->Load(&vertices[0], &indices[0], numVertices, numIndices, false, true, true, GL_TRIANGLE_STRIP);
+  mIsMeshOwner = true;
 
+  mTexture = new Texture();
+  mTexture->Load(fileName);
+  mMaterial = new Material( glm::vec3(0.18), 
+                            glm::vec3(0.8), 
+                            glm::vec3(0.02) );
+
+  mUsingLighting = true;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TexturedTerrainMesh::Load(ImageIO* heightmap)
+
+void TexturedTerrain::Load(const std::string& heightmapFileName, const std::string& textureFileName, 
+  int w, int h)
 {
-  int w = mWidth;
-  int h = mHeight;
+  ImageIO* source = new ImageIO();
+  bool loaded = false;
 
-  mNumVertices = (w * h);
-  mNumIndices = 2*(h-2)*w + 2*w + 2*(h-2);
-  mDrawMode = GL_TRIANGLE_STRIP;
+  // Try to load the heightmap.
+  if (source->loadJPEG(heightmapFileName.c_str()) == ImageIO::OK)
+  {
+    loaded = true;
+  }
 
-  mVertexSize = 8;
-  mHasColors  = false;
-  mHasNormals = true;
-  mHasTexCoord = true;
+  mWidth  = w;
+  mHeight = h;
+  int numVertices = (w * h);
+  int numIndices = 2*(h-2)*w + 2*w + 2*(h-2);
+  std::vector<GLfloat> vertices;
+  std::vector<GLuint> indices;
 
-  mVertices = new GLfloat [mVertexSize * mNumVertices];
-  mIndices  = new GLuint  [mNumIndices];
+  vertices.reserve((3 + 3 + 2)*numVertices);
+  indices.reserve(numIndices);
 
   // Initialize vertices.
   for (int y = 0; y < h; y++)
   {
     for (int x = 0; x < w; x++)
     {
-      GLfloat* position = PositionAt(INDEX(x, y));
-      GLfloat* texCoord = TexCoordAt(INDEX(x, y));
-      GLfloat* normal = NormalAt(INDEX(x, y));
+      vertices.push_back(static_cast<float>(x - w/2)/w);
+      vertices.push_back(loaded ? (source->getPixel(x, y, 0)/4.0f - 255/4) : 0.0f);
+      vertices.push_back(static_cast<float>(y - h/2)/h);
 
-      position[0] = static_cast<float>(x - w/2)/w;
-      position[2] = static_cast<float>(y - h/2)/h;
-      position[1] = (heightmap != nullptr) ? (heightmap->getPixel(x, y, 0)/4.0f - 255/4) : 0.0f;
-  
-      normal[0] = 0;
-      normal[1] = 1;
-      normal[2] = 0;
+      // TODO: compute normals if loaded.
+      vertices.push_back(0);
+      vertices.push_back(1);
+      vertices.push_back(0);
 
-      texCoord[0] = static_cast<float>(x);
-      texCoord[1] = static_cast<float>(y);
+      vertices.push_back(static_cast<float>(x));
+      vertices.push_back(static_cast<float>(y));
     }
   }
 
   // Initialize indices.
-  int index = 0;
   for (int y = 0; y < h-1; y++)
   {
     // Zig-zag pattern: alternate between top and bottom.
     for (int x = 0; x < w; x++)
     {
-      mIndices[index++] = INDEX(x, y);
-      mIndices[index++] = INDEX(x, y+1);
+      indices.push_back(INDEX(x, y));
+      indices.push_back(INDEX(x, y+1));
     }
 
     // Triangle row transition: handle discontinuity.
@@ -267,11 +214,23 @@ void TexturedTerrainMesh::Load(ImageIO* heightmap)
     {
       // Repeat last vertex and the next row first vertex to generate 
       // two invalid triangles and get continuity in the mesh.
-      mIndices[index++] = INDEX(w-1, y+1);
-      mIndices[index++] = INDEX(0, y+1);
+      indices.push_back(INDEX(w-1, y+1));
+      indices.push_back(INDEX(0, y+1));
     }
   }
 
-  mInitialized = true;
-  Mesh::UploadGLBuffers();
+
+  mMesh = new Mesh();
+  mMesh->SetProgramHandle(mProgramHandle);
+  mMesh->Load(&vertices[0], &indices[0], numVertices, numIndices, false, true, true, GL_TRIANGLE_STRIP);
+  mIsMeshOwner = true;
+
+  mTexture = new Texture();
+  mTexture->Load(textureFileName);
+  mMaterial = new Material( glm::vec3(0.18), 
+                            glm::vec3(0.8), 
+                            glm::vec3(0.02) );
+
+  mUsingLighting = true;
+  delete source;
 }

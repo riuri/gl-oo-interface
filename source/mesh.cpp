@@ -4,13 +4,16 @@
 #include <sstream>
 #include <cstdio>
 
+namespace gloo
+{
+
 void Mesh::Render() const
 {
   if (IsInitialized()) 
   {
     glBindVertexArray(mVao);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
+
     glDrawElements(
      mDrawMode,         // mode.
      mNumIndices,       // number of vertices.
@@ -18,6 +21,125 @@ void Mesh::Render() const
      (void*)0           // element array buffer offset.
     );
   }
+}
+
+bool Mesh::Load(const GLfloat* positions,
+                const GLfloat* colors   , 
+                const GLfloat* normals  ,
+                const GLfloat* texCoords,
+                const GLuint* indices  ,
+                int numVertices, int numIndices,
+                GLenum drawMode, StorageType storageType
+              ) 
+{ 
+  if (!positions || numVertices <= 0)
+  {
+    return false;
+  }
+
+  mDrawMode = drawMode;
+  mStorageType = storageType;
+  mNumVertices = numVertices;
+  mNumIndices  = (numIndices <= 0 || indices == nullptr) ? numVertices : numIndices;
+
+  mHasColors   = (colors    != nullptr);
+  mHasNormals  = (normals   != nullptr);
+  mHasTexCoord = (texCoords != nullptr);
+  mVertexSize  = 3 + 3*mHasColors + 3*mHasNormals + 2*mHasTexCoord;
+
+  mVertices = new GLfloat [mVertexSize * mNumVertices];
+  mIndices  = new GLuint  [mNumIndices];
+
+  if (mStorageType == kTightlyPacked)
+  {
+    // Initialize vertices buffer array. 
+    for (int i = 0; i < mNumVertices; i++)
+    {
+      float* position = PositionAt(i);
+      float* texCoord = TexCoordAt(i);
+      float* normal   = NormalAt(i); 
+      float* color    = ColorAt(i);
+
+      memcpy(position, positions + 3*i, sizeof(GLfloat)*3);
+      if (HasColors())
+      {
+        memcpy(color, colors + 3*i, sizeof(GLfloat)*3);
+      }
+      if (HasNormals())
+      {
+        memcpy(normal, normals + 3*i, sizeof(GLfloat)*3);
+      }
+      if (HasTexCoord())
+      {
+        memcpy(texCoord, texCoords + 2*i, sizeof(GLfloat)*2);
+      }
+    }
+
+    // Initialize element array (indices array).
+    if (indices)  // Element array provided.
+    {
+      memcpy(mIndices, indices, sizeof(GLuint)*mNumIndices);
+    }
+    else  // Element array wasn't provided -- build it up.
+    {
+      for (int i = 0; i < mNumIndices; i++)
+      {
+        mIndices[i] = i;
+      }
+    }
+  }
+  else
+  {
+
+  }
+
+  mInitialized = true;
+  Mesh::UploadGLBuffers();
+  return true;
+}
+
+bool Mesh::Load(const GLfloat* vertices, const GLuint* indices, 
+                int numVertices,         int numIndices, 
+                bool hasColors,          bool hasNormals, 
+                bool hasTexCoord,        GLenum drawMode
+              )
+{
+  if (!vertices || numVertices <= 0)
+  {
+    return false;
+  }
+
+  mDrawMode = drawMode;
+  mNumVertices = numVertices;
+  mNumIndices  = (numIndices <= 0 || indices == nullptr) ? numVertices : numIndices;
+
+  mHasColors   = hasColors;
+  mHasNormals  = hasNormals;
+  mHasTexCoord = hasTexCoord;
+  mVertexSize  = 3 + 3*hasColors + 3*hasNormals + 2*hasTexCoord;
+
+  mVertices = new GLfloat [mVertexSize * mNumVertices];
+  mIndices  = new GLuint  [mNumIndices];
+
+  // Initialize vertices buffer array. 
+  memcpy(mVertices, vertices, sizeof(GLfloat)*mVertexSize*mNumVertices);
+
+  // Initialize element array (indices array).
+  if (indices)  // Element array provided.
+  {
+    memcpy(mIndices, indices, sizeof(GLuint)*mNumIndices);
+  }
+  else  // Element array wasn't provided -- build it up.
+  {
+    for (int i = 0; i < mNumIndices; i++)
+    {
+      mIndices[i] = i;
+    }
+  }
+
+  mInitialized = true;
+  Mesh::UploadGLBuffers();
+  return true;
 }
 
 void Mesh::UploadGLBuffers()
@@ -34,6 +156,12 @@ void Mesh::UploadGLBuffers()
     return;
   }
 
+  // Specify how the arguments will be passed to shaders.
+  GLuint locTexCoordAttrib = glGetAttribLocation(mProgramHandle, "in_tex_coord");
+  GLuint locPositionAttrib = glGetAttribLocation(mProgramHandle, "in_position");
+  GLuint locNormalAttrib   = glGetAttribLocation(mProgramHandle, "in_normal");
+  GLuint locColorAttrib    = glGetAttribLocation(mProgramHandle, "in_color");
+
   // Generate Buffers.
   glGenVertexArrays(1, &mVao);
   glGenBuffers(1, &mVbo);
@@ -42,29 +170,15 @@ void Mesh::UploadGLBuffers()
   // Specify VAO.
   glBindVertexArray(mVao);
   
-  // Upload vertices to GPU.
-  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat), mVertices, GL_STATIC_DRAW);
-
   // Upload indices to GPU.
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);  
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumIndices * sizeof(GLuint), mIndices, GL_STATIC_DRAW);
 
-  // Specify how the arguments will be passed to shaders.
-  GLuint locTexCoordAttrib = glGetAttribLocation(mProgramHandle, "in_tex_coord");
-  GLuint locPositionAttrib = glGetAttribLocation(mProgramHandle, "in_position");
-  GLuint locNormalAttrib = glGetAttribLocation(mProgramHandle, "in_normal");
-  GLuint locColorAttrib  = glGetAttribLocation(mProgramHandle, "in_color");
-  GLfloat stride = sizeof(GLfloat) * mVertexSize;
-
+  // Enable/Disable each vertex attribute.
   glEnableVertexAttribArray(locPositionAttrib);
-  glVertexAttribPointer(locPositionAttrib, 3, GL_FLOAT, GL_FALSE, stride, 0);
-  
   if (HasColors())
   {
     glEnableVertexAttribArray(locColorAttrib);
-    glVertexAttribPointer(locColorAttrib, 3, GL_FLOAT, GL_FALSE, stride, 
-      (void*)(sizeof(GLfloat) * 3));
   }
   else
   {
@@ -74,8 +188,6 @@ void Mesh::UploadGLBuffers()
   if (HasNormals())
   {
     glEnableVertexAttribArray(locNormalAttrib);
-    glVertexAttribPointer(locNormalAttrib, 3, GL_FLOAT, GL_FALSE, stride, 
-      (void*)(sizeof(GLfloat) * (3 + 3*mHasColors)));
   }
   else
   {
@@ -85,12 +197,42 @@ void Mesh::UploadGLBuffers()
   if (HasTexCoord())
   { 
     glEnableVertexAttribArray(locTexCoordAttrib);
-    glVertexAttribPointer(locTexCoordAttrib, 2, GL_FLOAT, GL_FALSE, stride, 
-      (void*)(sizeof(GLfloat) * (3 + 3*mHasColors + 3*mHasNormals)) );
   }
   else
   {
     glDisableVertexAttribArray(locTexCoordAttrib);
+  }
+
+  // Upload vertices to GPU.
+  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
+  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat), mVertices, GL_STATIC_DRAW);
+
+  if (mStorageType == kTightlyPacked)
+  {
+    GLfloat stride = sizeof(GLfloat) * mVertexSize;
+    glVertexAttribPointer(locPositionAttrib, 3, GL_FLOAT, GL_FALSE, stride, 0);
+    
+    glVertexAttribPointer(locColorAttrib, 3, GL_FLOAT, GL_FALSE, stride, 
+      (void*)(sizeof(GLfloat) * 3));
+
+    glVertexAttribPointer(locNormalAttrib, 3, GL_FLOAT, GL_FALSE, stride, 
+      (void*)(sizeof(GLfloat) * (3 + 3*mHasColors)));
+
+    glVertexAttribPointer(locTexCoordAttrib, 2, GL_FLOAT, GL_FALSE, stride, 
+      (void*)(sizeof(GLfloat) * (3 + 3*mHasColors + 3*mHasNormals)) );
+  }
+  else   // Sub buffered storage type.
+  {
+    glVertexAttribPointer(locPositionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glVertexAttribPointer(locColorAttrib,    3, GL_FLOAT, GL_FALSE, 0, 
+      (void*)(sizeof(GLfloat) * 3*mNumVertices));
+    
+    glVertexAttribPointer(locNormalAttrib,   3, GL_FLOAT, GL_FALSE, 0, 
+      (void*)(sizeof(GLfloat) * (3 + 3*mHasColors)*mNumVertices));
+
+    glVertexAttribPointer(locTexCoordAttrib, 2, GL_FLOAT, GL_FALSE, 0,   
+      (void*)(sizeof(GLfloat) * (3 + 3*mHasColors + 3*mHasNormals)*mNumVertices));
   }
 }
 
@@ -296,3 +438,5 @@ Mesh::~Mesh()
   delete [] mVertices;
   delete [] mIndices;
 }
+
+} // namespace gloo.

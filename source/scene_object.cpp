@@ -20,11 +20,13 @@ void SceneObject::Render() const
     GLuint texLoc = glGetUniformLocation(mProgramHandle, "tex_on");
     if (HasTexture() && mTexture->Valid())
     {
+      glEnable(GL_TEXTURE_2D);
       mTexture->Bind(mProgramHandle);
       glUniform1i(texLoc, 1);
     }
     else
     {
+      glDisable(GL_TEXTURE_2D);
       glUniform1i(texLoc, 0);
     }
 
@@ -47,6 +49,51 @@ void SceneObject::Animate()
   mModelMatrix.Rotate(mRot[0], 1, 0, 0);
   mModelMatrix.Rotate(mRot[1], 0, 1, 0);
   mModelMatrix.Scale(mScale[0], mScale[1], mScale[2]);
+}
+
+bool SceneObject::IntersectRay(const glm::vec3& r, const glm::vec3& C) const
+{
+  // Transform coordinates from view to model.
+  glm::mat4 M_inv = glm::inverse(mModelMatrix.GetGLMatrix());
+  glm::vec4 v = M_inv * glm::vec4(r, 0.0);  // Orientation vector.
+  glm::vec4 O = M_inv * glm::vec4(C, 1.0);  // Line origin.
+  
+  O /= O[3];
+  v = glm::normalize(v);
+
+  GLfloat* position;
+  float min_d = 100000.0f;
+  int bestPoint = -1;
+  int n = mMesh->GetNumVertices();
+  glm::vec3 P;
+
+  // Loop through positions to find the closest one to the ray.
+  for (int i = 0; i < n; i++)
+  {
+    position = mMesh->PositionAt(i);
+    P = glm::vec3(position[0], position[1], position[2]);
+    float d = glm::length( glm::cross( P-C, r ) );
+
+    if (d < min_d)
+    {
+      min_d = d;
+      bestPoint = i;
+    }
+  }
+
+  position = mMesh->PositionAt(bestPoint);
+  printf("vertex %.4f %.4f %.4f\n", position[0], position[1], position[2]);
+
+  // TODO: improve threshold.
+  // Check the minimum distance threshold.
+  if (min_d < 5.0f) // Success.
+  {
+    return true;
+  }
+  else  // No point selected.
+  {
+    return false;
+  }
 }
 
 SceneObject::~SceneObject()

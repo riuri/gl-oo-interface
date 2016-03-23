@@ -8,6 +8,8 @@
 
 #include "scene_object.h"
 
+using namespace gloo;
+
 /*********************************************************
 * This file provides classes for rendering primitive objs
 * such as axis, squares, mirrors, spheres/domes, terrain.
@@ -34,75 +36,6 @@
 // +----------------------------------------------------------+
 // Constructors' default is Object(pipelineProgram, programHandle)
 
-// The basic RGB axis used to show object center and orientation.
-class AxisMesh : public Mesh
-{
-public:
-  AxisMesh() { }
-  virtual ~AxisMesh() { }
-
-  void Load();
-};
-//-------------------------------------------------------------
-// Square - typically used in mirrors.
-class SquareMesh : public Mesh
-{
-public:
-  SquareMesh() { }
-  virtual ~SquareMesh() { }
-
-  void Load();
-};
-//-------------------------------------------------------------
-// Rectangular grid defining some plane.
-class GridMesh : public Mesh
-{
-public:
-  GridMesh(int w, int h) 
-  : mWidth(w), mHeight(h) 
-  { }
-  
-  virtual ~GridMesh() { }
-  void Load();
-
-private:
-  int mWidth;
-  int mHeight;
-};
-//-------------------------------------------------------------
-
-class TexturedTerrainMesh : public Mesh
-{
-public:
-  TexturedTerrainMesh(int w, int h) 
-  : mWidth(w), mHeight(h)
-  { }
-  
-  void Load(ImageIO* heightmap);
-
-  virtual ~TexturedTerrainMesh() { }
-
-  private:
-    int mWidth;
-    int mHeight;
-};
-//-------------------------------------------------------------
-// Textured sphere - typically used for creating a dome.
-class TexturedSphereMesh : public Mesh
-{
-public:
-  TexturedSphereMesh(int detailLevel) 
-  : mDetailLevel(detailLevel)
-  { }
-  
-  virtual ~TexturedSphereMesh() { }
-
-  void Load(bool completeDome);
-
-private:
-  int mDetailLevel;
-
-};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -115,10 +48,18 @@ public:
 
   void Load()
   {
-    AxisMesh* mesh = new AxisMesh();
-    mesh->SetProgramHandle(mProgramHandle);
-    mesh->Load();
-    mMesh = mesh;
+    GLfloat vertices[] = {0.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
+                          1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
+                          
+                          0.0f, 0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
+                          0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0.0f,
+
+                          0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+                          0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f
+                         };
+    mMesh = new Mesh();
+    mMesh->SetProgramHandle(mProgramHandle);
+    mMesh->Load(vertices, nullptr, 6, 0, true, false, false, GL_LINES);
     SceneObject::SetScale(5.0f, 5.0f, 5.0f);
     mIsMeshOwner = true;
   }
@@ -126,31 +67,7 @@ public:
   virtual ~AxisObject() { }
 };
 
-class Mirror : public SceneObject
-{
-public:
-  Mirror(BasicPipelineProgram* pipelineProgram, GLuint programHandle)
-  : SceneObject(pipelineProgram, programHandle) 
-  { }
-
-  void Load()
-  {
-    // TexturedSphereMesh* mesh = new TexturedSphereMesh(32);
-    // mesh->SetProgramHandle(mProgramHandle);
-    // mesh->Load();
-    // mesh->UploadGLBuffers();
-    // mMesh = mesh;
-    // mUsingLighting = false;
-    // mTexture = new Texture();
-    // mIsMeshOwner = true;
-  }
-
-  virtual ~Mirror()
-  {
-    delete mTexture;
-  }
-};
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 class GridObject : public SceneObject
 {
@@ -159,18 +76,14 @@ public:
   : SceneObject(pipelineProgram, programHandle) 
   { }
 
-  void Load(int w = 11, int h = 11)
-  {
-    GridMesh* mesh = new GridMesh(w, h);
-    mesh->SetProgramHandle(mProgramHandle);
-    mesh->Load();
-    mMesh = mesh;
-
-    SceneObject::SetScale(w, 1.0f, h);
-    mIsMeshOwner = true;
-  }
+  void Load(int w = 11, int h = 11);
 
   virtual ~GridObject() { }
+
+private:
+  int mWidth  { 11 };
+  int mHeight { 11 };
+
 };
 
 class TexturedSphere : public SceneObject
@@ -180,30 +93,19 @@ public:
   : SceneObject(pipelineProgram, programHandle) 
   { }
 
-  void Load(const std::string& fileName, bool completeDome = true)
-  {
-    TexturedSphereMesh* mesh = new TexturedSphereMesh(64);
-    mesh->SetProgramHandle(mProgramHandle);
-    mesh->Load(completeDome);
-    mMesh = mesh;
-
-    mTexture = new Texture();
-    mTexture->Load(fileName);
-
-    mMaterial = new Material( glm::vec3(0.18), 
-                              glm::vec3(0.8), 
-                              glm::vec3(0.02) );
-
-    mUsingLighting = true;
-    mIsMeshOwner = true;
-  }
+  void Load(const std::string& fileName, bool completeDome = true, int detailLevel = 32);
 
   virtual ~TexturedSphere()
   {
     delete mTexture;
     delete mMaterial;
   }
+private:
+  int mDetailLevel;
+
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 class TexturedTerrain : public SceneObject
 {
@@ -212,41 +114,17 @@ public:
   : SceneObject(pipelineProgram, programHandle)
   { }
 
-  void Load(const std::string& heightmapFileName, const std::string& textureFileName)
-  {
-    ImageIO* source = new ImageIO();
-    TexturedTerrainMesh* mesh;
-  
-    // Try to load the heightmap.
-    if (source->loadJPEG(heightmapFileName.c_str()) == ImageIO::OK)
-    {
-      mesh = new TexturedTerrainMesh(source->getWidth(), source->getHeight());
-      mesh->SetProgramHandle(mProgramHandle);
-      mesh->Load(source);
-    }
-    else
-    {
-      mesh = new TexturedTerrainMesh(20, 20);
-      mesh->SetProgramHandle(mProgramHandle);
-      mesh->Load(nullptr);
-    }
-
-    mTexture = new Texture();
-    mTexture->Load(textureFileName);
-
-    mMaterial = new Material( glm::vec3(0.18), 
-                              glm::vec3(0.8), 
-                              glm::vec3(0.02) );
-    mUsingLighting = true;
-
-    mMesh = mesh;
-    mIsMeshOwner = true;
-  }
+  void Load(const std::string& heightmapFileName, const std::string& textureFileName, 
+    int w = 21, int h = 21);
 
   virtual ~TexturedTerrain()
   {
     delete mTexture;
     delete mMaterial;
   }
+
+private:
+  int mWidth  { 21 };
+  int mHeight { 21 };
 
 };
