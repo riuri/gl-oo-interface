@@ -24,12 +24,14 @@ void Mesh::Render() const
 }
 
 bool Mesh::Load(const GLfloat* positions,
-                const GLfloat* colors   , 
-                const GLfloat* normals  ,
+                const GLfloat* colors, 
+                const GLfloat* normals,
                 const GLfloat* texCoords,
-                const GLuint* indices  ,
-                int numVertices, int numIndices,
-                GLenum drawMode, StorageType storageType
+                const GLuint* indices,
+                int numVertices, 
+                int numIndices,
+                GLenum drawMode, 
+                StorageType storageType
               ) 
 { 
   if (!positions || numVertices <= 0)
@@ -74,27 +76,44 @@ bool Mesh::Load(const GLfloat* positions,
         memcpy(texCoord, texCoords + 2*i, sizeof(GLfloat)*2);
       }
     }
-
-    // Initialize element array (indices array).
-    if (indices)  // Element array provided.
-    {
-      memcpy(mIndices, indices, sizeof(GLuint)*mNumIndices);
-    }
-    else  // Element array wasn't provided -- build it up.
-    {
-      for (int i = 0; i < mNumIndices; i++)
-      {
-        mIndices[i] = i;
-      }
-    }
   }
   else
   {
+    GLfloat* dest = mVertices;
+    memcpy(dest, positions, 3*sizeof(GLfloat)*mNumVertices);
+    dest += 3*mNumVertices;
+    if (HasColors())
+    {
+      memcpy(dest, colors, 3*sizeof(GLfloat)*mNumVertices);
+      dest += 3*mNumVertices;
+    }
+    if (HasNormals())
+    {
+      memcpy(dest, normals, 3*sizeof(GLfloat)*mNumVertices);
+      dest += 3*mNumVertices;
+    }
+    if (HasTexCoord())
+    {
+      memcpy(dest, texCoords, 2*sizeof(GLfloat)*mNumVertices);
+      dest += 2*mNumVertices;
+    }
+  }
 
+  // Initialize element array (indices array).
+  if (indices)  // Element array provided.
+  {
+    memcpy(mIndices, indices, sizeof(GLuint)*mNumIndices);
+  }
+  else  // Element array wasn't provided -- build it up.
+  {
+    for (int i = 0; i < mNumIndices; i++)
+    {
+      mIndices[i] = i;
+    }
   }
 
   mInitialized = true;
-  Mesh::UploadGLBuffers();
+  Mesh::Upload();
   return true;
 }
 
@@ -129,7 +148,7 @@ bool Mesh::Load(const GLfloat* vertices, const GLuint* indices,
   {
     memcpy(mIndices, indices, sizeof(GLuint)*mNumIndices);
   }
-  else  // Element array wasn't provided -- build it up.
+  else  // Element array wasn't provided -- build it up default elements.
   {
     for (int i = 0; i < mNumIndices; i++)
     {
@@ -138,11 +157,11 @@ bool Mesh::Load(const GLfloat* vertices, const GLuint* indices,
   }
 
   mInitialized = true;
-  Mesh::UploadGLBuffers();
+  Mesh::Upload();
   return true;
 }
 
-void Mesh::UploadGLBuffers()
+void Mesh::Upload()
 {
   if (mProgramHandle == 0)
   {
@@ -254,167 +273,6 @@ void Mesh::Preallocate(int numVertices, int numIndices, bool hasColors,
   mIndices  = new GLuint  [mNumIndices];
 
   mInitialized = true;
-}
-
-void Mesh::LoadFromObj(const std::string& objFilename)
-{
-    /* Courtesy from https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Load_OBJ */
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec2> texCoord;
-    std::vector<GLuint> elements;
-
-    float  x, y, z;
-    GLuint a, b, c;
-
-    std::ifstream in(objFilename, std::ios::in);
-    if (!in)
-    {
-        std::cerr << "ERROR Couldn't open " << objFilename << std::endl;
-    }
-
-    std::string line;
-    while (getline(in, line))
-    {
-      if (line.substr(0,2) == "v ")
-      {
-        std::istringstream s(line.substr(2));
-        s >> x; s >> y; s >> z;
-        positions.emplace_back(x, y, z);
-      }
-      else if (line.substr(0,3) == "vn ")
-      {
-        std::istringstream s(line.substr(3));
-        s >> x; s >> y; s >> z;
-        normals.emplace_back(x, y, z);
-      }
-      else if (line.substr(0,2) == "f ")
-      {
-        std::istringstream s(line.substr(2));
-        
-        s >> a; s >> b; s >> c;
-        a--; b--; c--;
-        elements.push_back(a); 
-        elements.push_back(b); 
-        elements.push_back(c);
-      }
-      else if (line.substr(0,2) == "t ")
-      {
-        std::istringstream s(line.substr(2));
-        s >> x; s >> y;
-        texCoord.emplace_back(x, y);
-      }
-      else if (line[0] == '#')
-      {
-          /* ignoring this line */
-      }
-      else
-      {
-          /* ignoring this line */
-      }
-    }
-
-    if (normals.size() == 0)  // Normals weren't provided in the obj file.
-    {
-      normals.resize(positions.size(), glm::vec3(0.0, 0.0, 0.0));
-      for (int i = 0; i < elements.size(); i+=3)
-      {
-          a = elements[i];
-          b = elements[i+1];
-          c = elements[i+2];
-          glm::vec3 normal = glm::normalize(glm::cross(
-          glm::vec3(positions[b]) - glm::vec3(positions[a]),
-          glm::vec3(positions[c]) - glm::vec3(positions[a])));
-          normals[a] = normals[b] = normals[c] = normal;
-      }
-    }
-
-    mHasColors  = false;
-    mHasNormals = true;
-    mHasTexCoord = (texCoord.size() > 0 );
-    mVertexSize = 3 + 3*mHasColors + 3*mHasNormals + 2*mHasTexCoord;
-    mDrawMode = GL_TRIANGLES;
-
-    mNumVertices = positions.size();
-    mNumIndices  = elements.size();
-
-    mVertices = new GLfloat [mVertexSize * mNumVertices];
-    mIndices  = new GLuint  [mNumIndices];
-
-    for (int i = 0; i < mNumVertices; i++)
-    {
-      float* position = PositionAt(i);
-      float* normal   = NormalAt(i);
-      //float* color    = ColorAt(i);
-
-      position[0] = positions[i][0];
-      position[1] = positions[i][1];
-      position[2] = positions[i][2];
-
-      normal[0] = normals[i][0];
-      normal[1] = normals[i][1];
-      normal[2] = normals[i][2];
-    }
-
-    for (int i = 0; i < mNumIndices; i++)
-    {
-      mIndices[i] = elements[i];
-    }
-
-    mInitialized = true;
-    Mesh::UploadGLBuffers();
-}
-
-void Mesh::LoadFromPositions(const std::vector<glm::vec3>& positions, GLenum drawMode,
-                             float r, float g, float b)
-{
-  int n = positions.size();
-  mNumVertices = n;
-  mNumIndices  = n;
-  mDrawMode = drawMode;
-
-  mVertexSize = 6;
-  mHasColors  = true;
-  mHasNormals = false;
-  mHasTexCoord = false;
-
-  mVertices = new GLfloat [mVertexSize * mNumVertices];
-  mIndices  = new GLuint  [mNumIndices];
-
-  for (int i = 0; i < n; i++)
-  {
-    float* position = PositionAt(i);
-    float* color    = ColorAt(i);
-
-    position[0] = positions[i][0];
-    position[1] = positions[i][1];
-    position[2] = positions[i][2];
-
-    color[0] = r;
-    color[1] = g;
-    color[2] = b;
-
-    mIndices[i] = i;
-  }
-
-  mInitialized = true;
-  Mesh::UploadGLBuffers();
-}
-
-void Mesh::UpdateFromPositions(const std::vector<glm::vec3>& positions)
-{
-  int n = positions.size();
-
-  for (int i = 0; i < n; i++)
-  {
-    float* position = PositionAt(i);
-
-    position[0] = positions[i][0];
-    position[1] = positions[i][1];
-    position[2] = positions[i][2];
-  }
-
-  Mesh::Update();
 }
 
 void Mesh::Update()

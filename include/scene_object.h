@@ -5,8 +5,7 @@
 *                                          *
 +*******************************************/
 
-#ifndef SCENE_OBJECT_H
-#define SCENE_OBJECT_H
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -14,7 +13,8 @@
 #include "imageIO.h"
 #include "mesh.h"
 
-using namespace gloo;
+namespace gloo
+{
 
 struct Texture;
 struct Material;
@@ -173,6 +173,6 @@ void SceneObject::SceneObject::SetScale(GLfloat sx, GLfloat sy, GLfloat sz)
   mScale[2] = sz;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+}  // namespace gloo
 
-#endif
+///////////////////////////////////////////////////////////////////////////////////////////////////

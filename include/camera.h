@@ -14,6 +14,10 @@
 #include "openGLMatrix.h"
 #include "basicPipelineProgram.h"
 
+
+namespace gloo
+{
+
 class SceneObject;
 
 // TODO: DOCUMENT EVERYTHING !!!
@@ -82,7 +86,7 @@ private:
 inline
 void Camera::LookAt(const glm::vec3& pos, const glm::vec3& dir, const glm::vec3& upVec)
 {
-  mPos = pos;
+  mPos = pos + upVec * 1.25f;
   mDir = dir;
   mUpVec = upVec;
 }
@@ -107,3 +111,5 @@ void Camera::SetPipelineProgramParam(BasicPipelineProgram *pipelineProgram, GLui
   mProgramHandle   = programHandle; 
   mPipelineProgram = pipelineProgram;
 }
+
+}  // namespace gloo.

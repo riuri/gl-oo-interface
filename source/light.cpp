@@ -1,5 +1,8 @@
 #include "light.h"
 
+namespace gloo
+{
+
 void Light::Position(OpenGLMatrix& viewMatrix, int id) 
 {
   // In order to compute specular component, the light position
@@ -44,3 +47,5 @@ void Light::Animate()
   // mPos[2] = 4.0f*cos(2*t);
   // t -= 0.02f;
 }
+
+}  // namespace gloo.

@@ -15,6 +15,9 @@
 #include "openGLMatrix.h"
 #include "basicPipelineProgram.h"
 
+namespace gloo
+{
+
 class Light
 {
 public:
@@ -71,3 +74,5 @@ void Light::SetDirection(const glm::vec3& dir)
 {
   mDir = dir;
 }
+
+}  // namespace gloo.

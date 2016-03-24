@@ -3,6 +3,44 @@
 
 #define INDEX(a, b) (((w) * (b)) + a)
 
+namespace gloo
+{
+
+void AxisObject::Load()
+{
+  GLfloat positions[] = { 0.0f, 0.0f, 0.0f,
+                          1.0f, 0.0f, 0.0f,
+                          0.0f, 0.0f, 0.0f,
+                          0.0f, 1.0f, 0.0f,
+                          0.0f, 0.0f, 0.0f,
+                          0.0f, 0.0f, 1.0f
+                         };
+  GLfloat colors[] = { 1.0f, 0.0f, 0.0f,
+                       1.0f, 0.0f, 0.0f,
+                       0.0f, 1.0f, 0.0f,
+                       0.0f, 1.0f, 0.0f,
+                       0.0f, 0.0f, 1.0f,
+                       0.0f, 0.0f, 1.0f
+                     };
+
+  mMesh = new Mesh();
+  mMesh->SetProgramHandle(mProgramHandle);
+  mMesh->Load(  positions, // positions
+                colors,    // colors
+                nullptr,   // normals
+                nullptr,   // texcoord
+                nullptr,   // indices,
+                6,  // numVertices
+                0,  // numIndices
+                GL_LINES,             // draw mode
+                Mesh::kSubBuffered    // storage type
+                );
+
+
+  SceneObject::SetScale(5.0f, 5.0f, 5.0f);
+  mIsMeshOwner = true;
+}
+
 void GridObject::Load(int w, int h)
 {
   mWidth  = w;
@@ -234,3 +272,5 @@ void TexturedTerrain::Load(const std::string& heightmapFileName, const std::stri
   mUsingLighting = true;
   delete source;
 }
+
+}  // namespace gloo.

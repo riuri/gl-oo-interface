@@ -2,6 +2,9 @@
 
 #include "scene_object.h"
 
+namespace gloo
+{
+
 void Camera::Scale(GLfloat d_sx, GLfloat d_sy, GLfloat d_sz) 
 {
   mScale[0] *= (1.0f + d_sx);
@@ -95,3 +98,5 @@ glm::vec3 Camera::GetCenterCoordinates()
   glm::vec4 C = glm::inverse(V) * glm::vec4(0, 0, 0, 1);
   return glm::vec3(C[0], C[1], C[2]);
 }
+
+} // namespace gloo.

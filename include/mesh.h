@@ -53,45 +53,40 @@ public:
   Mesh() { }
 
   // TODO: COMMENT!!
-  virtual void Render() const;                    // Renders the geometry at the current origin.
-  virtual void Update();                          // Sends the geometry again to the graphics card.
+  void Render() const;   // Renders the geometry at the current origin.
 
-  virtual void UploadGLBuffers();                 // Sends the geometry to the graphics card.
+  // Loads from different buffers - not provided data array must be set as nullptr.
+  // positions must be non-null. 
+  // indices can be nullptr - in this case, default elements are used (0, 1, 2, ...).
+  bool Load(const GLfloat* positions, // Format: { (x, y, z) }
+            const GLfloat* colors,    // Format: { (r, g, b) }
+            const GLfloat* normals,   // Format: { (nx, ny, nz) }
+            const GLfloat* texCoords, // Format: { (u, v) }
+            const GLuint* indices,    // Format: { i0, i1, i2, ... }.
+            int numVertices,          // Number of vertices.
+            int numIndices,           // Number of indices/elements.
+            GLenum drawMode         = GL_TRIANGLES,   // GL_LINES, GL_LINE_STRIP, GL_POINTS, GL_TRIANGLES, ...
+            StorageType storageType = kTightlyPacked  // Tells the storage type in buffer. See enum StorageType.
+          );
 
-  // Preallocates the geometry arrays as described on the top. It is meant to be used with generic shapes.
-  // You  may want to use PositionAt, ColorAt, NormalAt, TexCoordAt and IndexAt to edit the geometry.
-  virtual void Preallocate(int numVertices, int numIndices, bool hasColors, bool hasNormals, bool hasTexCoord);
+  // Loads from tightly packed GLfloat array.
+  bool Load(const GLfloat* vertices,  // Format: { (x,y,z) [r, g, b] [nx, ny, nz], [u, v] } per vertex.
+            const GLuint* indices,    // Example: { 0, 1, 4, 3, ... }. Indices start from 0.
+            int numVertices,          // Number of vertices.
+            int numIndices,           // Number of indices/elements.
+            bool hasColors,           // Tells if per-vertex color information is being provided.
+            bool hasNormals,          // Tells if per-vertex normal information is being provided.
+            bool hasTexCoord,         // Tells if per-vertex uv coordinates are being provided. 
+            GLenum drawMode = GL_TRIANGLES  // GL_LINES, GL_LINE_STRIP, GL_POINTS, GL_TRIANGLES, ...
+          );
 
-  // Generic load methods.
-  virtual bool Load(const GLfloat* positions,
-                    const GLfloat* colors   , 
-                    const GLfloat* normals  ,
-                    const GLfloat* texCoords,
-                    const GLuint* indices  ,
-                    int numVertices,
-                    int numIndices,
-                    GLenum drawMode         = GL_TRIANGLES,
-                    StorageType storageType = kTightlyPacked
-                  );
+  // Preallocates the tightly packed geometry arrays. It is meant to be used with generic shapes.
+  // You may want to use PositionAt, ColorAt, NormalAt, TexCoordAt and IndexAt to edit the geometry.
+  // After calling preallocate and initializing vertices, you must call Upload to send the buffers to GPU.
+  void Preallocate(int numVertices, int numIndices, bool hasColors, bool hasNormals, bool hasTexCoord);
 
-  // Load from tightly packed GLfloat array.
-  virtual bool Load(const GLfloat* vertices, 
-                    const GLuint* indices, 
-                    int numVertices,  
-                    int numIndices, 
-                    bool hasColors,   
-                    bool hasNormals, 
-                    bool hasTexCoord, 
-                    GLenum drawMode = GL_TRIANGLES
-                  );
-
-  virtual void LoadFromObj(const std::string & objFilename);
-
-  // Following methods help to load primitive objects such as a curve, a sequence of points with
-  // uniform color and probably without lighting.
-  virtual void LoadFromPositions(const std::vector<glm::vec3> & positions, GLenum drawMode = GL_POINTS, 
-                                 float r = 1, float g = 1, float b = 1);
-  virtual void UpdateFromPositions(const std::vector<glm::vec3>& positions);
+  void Upload();  // Sends the geometry to the graphics card.
+  void Update();  // Resends the geometry again to the graphics card.
 
   // Query methods.
   inline bool IsInitialized() const { return mInitialized; }
@@ -100,23 +95,25 @@ public:
   inline bool HasColors()     const { return mHasColors;   }
 
   // Getter and setters.
+  inline StorageType GetStorageType() const { return mStorageType; }
   inline int GetNumVertices() const { return mNumVertices; }
   inline int GetNumIndices()  const { return mNumIndices;  }
   inline int GetVertexSize()  const { return mVertexSize;  } 
 
-  inline void SetGLDrawMode(GLenum mode) { mDrawMode = mode; };
+  inline void SetDrawMode(GLenum mode) { mDrawMode = mode; };
   inline void SetProgramHandle(GLuint programHandle) { mProgramHandle = programHandle; }
 
   // Geometry access: don't attempt to access if the corresponding query methods return false.
+  // NOTE: Tightly packed vertices access.
   GLfloat* PositionAt(int index);   // Address to vertex[index] 3D position.
   GLfloat* ColorAt(int index);      // Address to vertex[index] RGB color.
   GLfloat* NormalAt(int index);     // Address to vertex[index] 3D normal vector.
   GLfloat* TexCoordAt(int index);   // Address to vertex[index] 2D texture coordinates.
-  
+
   GLuint*  IndexAt(int index);      // Address to element_array[index].
 
   // Destructor.
-  virtual ~Mesh();
+  ~Mesh();
 
 protected:
   // Provides a link to the shaders.

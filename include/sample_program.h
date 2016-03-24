@@ -10,6 +10,8 @@
 #include "glut_program.h"
 #include "video_recorder.h"
 
+using namespace gloo;
+
 enum ControlState { kROTATE, kTRANSLATE, kSCALE, kEDIT };
 
 class SampleProgram : public GlutProgram

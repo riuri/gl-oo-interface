@@ -8,8 +8,6 @@
 
 #include "scene_object.h"
 
-using namespace gloo;
-
 /*********************************************************
 * This file provides classes for rendering primitive objs
 * such as axis, squares, mirrors, spheres/domes, terrain.
@@ -36,8 +34,10 @@ using namespace gloo;
 // +----------------------------------------------------------+
 // Constructors' default is Object(pipelineProgram, programHandle)
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace gloo
+{
 
 class AxisObject : public SceneObject
 {
@@ -46,23 +46,7 @@ public:
   : SceneObject(pipelineProgram, programHandle) 
   { }
 
-  void Load()
-  {
-    GLfloat vertices[] = {0.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
-                          1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
-                          
-                          0.0f, 0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
-                          0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0.0f,
-
-                          0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,
-                          0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f
-                         };
-    mMesh = new Mesh();
-    mMesh->SetProgramHandle(mProgramHandle);
-    mMesh->Load(vertices, nullptr, 6, 0, true, false, false, GL_LINES);
-    SceneObject::SetScale(5.0f, 5.0f, 5.0f);
-    mIsMeshOwner = true;
-  }
+  void Load();
 
   virtual ~AxisObject() { }
 };
@@ -128,3 +112,5 @@ private:
   int mHeight { 21 };
 
 };
+
+}  // namespace gloo.

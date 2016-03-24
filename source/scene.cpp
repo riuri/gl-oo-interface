@@ -1,5 +1,8 @@
 #include "scene.h"
 
+namespace gloo
+{
+
 void Scene::Init(BasicPipelineProgram* pipelineProgram, GLuint programHandle)
 {
   mPipelineProgram = pipelineProgram;
@@ -137,5 +140,4 @@ void Scene::Add(Light* light)
   mLights.push_back(light);
 }
 
-
-
+}  // namespace gloo.

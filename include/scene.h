@@ -5,14 +5,15 @@
 *                                          *
 +*******************************************/
 
-#ifndef SCENE_H
-#define SCENE_H
+#pragma once
 
 #include <vector>
-
 #include "basic_obj_library.h"
 #include "camera.h"
 #include "light.h"
+
+namespace gloo
+{
 
 class Scene
 {
@@ -72,5 +73,4 @@ void Scene::SetPipelineProgramParam(BasicPipelineProgram *pipelineProgram,
   mPipelineProgram = pipelineProgram;
 }
 
-
-#endif
+}  // namespace gloo.

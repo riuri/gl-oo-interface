@@ -1,5 +1,8 @@
 #include "scene_object.h"
 
+namespace gloo
+{
+  
 void SceneObject::Render() const
 {
   if (IsInitialized())
@@ -194,4 +197,6 @@ bool Texture::Load(const std::string& fileName)
   delete source;
   return successful;
 }
+
+}  // namespace gloo.
 
