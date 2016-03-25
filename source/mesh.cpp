@@ -123,6 +123,7 @@ bool Mesh::Load(const GLfloat* vertices, const GLuint* indices,
                 bool hasTexCoord,        GLenum drawMode
               )
 {
+  // Validate input - vertices must be non-null.
   if (!vertices || numVertices <= 0)
   {
     return false;
@@ -159,6 +160,84 @@ bool Mesh::Load(const GLfloat* vertices, const GLuint* indices,
   mInitialized = true;
   Mesh::Upload();
   return true;
+}
+
+// Reloads the geometry. To keep some data constant, just specify nullptr.
+void Mesh::Reload(const GLfloat* positions,
+                  const GLfloat* colors,   
+                  const GLfloat* normals,  
+                  const GLfloat* texCoords 
+                )
+{
+  if (!mInitialized)
+  {
+    std::cerr << "ERROR The mesh must be initialized before creating buffer objects.\n";
+    return;
+  }
+
+  if (mStorageType == kTightlyPacked)
+  {
+    for (int i = 0; i < mNumVertices; i++)
+    {
+      float* position = PositionAt(i);
+      float* texCoord = TexCoordAt(i);
+      float* normal   = NormalAt(i); 
+      float* color    = ColorAt(i);
+
+      if (positions)
+      {
+        memcpy(position, positions + 3*i, sizeof(GLfloat)*3);
+      }
+      if (colors && HasColors())
+      {
+        memcpy(color, colors + 3*i, sizeof(GLfloat)*3);
+      }
+      if (normals && HasNormals())
+      {
+        memcpy(normal, normals + 3*i, sizeof(GLfloat)*3);
+      }
+      if (texCoords && HasTexCoord())
+      {
+        memcpy(texCoord, texCoords + 2*i, sizeof(GLfloat)*2);
+      }
+    }
+  }
+  else  // Sub-buffered.
+  {
+    GLfloat* dest = mVertices;
+    if (positions)
+    {
+      memcpy(dest, positions, 3*sizeof(GLfloat)*mNumVertices);
+      dest += 3*mNumVertices;
+    }
+    if (colors && HasColors())
+    {
+      memcpy(dest, colors, 3*sizeof(GLfloat)*mNumVertices);
+      dest += 3*mNumVertices;
+    }
+    if (normals && HasNormals())
+    {
+      memcpy(dest, normals, 3*sizeof(GLfloat)*mNumVertices);
+      dest += 3*mNumVertices;
+    }
+    if (texCoords && HasTexCoord())
+    {
+      memcpy(dest, texCoords, 2*sizeof(GLfloat)*mNumVertices);
+      dest += 2*mNumVertices;
+    }
+  }
+
+  Mesh::Upload();
+}
+
+// Reloads geometry from tightly packed GLfloat array.
+void Mesh::Reload(const GLfloat* vertices)
+{
+  if (vertices)
+  {
+    memcpy(mVertices, vertices, sizeof(GLfloat) * mVertexSize * mNumVertices);
+    Mesh::Upload();
+  }
 }
 
 void Mesh::Upload()

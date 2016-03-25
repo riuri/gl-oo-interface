@@ -27,7 +27,7 @@
 // +----------------------------------------------------------+
 // | Table of useful objects  | Lighting | Texture | Material |
 // | 1. class AxisObject      |    off   |   not   |    no    |
-// | 2. class Mirror TODO     |    off   |   yes   |    no    |
+// | 2. -----------------     |    ---   |   ---   |    --    |
 // | 3. class GridObject      |    off   |   no    |    no    |
 // | 4. class TexturedSphere  |    opt   |   yes   |    no    |
 // | 5. class TexturedTerrain |    opt   |   yes   |    no    |

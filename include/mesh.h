@@ -80,6 +80,19 @@ public:
             GLenum drawMode = GL_TRIANGLES  // GL_LINES, GL_LINE_STRIP, GL_POINTS, GL_TRIANGLES, ...
           );
 
+  // Reloads the geometry. To keep some data constant, just specify nullptr.
+  // Use for updating positions or colors, or normals, or texCoords.
+  // It copies as many bytes as specified by Load/Preallocate functions.
+  // It doesn't allow modifying new vertices or any attribute not specified.
+  void Reload(const GLfloat* positions, // Format: { (x, y, z) }
+              const GLfloat* colors,    // Format: { (r, g, b) }
+              const GLfloat* normals,   // Format: { (nx, ny, nz) }
+              const GLfloat* texCoords  // Format: { (u, v) }
+            );
+
+  // Reloads geometry from tightly packed GLfloat array.
+  void Reload(const GLfloat* vertices);  // Format: { (x,y,z) [r, g, b] [nx, ny, nz], [u, v] } per vertex.
+
   // Preallocates the tightly packed geometry arrays. It is meant to be used with generic shapes.
   // You may want to use PositionAt, ColorAt, NormalAt, TexCoordAt and IndexAt to edit the geometry.
   // After calling preallocate and initializing vertices, you must call Upload to send the buffers to GPU.
