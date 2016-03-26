@@ -10,6 +10,8 @@
 #include "glut_program.h"
 #include "video_recorder.h"
 
+#include "object.h"
+
 using namespace gloo;
 
 enum ControlState { kROTATE, kTRANSLATE, kSCALE, kEDIT };
@@ -22,6 +24,8 @@ class SampleProgram : public GlutProgram
   {
     delete mVideoRecorder;
     delete mScene;
+
+    delete blah;
   }
 
   void Init(int* argc, char* argv[], const char *windowTitle);
@@ -43,4 +47,6 @@ class SampleProgram : public GlutProgram
   VideoRecorder *mVideoRecorder { nullptr };
 
   ControlState mControlState {kROTATE};
+
+  obj::Object* blah;
 };

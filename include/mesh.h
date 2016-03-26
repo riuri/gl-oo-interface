@@ -51,6 +51,7 @@ public:
 
   // Constructors.
   Mesh() { }
+  Mesh(GLuint programHandle) : mProgramHandle(programHandle) { }
 
   // TODO: COMMENT!!
   void Render() const;   // Renders the geometry at the current origin.

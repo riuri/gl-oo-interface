@@ -1,5 +1,7 @@
 #include "sample_program.h"
 
+#include "object.h"
+
 SampleProgram::SampleProgram() : GlutProgram()
 {
   mScene = new Scene();
@@ -15,13 +17,42 @@ void SampleProgram::Init(int* argc, char* argv[], const char* windowTitle)
 
 void SampleProgram::InitScene(int argc, char *argv[])
 {
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  auto mobius = [](float u, float v) {
+    u = u * 2 * M_PI;
+    v = 2 * v - 1;
 
+    return glm::vec3(
+        5 * (1 + (v/2)*cos(u/2)) * cos(u),
+        5 * (1 + (v/2)*cos(u/2)) * sin(u),
+        5 * (v/2) * sin(u/2)
+      );
+  };
+
+  float sigma = 5.0;
+
+  auto crazy = [sigma](float u, float v) {
+    u = u * 20 - 10;
+    v = v * 5  - 2.5;
+
+    return glm::vec3(
+        u,
+        0.01*cosh(u),
+        0.5*sinh(v) 
+      );
+  };
+
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LINE_SMOOTH);
   glHint(GL_LINE_SMOOTH_HINT,  GL_NICEST);
   
   mScene->Init(mPipelineProgram, mProgramHandle);
+
+  blah = new obj::Object(mPipelineProgram, mProgramHandle);
+  //blah->SetScale(0.004, 0.004, 0.004);
+  //blah->SetRotation(-M_PI/2, 0, 0);
+  //blah->Load("./objs/dragon-77k.obj");
+  blah->Load(crazy, 320, 32);
 
   // Insert new objects here!!
   AxisObject* originAxis = new AxisObject(mPipelineProgram, mProgramHandle);
@@ -39,9 +70,9 @@ void SampleProgram::InitScene(int argc, char *argv[])
   l4->SetPosition(glm::vec3(-50, 50, -50));
 
   originAxis->Load();
-  originGrid->Load(100, 100);
-  sphere->Load("textures/earth.jpg");
-  terrain->Load("", "textures/plaster_tile.jpg");
+  //originGrid->Load(11, 11);
+  //sphere->Load("textures/earth.jpg");
+  //terrain->Load("", "textures/plaster_tile.jpg");
   terrain->SetLighting(false);
   terrain->SetScale(100, 1, 100);
 
@@ -62,6 +93,7 @@ void SampleProgram::DisplayFunc()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   mScene->Render();
+  blah->Render();
   glutSwapBuffers();
   mVideoRecorder->Update();
 }

@@ -33,7 +33,7 @@ void AxisObject::Load()
                 6,  // numVertices
                 0,  // numIndices
                 GL_LINES,             // draw mode
-                Mesh::kTightlyPacked  // storage type
+                Mesh::kSubBuffered    // storage type
                 );
 
 
