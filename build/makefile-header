@@ -1,0 +1,67 @@
+# gl-oo-interface makefile for Mac OS X
+
+# Compilation method.
+CXX=g++
+CXXFLAGS=-std=c++11 -Wno-deprecated-declarations
+CXXLD=$(CXX)
+OPT=-O3
+
+RM=rm -f
+DYLIB_FLAG=-dynamiclib
+DYLIB_EXT=dylib
+
+L=$(R)/modules
+
+LIBRARIES_DIR=$(L)
+
+# argument $(1) is a list of library names (modules)
+GET_LIB_MAKEFILES=$(addsuffix /makefile, $(addprefix $(R)/modules/, $(1)))
+GET_LIB_FILENAMES=$(join $(addprefix $(R)/modules/, $(1)), $(addsuffix .a, $(addprefix /lib, $(1))))
+
+INCLUDE=-I$(LIBRARIES_DIR)/include -I../dependencies/glm
+
+LIBRARYPATH=-L$(LIBRARIES_DIR)/lib 
+OPENGL_LIBS=-framework OpenGL -framework GLUT
+STANDARD_LIBS= $(OPENGL_LIBS) -framework Foundation -lz -lm $(LIBRARYPATH)
+
+# Image modules.
+TIFF_DIR=
+TIFF_INCLUDE=
+TIFF_LIB=
+# set PATH to LibTIFF here:
+#TIFF_DIR=/Users/barbic/software/imageLibraries/tiff-4.0.3
+#TIFF_INCLUDE=-I$(TIFF_DIR)/libtiff
+#TIFF_LIB=$(TIFF_DIR)/libtiff/.libs/libtiff.a
+
+JPEG_DIR=
+JPEG_INCLUDE=
+JPEG_LIB=
+# set PATH to jpeglib here:
+# we are now using jpeglib-9 not jpeglib-6b which will give you hard time !!
+# jpeglib-9 can be found at ~/code/software/imageLibraries/jpeg-9
+#JPEG_DIR=/Users/barbic/software/imageLibraries/jpeg-9
+#JPEG_INCLUDE=-I$(JPEG_DIR)
+#JPEG_LIB=-L$(JPEG_DIR)/.libs -ljpeg
+
+PNG_DIR=
+PNG_INCLUDE=
+PNG_LIB=
+# set PATH to libpng here:
+#PNG_DIR=/Users/barbic/software/imageLibraries/libpng-1.6.3
+#PNG_INCLUDE=-I$(PNG_DIR)
+#PNG_LIB=-L$(PNG_DIR)/.libs -lpng16 -lz
+
+# 3d model loader.
+ASSIMP_DIR=../../dependencies/assimp-3.2/
+ASSIMP_INCLUDE=-I$(ASSIMP_DIR)
+ASSIMP_LIB=$(ASSIMP_DIR)lib/libassimp.3.2.0.dylib
+
+IMAGE_INCLUDE=$(TIFF_INCLUDE) $(JPEG_INCLUDE) $(PNG_INCLUDE) $(ASSIMP_DIR)
+IMAGE_LIBS=$(TIFF_LIB) $(JPEG_LIB) $(PNG_LIB) $(ASSIMP_LIB)
+
+# wxWidgets -- used for visualizer and maybe renderer.
+WX_DIR=/Users/rodrigocastiel/Documents/wxWidgets-3.1.0
+WX_CONFIG=$(WX_DIR)/wx-config
+WX_RELEASE=3.1
+WX_VERSION=$(WX_RELEASE).0
+EXEEXT=
