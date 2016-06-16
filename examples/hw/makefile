@@ -12,7 +12,7 @@ R ?= ../..
 HW_OBJECTS=hw.o
 
 # Add any libraries on which this example depends.
-HW_LIBS=gloo_obj
+HW_LIBS=gloo_shader gloo_obj
 
 # Add header files for this example.
 HW_HEADERS=
