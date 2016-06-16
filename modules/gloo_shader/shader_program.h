@@ -35,8 +35,11 @@ namespace gloo
 class ShaderProgram
 {
 public:
-  ShaderProgram();
-  ~ShaderProgram();
+  ShaderProgram() { } 
+  ~ShaderProgram() 
+  { 
+    glDeleteProgram(mHandle);
+  }
 
   // Loads shaders from files specified by the corresponding paths.
   bool BuildFromFiles(const char* vertexShaderPath, 
@@ -68,6 +71,9 @@ public:
   // Returns  the handle for a variable stored into this shader program.
   GLuint GetVariableHandle(const char * variableName) const;
   GLuint GetVariableHandle(const std::string & variableName) const;
+
+  // Shows the compilate error log on the console output.
+  void PrintCompilationLog();
 
   // Compiles shader code stored in buffer shaderCode.
   //   shaderCode: the shader code.

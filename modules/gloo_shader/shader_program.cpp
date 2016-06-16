@@ -7,23 +7,75 @@ namespace gloo
 bool ShaderProgram::BuildFromFiles(const char* vertexShaderPath, 
                                    const char* fragmentShaderPath,
                                    const char* geometryShaderPath,
-                                   const char* tesselationControlShaderPath,
+                                   const char* tessellationControlShaderPath,
                                    const char* tessellationEvaluationShaderPath)
 {
+#if LOG_OUTPUT_ON == 1
+  std::cout << "-- BUILDING Shaders and LINKING them to OpenGL --" << std::endl;
+#endif
 
 
+  char * shaderCodes[5] = { NULL, NULL, NULL, NULL, NULL };
+  const char * filenames[5] = { vertexShaderPath, fragmentShaderPath, geometryShaderPath, 
+                                tessellationControlShaderPath, tessellationEvaluationShaderPath };
 
-  return false;
+  for (int i = 0; i < 5; i++) 
+  {
+    // If filename not provided, skip that shader.
+    if (filenames[i] == NULL) 
+    {
+      shaderCodes[i] = NULL;
+      continue;
+    }
+
+    // Allocate space for shader code (128 Kb -- should be enough).
+    shaderCodes[i] = new char[128 * 1024];
+
+    // Load the shader into the shaderCodes string.
+    if (LoadShader(filenames[i], shaderCodes[i], 128 * 1024) != 0) 
+    {
+#if LOG_OUTPUT_ON == 1
+      std::cout << "ERRROR: Shader " << filenames[i] << " file not found." << std::endl;
+#endif
+      return 1;
+    }
+  }
+
+  int exitCode = BuildFromStrings(shaderCodes[0], shaderCodes[1], shaderCodes[2], shaderCodes[3], shaderCodes[4]);
+  for (int i = 0; i < 5; i++) 
+  {
+    delete [] (shaderCodes[i]);
+    shaderCodes[i] = NULL;
+  }
+
+  return exitCode;
 }
 
 bool ShaderProgram::BuildFromFiles(const std::string & vertexShaderPath, 
                                    const std::string & fragmentShaderPath,
                                    const std::string & geometryShaderPath,
-                                   const std::string & tesselationControlShaderPath, 
+                                   const std::string & tessellationControlShaderPath, 
                                    const std::string & tessellationEvaluationShaderPath)
 {
+  const char* geometryShaderPathBuffer = NULL;
+  const char* tessellationControlShaderPathBuffer   = NULL;
+  const char* tessellationEvaluationShaderPathBuffer = NULL;
 
-  return false;
+  if (geometryShaderPath.size() > 0)
+  {
+    geometryShaderPathBuffer = geometryShaderPath.c_str();
+  }
+  if (tessellationEvaluationShaderPath.size() > 0)
+  {
+    tessellationEvaluationShaderPathBuffer = tessellationEvaluationShaderPath.c_str();
+  }
+  if (tessellationControlShaderPath.size() > 0)
+  {
+    tessellationControlShaderPathBuffer = tessellationControlShaderPath.c_str();
+  }
+
+  return ShaderProgram::BuildFromFiles(vertexShaderPath.c_str(),
+                                       fragmentShaderPath.c_str());
 }
 
 bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode, 
@@ -80,6 +132,8 @@ bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode,
     // compile the shader
     if (CompileShader(shaderCode[i], shaderFlags[i], h_shaders[i]) != 0)
     {
+      std::string infoLogStr = "In shader " + std::string(shaderName[i]);
+      mCompilationLog.push_back(infoLogStr);  // Save infoLog.
 
 #if LOG_OUTPUT_ON == 1
       std::cout << "COMPILE ERROR: shader " << shaderName[i] << std::endl;
@@ -103,6 +157,7 @@ bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode,
   {
     GLchar infoLog[512];
     glGetProgramInfoLog(mHandle, 512, NULL, infoLog);
+    mCompilationLog.emplace_back(&infoLog[0]);  // Save infoLog.
 
 #if LOG_OUTPUT_ON == 1
     std::cout << "LINKER ERROR:\n" << infoLog << std::endl;
@@ -164,12 +219,21 @@ int ShaderProgram::CompileShader(const char * shaderCode, GLenum shaderType, GLu
 
 int ShaderProgram::LoadShader(const char * filename, char * code, int len)
 {
+#if LOG_OUTPUT_ON == 1
+    std::cout << "Loading shader from " << filename << std::endl;
+#endif
+
   FILE * file = fopen(filename, "rb");
   if (file == NULL)
     return 1;
 
   code[fread(code, 1, len, file)] = '\0';
   fclose(file);
+
+#if LOG_OUTPUT_ON == 1
+    std::cout << "Successfully loaded." << std::endl << std::endl;
+#endif
+
 
   return 0;
 }
@@ -193,5 +257,13 @@ GLuint ShaderProgram::GetVariableHandle(const std::string & variableName) const
   return GetVariableHandle(variableName.c_str());
 }
 
+void ShaderProgram::PrintCompilationLog()
+{
+  for (int i = 0; i < mCompilationLog.size(); i++)
+  {
+    std::cout << i+1 << ". " << mCompilationLog[i];
+  }
+  std::cout << std::endl;
+}
 
 } // namespace gloo.
