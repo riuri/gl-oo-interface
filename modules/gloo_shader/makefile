@@ -9,13 +9,13 @@ include ../../build/makefile-header
 R ?= ../..
 
 # the object files to be compiled for this library
-GLOO_SHADER_OBJECTS=shader.o
+GLOO_SHADER_OBJECTS=shader_program.o
 
 # the libraries this library depends on
 GLOO_SHADER_LIBS=
 
 # the headers in this library
-GLOO_SHADER_HEADERS=shader.h
+GLOO_SHADER_HEADERS=shader_program.h
 
 GLOO_SHADER_LINK=$(addprefix -l, $(GLOO_SHADER_LIBS)) $(IMAGE_LIBS) $(STANDARD_LIBS)
 
