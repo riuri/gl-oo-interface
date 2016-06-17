@@ -145,16 +145,16 @@ int main(int argc, char *argv[])
   Init(argc, argv);
   shaderProgram->BuildFromFiles("phong_no_shadow/vertex_shader.glsl", "phong_no_shadow/fragment_shader.glsl");
   shaderProgram->PrintCompilationLog();
-  // program = shaderProgram->GetHandle();
-  // shaderProgram->Bind();
+  program = shaderProgram->GetHandle();
+  shaderProgram->Bind();
 
-  // InitVBO();
-  // glutIdleFunc(IdleFunc);
-  // glutDisplayFunc(DisplayFunc);
-  // glutReshapeFunc(ReshapeFunc);
-  // glutKeyboardFunc(KeyboardFunc);
+  InitVBO();
+  glutIdleFunc(IdleFunc);
+  glutDisplayFunc(DisplayFunc);
+  glutReshapeFunc(ReshapeFunc);
+  glutKeyboardFunc(KeyboardFunc);
 
-  //glutMainLoop();
+  glutMainLoop();
   delete shaderProgram;
 
   return 0;

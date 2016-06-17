@@ -14,7 +14,6 @@ bool ShaderProgram::BuildFromFiles(const char* vertexShaderPath,
   std::cout << "-- BUILDING Shaders and LINKING them to OpenGL --" << std::endl;
 #endif
 
-
   char * shaderCodes[5] = { NULL, NULL, NULL, NULL, NULL };
   const char * filenames[5] = { vertexShaderPath, fragmentShaderPath, geometryShaderPath, 
                                 tessellationControlShaderPath, tessellationEvaluationShaderPath };
@@ -84,12 +83,16 @@ bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode,
                                      const char* tessellationControlShaderCode,
                                      const char* tessellationEvaluationShaderCode)
 {
-  // Create an overall program handle.
+  // Create an overall shader program handle.
   mHandle = glCreateProgram();
   if (mHandle == 0) 
   {
-    std::cerr << "ERROR: Shader Program initialization failed." << std::endl;
-    return -1;
+#if LOG_OUTPUT_ON == 1
+      std::cerr << "ERROR: Shader Program initialization failed." << std::endl;
+#endif
+    
+    mCompilationStatus = kLoadFailure;
+    return false;
   }
 
   // Store the codes into one array.
@@ -116,8 +119,11 @@ bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode,
   };
 
   // informative shader names
-  std::vector<std::string> shaderName = { "Vertex shader", "Fragment shader", "Geometry shader", 
-                              "Tessellation control shader", "Tessellation evaluation shader" };
+  std::vector<std::string> shaderName = {"Vertex shader   ", 
+                                         "Fragment shader ", 
+                                         "Geometry shader ", 
+                                         "Tessellation control shader    ", 
+                                         "Tessellation evaluation shader " };
 
   for (int i = 0; i < 5; i++)
   {
@@ -126,24 +132,25 @@ bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode,
       continue;
 
 #if LOG_OUTPUT_ON == 1
-    std::cout << "Compiling " << shaderName[i] << "..." << std::endl;
+    std::cout << "Compiling " << shaderName[i] << "... ";
 #endif
 
-    // compile the shader
+    // Compile the shader.
     if (CompileShader(shaderCode[i], shaderFlags[i], h_shaders[i]) != 0)
     {
-      std::string infoLogStr = "In shader " + std::string(shaderName[i]);
+      // Failure - error.
+      std::string infoLogStr = "(in shader " + std::string(shaderName[i]) + ")\n";
       mCompilationLog.push_back(infoLogStr);  // Save infoLog.
-
-#if LOG_OUTPUT_ON == 1
-      std::cout << "COMPILE ERROR: shader " << shaderName[i] << std::endl;
-#endif
-      
-      return 1;
+      mCompilationStatus = kError;
+      return false;
     }
-    else 
+    else
     {
-      // Attach the shader to the pipeline program
+      // Success.
+#if LOG_OUTPUT_ON == 1
+      std::cout << "SUCCESS" << std::endl;
+#endif
+      // Attach the shader to the shader program handle.
       glAttachShader(mHandle, h_shaders[i]);
     }
   }
@@ -160,19 +167,23 @@ bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode,
     mCompilationLog.emplace_back(&infoLog[0]);  // Save infoLog.
 
 #if LOG_OUTPUT_ON == 1
-    std::cout << "LINKER ERROR:\n" << infoLog << std::endl;
+    std::cerr << "LINKER ERROR:\n" << infoLog << std::endl;
 #endif
 
-    return 1;
+    return false;
   }
 
   // The shaders are no longer needed after the program is linked.
   for (int i = 0; i < 5; i++)
     glDeleteShader(h_shaders[i]);
 
-  return 0;
+  mCompilationStatus = kSuccess;
 
-  return false;
+#if LOG_OUTPUT_ON == 1
+    std::cout << "-- COMPILATION COMPLETE --" << std::endl;
+#endif
+
+  return true;
 }
 
 
@@ -183,7 +194,7 @@ int ShaderProgram::CompileShader(const char * shaderCode, GLenum shaderType, GLu
   if (shaderHandle == 0) 
   {
 #if LOG_OUTPUT_ON == 1
-    std::cerr << "ERROR: Creation of shader failed." << std::endl;
+    std::cerr << "ERROR: Creation of shader buffer failed." << std::endl;
 #endif
     return 1;
   }
@@ -220,7 +231,7 @@ int ShaderProgram::CompileShader(const char * shaderCode, GLenum shaderType, GLu
 int ShaderProgram::LoadShader(const char * filename, char * code, int len)
 {
 #if LOG_OUTPUT_ON == 1
-    std::cout << "Loading shader from " << filename << std::endl;
+    std::cout << "Loading shader from " << filename << " ... ";
 #endif
 
   FILE * file = fopen(filename, "rb");
@@ -231,9 +242,8 @@ int ShaderProgram::LoadShader(const char * filename, char * code, int len)
   fclose(file);
 
 #if LOG_OUTPUT_ON == 1
-    std::cout << "Successfully loaded." << std::endl << std::endl;
+    std::cout << "SUCCESS" << std::endl;
 #endif
-
 
   return 0;
 }

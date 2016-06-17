@@ -22,7 +22,7 @@
 
 #pragma once
 
-#define LOG_OUTPUT_ON 0
+#define LOG_OUTPUT_ON 1
 
 #include "gl_header.h"
 
@@ -35,7 +35,10 @@ namespace gloo
 class ShaderProgram
 {
 public:
+  enum CompilationStatus { kError, kSuccess, kLinkError, kLoadFailure, kUnitiliazed };
+
   ShaderProgram() { } 
+
   ~ShaderProgram() 
   { 
     glDeleteProgram(mHandle);
@@ -68,16 +71,21 @@ public:
   // Returns shader program handle.
   inline GLuint GetHandle() const { return mHandle; }
   
-  // Returns  the handle for a variable stored into this shader program.
+  // Returns the handle for a variable stored into this shader program.
   GLuint GetVariableHandle(const char * variableName) const;
   GLuint GetVariableHandle(const std::string & variableName) const;
+
+  // Returns compilation status - kError, kLinkError, kLoadFailure, kSuccess if BuildFromFiles was called.
+  // It returns kUnitilized if it wasn't built.
+  CompilationStatus GetCompilationStatus() { return mCompilationStatus; }
 
   // Shows the compilate error log on the console output.
   void PrintCompilationLog();
 
   // Compiles shader code stored in buffer shaderCode.
   //   shaderCode: the shader code.
-  //   shaderType: GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER.
+  //   shaderType: GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, 
+  //               GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER.
   // Output:
   //   shaderHandle: the handle to the compiled shader.
   //   return value: 0=success, non-zero: failure.
@@ -87,8 +95,10 @@ public:
   int LoadShader(const char* filename, char* code, int len);
 
 protected:
-  GLuint mHandle { 0 };                      // OpenGL handle for the entire shader program.
-  std::vector<std::string> mCompilationLog;  // Stores all error messages from compiler/linker.
+  GLuint mHandle { 0 };  // OpenGL handle for the entire shader program.
+
+  CompilationStatus mCompilationStatus { kUnitiliazed };  // Tells the result of compilation (see enum).
+  std::vector<std::string> mCompilationLog;               // Stores all error messages from compiler/linker.
 
 };
 
