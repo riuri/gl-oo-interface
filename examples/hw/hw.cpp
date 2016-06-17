@@ -145,6 +145,8 @@ int main(int argc, char *argv[])
   Init(argc, argv);
   shaderProgram->BuildFromFiles("phong_no_shadow/vertex_shader.glsl", "phong_no_shadow/fragment_shader.glsl");
   shaderProgram->PrintCompilationLog();
+  gloo::CompilationStatus status = shaderProgram->GetCompilationStatus();
+  std::cout << "Compilation Status = " << status << std::endl;
   program = shaderProgram->GetHandle();
   shaderProgram->Bind();
 

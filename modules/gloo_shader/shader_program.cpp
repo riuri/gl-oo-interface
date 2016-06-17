@@ -1,6 +1,8 @@
 #include "shader_program.h"
 #include <iostream>
 
+#define LOG_OUTPUT_ON 1
+
 namespace gloo
 {
 
@@ -33,14 +35,15 @@ bool ShaderProgram::BuildFromFiles(const char* vertexShaderPath,
     // Load the shader into the shaderCodes string.
     if (LoadShader(filenames[i], shaderCodes[i], 128 * 1024) != 0) 
     {
+      mCompilationStatus = kLoadFailure;
 #if LOG_OUTPUT_ON == 1
-      std::cout << "ERRROR: Shader " << filenames[i] << " file not found." << std::endl;
+      std::cout << "ERRROR: file not found." << std::endl;
 #endif
-      return 1;
+      return false;
     }
   }
 
-  int exitCode = BuildFromStrings(shaderCodes[0], shaderCodes[1], shaderCodes[2], shaderCodes[3], shaderCodes[4]);
+  bool exitCode = BuildFromStrings(shaderCodes[0], shaderCodes[1], shaderCodes[2], shaderCodes[3], shaderCodes[4]);
   for (int i = 0; i < 5; i++) 
   {
     delete [] (shaderCodes[i]);
@@ -165,6 +168,7 @@ bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode,
     GLchar infoLog[512];
     glGetProgramInfoLog(mHandle, 512, NULL, infoLog);
     mCompilationLog.emplace_back(&infoLog[0]);  // Save infoLog.
+    mCompilationStatus = kLinkError;
 
 #if LOG_OUTPUT_ON == 1
     std::cerr << "LINKER ERROR:\n" << infoLog << std::endl;
@@ -271,7 +275,7 @@ void ShaderProgram::PrintCompilationLog()
 {
   for (int i = 0; i < mCompilationLog.size(); i++)
   {
-    std::cout << i+1 << ". " << mCompilationLog[i];
+    std::cout << mCompilationLog[i];
   }
   std::cout << std::endl;
 }
