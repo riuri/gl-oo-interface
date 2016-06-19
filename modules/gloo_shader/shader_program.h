@@ -12,23 +12,25 @@
 //  TA Bohan Wang for CSCI 420 at USC. I adapted
 //  for an easier and more general use.
 //
+//  INSTRUCTIONS
+//
 //  Initialization/Compilation:
 //  1. Create an instance:                gloo::ShaderProgram* program = new gloo::ShaderProgram();
 //  2. Build it fromcode files:           program->BuildFromFiles(vtxPath, gmtryPath, ...);
 //  3. Link when necessary (before use):  program->Bind();
 //
 //  How to check for compilation status?
-//  1. gloo::CompilationStatus status = program->GetCompilationStatus();
+//  gloo::CompilationStatus status = program->GetCompilationStatus();
 //    -> kError:   compilation error
 //    -> kSuccess: successfully compiled and linked
 //    -> kLinkError: linking error (e.g. main not found)
 //    -> kLoadFailure: a provided file doesn't have the correct path/couldn't be opened.
 // 
 //  Get log message (errors):
-//  1. std::vector<std::string> log = program->GetCompilationLog();
+//  std::vector<std::string> log = program->GetCompilationLog();
 //
 //  Getting handle for variables by the name:
-//  1. GLuint h_modelView = program->GetVariableHandle("MV");
+//  GLuint h_modelView = program->GetVariableHandle("MV");
 
 #pragma once
 
@@ -65,7 +67,7 @@ public:
                       const std::string & tessellationControlShaderPath    = "", 
                       const std::string & tessellationEvaluationShaderPath = "");
 
-  // Loads shaders from buffer in memory.
+  // Loads shaders from buffer in memory (c-string).
   bool BuildFromStrings(const char* vertexShaderCode, 
                         const char* fragmentShaderCode,
                         const char* geometryShaderCode               = nullptr,
@@ -110,7 +112,6 @@ protected:
 
   CompilationStatus mCompilationStatus { kUnitialized };  // Tells the result of compilation (see enum).
   std::vector<std::string> mCompilationLog;               // Stores all error messages from compiler/linker.
-
 };
 
 }  // namespace gloo.

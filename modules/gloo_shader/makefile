@@ -34,9 +34,9 @@ $(L)/gloo_shader/libgloo_shader.a: $(GLOO_SHADER_OBJECTS_FILENAMES)
 $(GLOO_SHADER_FILENAMES): %.o: %.cpp $(GLOO_SHADER_FILENAMES) $(GLOO_SHADER_HEADER_FILENAMES)
 	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $< -o $@
 
-ifeq ($(CLEANFOLDER), GLOO_SHADER)
-cleanGLOO_SHADER: cleanGLOO_SHADER
-endif
+# ifeq ($(CLEANFOLDER), GLOO_SHADER)
+# cleanGLOO_SHADER: cleanGLOO_SHADER
+# endif
 
 deepclean: cleanGLOO_SHADER
 
