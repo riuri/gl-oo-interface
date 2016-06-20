@@ -30,7 +30,8 @@ class Transform
 {
 public:
   Transform();
-  ~Transform();
+  ~Transform() 
+  { }
 
   // -> Methods for setting the current matrix as model/view transformation.
   // Rotates theta degrees around axis [x, y, z]'.
@@ -49,12 +50,15 @@ public:
   void LookAt(float eyeX,    float eyeY,    float eyeZ, 
               float centerX, float centerY, float centerZ, 
               float upX,     float upY,     float upZ);
+  void LookAt(const glm::vec3 & eye, 
+              const glm::vec3 & center, 
+              const glm::vec3 & up);
 
   // Inverts the current matrix.
-  void Invert();  // ------------------- OK
+  void Invert();
 
   // Transposes the current matrix (good for rotations' inverse).
-  void Transpose();  // ------------------- OK
+  void Transpose();
 
   // Multiply current matrix by m.
   void MultMatrix(const glm::mat4 & m);
@@ -62,8 +66,8 @@ public:
 
   // -> Methods for setting the current matrix as projective transformation.
   // Specify the projection type and the corresponding parameters (limits or aspect).
-  void Ortho(float left, float right, float bottom, float top, float zNear, float zFar);
-  void Frustum(float left, float right, float bottom, float top, float zNear, float zFar);
+  void Ortho(      float left, float right, float bottom, float top, float zNear, float zFar);
+  void Frustum(    float left, float right, float bottom, float top, float zNear, float zFar);
   void Perspective(float fovY, float aspect, float zNear, float zFar);
 
   // -> Hierachy/Chain manipulation methods.

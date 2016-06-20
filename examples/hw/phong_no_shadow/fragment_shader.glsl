@@ -38,47 +38,52 @@ uniform Material material;
 
 void main()
 {
-  if (light_on == 1)
+  if (1 == 1)
   {
-    vec3 Kd, Ka, Ks;
+    c = vec4(1, 0, 0, 0);
 
-    if (invalid_tex == 1)  // Special case - render magent instead of invalid texture.
+    if (light_on == 1)
     {
-      Kd = vec3(1.0, 0.0, 1.0);
-      Ka = vec3(0.1, 0.1, 0.1);
-      Ks = vec3(0.0, 0.0, 0.0);
+      vec3 Kd, Ka, Ks;
+
+      if (invalid_tex == 1)  // Special case - render magent instead of invalid texture.
+      {
+        Kd = vec3(1.0, 0.0, 1.0);
+        Ka = vec3(0.1, 0.1, 0.1);
+        Ks = vec3(0.0, 0.0, 0.0);
+      }
+      else
+      {
+        Kd = material_on*material.Kd + (1-material_on)*vec3(1, 1, 1);
+        Ka = material_on*material.Ka;
+        Ks = material_on*material.Ks;
+      }
+
+      // Note: since f_pos is in camera coordinates, the incident ray is simply f_pos.xyz.
+      vec3 n = normalize(v_normal);
+      vec3 r = reflect(f_pos.xyz, n);  // Compute reflection for camera ray.
+      
+      vec3 Id = vec3(0);
+      vec3 Ia = vec3(0);
+      vec3 Is = vec3(0);
+
+      for (int i = 0; i < numLights; i++) 
+      { 
+        vec3 l = normalize(light[i].position - f_pos.xyz);  // Vector from frag to light.
+        float q = length(light[i].position - f_pos.xyz);
+
+        // Basic lighting - Phong model.
+        Ia += Ka * (light[i].La);
+        Id += Kd * (light[i].Ld * max(dot(l, n), 0.0));
+        Is += Ks * (light[i].Ls * pow(max(dot(l, r), 0.0), /* alpha = */ 1.0f));
+      }
+
+      vec4 color = (1-tex_on)*vec4(1) + (tex_on)*texture(tex, v_tex_coord);
+      c = color * vec4((Ia + Id + Is), 1.0);
     }
     else
     {
-      Kd = material_on*material.Kd + (1-material_on)*vec3(1, 1, 1);
-      Ka = material_on*material.Ka;
-      Ks = material_on*material.Ks;
+      c = (1-tex_on)*v_color + (tex_on)*texture(tex, v_tex_coord);
     }
-
-    // Note: since f_pos is in camera coordinates, the incident ray is simply f_pos.xyz.
-    vec3 n = normalize(v_normal);
-    vec3 r = reflect(f_pos.xyz, n);  // Compute reflection for camera ray.
-    
-    vec3 Id = vec3(0);
-    vec3 Ia = vec3(0);
-    vec3 Is = vec3(0);
-
-    for (int i = 0; i < numLights; i++) 
-    { 
-      vec3 l = normalize(light[i].position - f_pos.xyz);  // Vector from frag to light.
-      float q = length(light[i].position - f_pos.xyz);
-
-      // Basic lighting - Phong model.
-      Ia += Ka * (light[i].La);
-      Id += Kd * (light[i].Ld * max(dot(l, n), 0.0));
-      Is += Ks * (light[i].Ls * pow(max(dot(l, r), 0.0), /* alpha = */ 1.0f));
-    }
-
-    vec4 color = (1-tex_on)*vec4(1) + (tex_on)*texture(tex, v_tex_coord);
-    c = color * vec4((Ia + Id + Is), 1.0);
-  }
-  else
-  {
-    c = (1-tex_on)*v_color + (tex_on)*texture(tex, v_tex_coord);
   }
 }

@@ -37,15 +37,22 @@ void DisplayFunc()
   blah_angle += 0.01;
   // GLfloat m[16];
 
-  // OpenGLMatrix mvMatrix;
-  // mvMatrix.SetMatrixMode(OpenGLMatrix::ModelView);
-  // mvMatrix.LoadIdentity();
-  // mvMatrix.Translate(-0.75f, 0.0f, -0.25f);
-  // mvMatrix.GetMatrix(m);
-  // shaderProgram->SetModelViewMatrix(m);
-  //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  GLfloat m[16];
+  gloo::Transform MV;
+  MV.Translate(+0.0f, 0.0f, -0.25f);
+  MV.GetTransform(m);
+  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "V"), 1, GL_FALSE, m);
+
+  MV.LoadIdentity();
+  MV.Translate(-0.75f, 0.0f, 0.0f);
+  MV.Rotate(blah_angle, 0, 0, 1);
+  // MV.Invert();
+  // MV.Scale(0.5, 0.75, 1.0);
+
+  MV.GetTransform(m);
+  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
   
- // glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
   glDrawElements(
       GL_TRIANGLE_STRIP, // mode
@@ -54,12 +61,15 @@ void DisplayFunc()
       (void*)0           // element array buffer offset
   );
 
-  // mvMatrix.LoadIdentity();
-  // mvMatrix.Translate(0.75f, 0.0f, -0.25f);
-  // mvMatrix.GetMatrix(m);
-  // shaderProgram->SetModelViewMatrix(m);
+  MV.LoadIdentity();
+  //MV.Translate(+0.75f, 0.0f, 0.0f);
+  // MV.PushAndLoadIdentity();
+  MV.Rotate(blah_angle, 0, 0, 1);
+  MV.GetInverseTransform(m);
+  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
   
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  
   glutSwapBuffers();
 }
 
@@ -67,13 +77,14 @@ void ReshapeFunc(int w, int h)
 {
   glViewport(0, 0, w, h);
 
-  // GLfloat m[16];
-  // OpenGLMatrix projectionMatrix;
-  // projectionMatrix.SetMatrixMode(OpenGLMatrix::Projection);
-  // projectionMatrix.LoadIdentity();
-  // projectionMatrix.Ortho(-2.0f, +2.0f, -1.5f, +1.5f, 0.05f, 10.0f);
-  // //projectionMatrix.Perspective(60.0f, 4.0f/3.0f, 0.05f, 10.0f);
+  gloo::Transform P;
+
+  GLfloat m[16];
+  P.Ortho(-2.0f, +2.0f, -1.5f, +1.5f, 0.05f, 10.0f);
+  // P.Perspective(60.0f, 4.0f/3.0f, 0.05f, 10.0f);
   // projectionMatrix.GetMatrix(m);
+  P.GetTransform(m);
+  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "P"), 1, GL_FALSE, m);
 
   // shaderProgram->SetProjectionMatrix(m);
 }
