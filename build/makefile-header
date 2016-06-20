@@ -4,6 +4,7 @@
 CXX=g++
 CXXFLAGS=-std=c++11 -Wno-deprecated-declarations
 CXXLD=$(CXX)
+LDFLAGS=
 OPT=-O3
 
 RM=rm -f

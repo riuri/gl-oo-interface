@@ -41,6 +41,6 @@ $(GLOO_SHADER_FILENAMES): %.o: %.cpp $(GLOO_SHADER_FILENAMES) $(GLOO_SHADER_HEAD
 deepclean: cleanGLOO_SHADER
 
 cleanGLOO_SHADER:
-	$(RM) $(GLOO_SHADER_FILENAMES) $(L)/gloo_shader/libgloo_shader.a
+	$(RM) $(GLOO_SHADER_OBJECTS_FILENAMES) $(L)/gloo_shader/libgloo_shader.a
 
 endif

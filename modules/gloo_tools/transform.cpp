@@ -18,96 +18,52 @@ Transform::~Transform()
 
 }
 
-// void Transform::Rotate(float angle, float x, float y, float z)
-// {
-//   glm::mat4 R = glm::rotate(angle, glm::vec3(x, y, z));
-//   multiplyMatrixToCurrent(R);
-// }
 
-// void Transform::Translate(float x, float y, float z)
-// {
-//   glm::mat4 T = glm::translate(glm::vec3(x, y, z));
-//   multiplyMatrixToCurrent(T);
-// }
+// ------------------------------------------------------------------------------------------------
+// -> Methods for setting the current matrix as model/view transformation.
 
-// void Transform::Scale(float x, float y, float z)
-// {
-//   glm::mat4 S = glm::scale(glm::vec3(x, y, z));
-//   multiplyMatrixToCurrent(S);
-// }
+void Transform::Rotate(float theta, float x, float y, float z)
+{
+  Transform::MultMatrix( glm::rotate(theta, glm::vec3(x, y, z)) );
+}
 
-// void Transform::LookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
-// {
-//   glm::mat4 V = glm::lookAt(glm::vec3(eyeX, eyeY, eyeZ), 
-//                             glm::vec3(centerX, centerY, centerZ), 
-//                             glm::vec3(upX, upY, upZ));
-//   multiplyMatrixToCurrent(V);
-// }
+void Transform::Rotate(float theta, const glm::vec3 & axis)
+{
+  Transform::MultMatrix( glm::rotate(theta, axis) );
+}
 
-// void Transform::Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
-// {
-//   glm::mat4 O = glm::ortho(left, right, bottom, top, zNear, zFar);
-//   multiplyMatrixToCurrent(O);
-// }
 
-// void Transform::Frustum(float left, float right, float bottom, float top, float zNear, float zFar)
-// {
-//   glm::mat4 F = glm::frustum(left, right, bottom, top, zNear, zFar);
-//   multiplyMatrixToCurrent(F);
-// }
+void Transform::Scale(float x, float y, float z)
+{
+  Transform::MultMatrix( glm::scale(glm::vec3(x, y, z)) );
+}
 
-// void Transform::Perspective(float fovY, float aspect, float zNear, float zFar)
-// {
-//   glm::mat4 P = glm::perspective(fovY, aspect, zNear, zFar);
-//   multiplyMatrixToCurrent(P);
-// }
+void Transform::Scale(const glm::vec3 & scale)
+{
+  Transform::MultMatrix( glm::scale(scale) );
+}
 
-// void Transform::SetMatrixMode(MatrixMode matrixMode) 
-// { 
-//   this->matrixMode = matrixMode; 
-// }
 
-// void Transform::LoadIdentity()
-// {
-//   currentMatrix[(int)matrixMode] = glm::mat4(1.0f);
-// }
+void Transform::Translate(float x, float y, float z)
+{
+  Transform::MultMatrix(  glm::translate(glm::vec3(x, y, z)) );
+}
 
-// void Transform::LoadMatrix(const float * matrix)
-// {
-//   currentMatrix[(int)matrixMode] = glm::make_mat4(matrix);
-// }
+void Transform::Translate(const glm::vec3 & translation)
+{
+  Transform::MultMatrix(  glm::translate(translation) );
+}
 
-// void Transform::MultMatrix(const float * matrix)
-// {
-//   glm::mat4 M = glm::make_mat4(matrix);
-//   multiplyMatrixToCurrent(M);
-// }
+void Transform::LookAt(float eyeX,    float eyeY,    float eyeZ, 
+                       float centerX, float centerY, float centerZ, 
+                       float upX,     float upY,     float upZ)
+{
+  glm::mat4 V = glm::lookAt(glm::vec3(eyeX, eyeY, eyeZ), 
+                            glm::vec3(centerX, centerY, centerZ), 
+                            glm::vec3(upX, upY, upZ));
 
-// void Transform::PushMatrix()
-// {
-//   matrixStack[(int)matrixMode].push_back(currentMatrix[(int)matrixMode]);
-// }
-
-// void Transform::PopMatrix()
-// {
-//   if (matrixStack[(int)matrixMode].size() >= 1) // cannot pop from an empty stack
-//   {
-//     currentMatrix[(int)matrixMode] = matrixStack[(int)matrixMode].back();
-//     matrixStack[(int)matrixMode].pop_back();
-//   }
-// }
-
-// void Transform::GetMatrix(float * matrix)
-// {
-//   memcpy(matrix, glm::value_ptr(currentMatrix[(int)matrixMode]), sizeof(float) * 16);
-// }
-
-// void Transform::GetNormalMatrix(float * matrix)
-// {
-//   // glm::mat4 MV(currentMatrix[(int)matrixMode]);
-//   // glm::mat4 NMV = glm::transpose(glm::inverse(MV));
-//   // memcpy(matrix, glm::value_ptr(NMV), sizeof(float) * 16);
-// }
+  Transform::MultMatrix(V);
+}
 
 void Transform::Invert()
 {
@@ -124,10 +80,76 @@ void Transform::MultMatrix(const glm::mat4 & m)
   mCurrent = mCurrent * m;
 }
 
-// void Transform::GetProjectionModelViewMatrix(float * matrix)
-// {
-//   glm::mat4 PM = currentMatrix[Projection] * currentMatrix[ModelView];
-//   memcpy(matrix, glm::value_ptr(PM), sizeof(float) * 16);
-// }
+void Transform::MultMatrix(const float* m)
+{
+  Transform::MultMatrix(glm::make_mat4(m));
+}
+
+// ------------------------------------------------------------------------------------------------
+// -> Methods for setting the current matrix as projective transformation.
+
+
+// ------------------------------------------------------------------------------------------------
+// -> Hierachy/Chain manipulation methods.
+
+void Transform::PushMatrix()
+{
+  mStack.push_back(mCurrent);
+}
+
+void Transform::PopMatrix()
+{
+  if (mStack.size() > 1) 
+  {
+    mCurrent = mStack.back();
+    mStack.pop_back();
+  }
+}
+
+void Transform::PushAndLoadIdentity()
+{
+  Transform::PushMatrix();
+  mCurrent = glm::mat4(1.0f);
+}
+
+// ------------------------------------------------------------------------------------------------
+// -> Load/Query methods.
+
+glm::mat4 Transform::GetTransform()
+{
+  return mCurrent;
+}
+
+void Transform::GetTransform(float* m)
+{
+  memcpy(m, glm::value_ptr(mCurrent), sizeof(float) * 16);
+}
+
+glm::mat4 Transform::GetInverseTransform()
+{
+  return glm::inverse(mCurrent);
+}
+
+void Transform::GetInverseTransform(float* m)
+{
+  glm::mat4 mCurrentInv = glm::inverse(mCurrent);
+  memcpy(m, glm::value_ptr(mCurrentInv), sizeof(float) * 16);
+}
+
+void Transform::LoadIdentity()
+{
+  mCurrent = glm::mat4(1.0f);
+}
+
+void Transform::LoadMatrix(const glm::mat4 & m)
+{
+  mCurrent = m;
+}
+
+void Transform::LoadMatrix(const float* m)
+{
+  mCurrent = glm::make_mat4(m);
+}
 
 }  // namespace gloo.
+

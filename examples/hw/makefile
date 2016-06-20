@@ -34,7 +34,13 @@ $(R)/examples/hw/hw: $(HW_OBJECTS_FILENAMES)
 	$(CXXLD) $(LDFLAGS) $(HW_OBJECTS) $(HW_LINK) -o $@
 
 $(HW_OBJECTS_FILENAMES): %.o: %.cpp $(HW_LIB_FILENAMES) $(HW_HEADER_FILENAMES)
-	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $(GLUI_INCLUDE) $< -o $@
+	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $(GLUI_INCLUDE) $< -o $@ -I../../dependencies/glm
+
+ifeq ($(CLEANFOLDER), SIMULATOR)
+clean: cleaninteractiveDeformableSimulator
+endif
+
+deepclean: cleanHW
 
 cleanHW:
 	$(RM) $(HW_OBJECTS_FILENAMES) $(R)/examples/hw/hw

@@ -32,12 +32,12 @@ $(L)/gloo_tools/libgloo_tools.a: $(GLOO_TOOLS_OBJECTS_FILENAMES)
 	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/gloo_tools/*.h $(L)/include/gloo
 
 $(GLOO_TOOLS_OBJECTS_FILENAMES): %.o: %.cpp $(GLOO_TOOLS_FILENAMES) $(GLOO_TOOLS_HEADER_FILENAMES)
-	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $(GLM_INCLUDE) $< -o $@
+	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $(GLM_INCLUDE) $< -o $@ -I../../dependencies/glm
 
 deepclean: cleanGLOO_TOOLS
 
 cleanGLOO_TOOLS:
-	$(RM) $(GLOO_TOOLS_FILENAMES) $(L)/gloo_tools/libgloo_tools.a
+	$(RM) $(GLOO_TOOLS_OBJECTS_FILENAMES) $(L)/gloo_tools/libgloo_tools.a
 
 endif
 

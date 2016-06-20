@@ -57,7 +57,7 @@ public:
   void Transpose();  // ------------------- OK
 
   // Multiply current matrix by m.
-  void MultMatrix(const glm::mat4 & m);  // ------------------- OK
+  void MultMatrix(const glm::mat4 & m);
   void MultMatrix(const float* m);  // Column-major.
 
   // -> Methods for setting the current matrix as projective transformation.
@@ -71,21 +71,18 @@ public:
   void PopMatrix();
 
   void PushAndLoadIdentity();
-  void PopAndLoadIdentity();
 
   // -> Load/Query methods.
-  glm::mat4 GetTransform();     // Returns the 4x4 matrix which represents the entire transformation.
-  void GetTransform(float* m);  // Stores the 4x4 matrix which represents the entire transformation into m.
+  glm::mat4 GetTransform();     // Returns 4x4 matrix which represents the entire transformation (current).
+  void GetTransform(float* m);  // Stores  4x4 matrix which represents the entire transformation into m.
 
   glm::mat4 GetInverseTransform();     // Provides the inverse matrix of GetTransform().
   void GetInverseTransform(float* m);  // Provides the inverse matrix of GetTransform().
 
-  void LoadIdentity();                      // Sets the current matrix to be identity 4x4.
+  void LoadIdentity();                   // Sets the current matrix to be identity 4x4.
   void LoadMatrix(const glm::mat4 & m);  // Sets the current matrix to be m.
   void LoadMatrix(const float* m);       // Sets the current matrix to be m (column-major).
 
-  glm::mat4 GetMatrix();     // Returns the current glm matrix.
-  void GetMatrix(float* m);  // Stores the current matrix into m (column-major).
 
 private:
   std::vector<glm::mat4> mStack;  // Stack of transforms.

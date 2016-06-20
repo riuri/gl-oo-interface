@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include <gloo/test.h>
-
 #include <gloo/transform.h>
 #include <gloo/shader_program.h>
 
