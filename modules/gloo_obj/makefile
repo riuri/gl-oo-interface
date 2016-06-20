@@ -31,7 +31,7 @@ all: $(L)/gloo_obj/libgloo_obj.a
 $(L)/gloo_obj/libgloo_obj.a: $(GLOO_OBJ_OBJECTS_FILENAMES)
 	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/gloo_obj/*.h $(L)/include/gloo
 
-$(GLOO_OBJ_FILENAMES): %.o: %.cpp $(GLOO_OBJ_FILENAMES) $(GLOO_OBJ_HEADER_FILENAMES)
+$(GLOO_OBJ_OBJECTS_FILENAMES): %.o: %.cpp $(GLOO_OBJ_FILENAMES) $(GLOO_OBJ_HEADER_FILENAMES)
 	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $< -o $@
 
 ifeq ($(CLEANFOLDER), GLOO_OBJ)

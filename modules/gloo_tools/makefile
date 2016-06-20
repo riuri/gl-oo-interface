@@ -31,16 +31,28 @@ all: $(L)/gloo_tools/libgloo_tools.a
 $(L)/gloo_tools/libgloo_tools.a: $(GLOO_TOOLS_OBJECTS_FILENAMES)
 	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/gloo_tools/*.h $(L)/include/gloo
 
-$(GLOO_TOOLS_FILENAMES): %.o: %.cpp $(GLOO_TOOLS_FILENAMES) $(GLOO_TOOLS_HEADER_FILENAMES)
-	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $< -o $@
-
-# ifeq ($(CLEANFOLDER), GLOO_TOOLS)
-# cleanGLOO_TOOLS: cleanGLOO_TOOLS
-# endif
+$(GLOO_TOOLS_OBJECTS_FILENAMES): %.o: %.cpp $(GLOO_TOOLS_FILENAMES) $(GLOO_TOOLS_HEADER_FILENAMES)
+	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $(GLM_INCLUDE) $< -o $@
 
 deepclean: cleanGLOO_TOOLS
 
 cleanGLOO_TOOLS:
-	$(RM) $(GLOO_TOOLS_OBJECTS_FILENAMES) $(GLOO_TOOLS_FILENAMES) $(L)/gloo_tools/libgloo_tools.a
+	$(RM) $(GLOO_TOOLS_FILENAMES) $(L)/gloo_tools/libgloo_tools.a
 
 endif
+
+# $(L)/gloo_tools/libgloo_tools.a: transform.o
+# 	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/gloo_tools/*.h $(L)/include/gloo
+
+# transform.o: transform.cpp ../../dependencies/glm
+# 	 	$(CXX) $(CXXFLAGS) -c transform.cpp 
+
+# main: main.o ../directory1/libmylib.a
+#     $(CC) main.o $(LDFLAGS) -lmylib -o main
+
+# main.o: main.c ../directory1/myheader.h
+#     $(CC) $(CFLAGS) -c main.c
+
+# ifeq ($(CLEANFOLDER), GLOO_TOOLS)
+# cleanGLOO_TOOLS: cleanGLOO_TOOLS
+# endif
