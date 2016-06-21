@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 
 // Headers for shader-based OpenGL.
 #if defined(WIN32) || defined(linux)
