@@ -95,17 +95,28 @@ void Init(int &argc, char *argv[])
 {
   // NOTE: Next section from starter code.
   std::cout << "Initializing GLUT..." << std::endl;
-#ifdef linux
+#ifdef __LINUX__
   setenv("MESA_GL_VERSION_OVERRIDE", "3.0", 0);
+
+  GLenum err = glewInit();  
+  // check that the machine supports the 2.1 API.
+  if (err != GLEW_OK || (!GLEW_VERSION_2_1) 
+  {
+    exit(1);
+  }
+
 #endif
+  
   glutInit(&argc, argv);
 
   std::cout << "Initializing OpenGL..." << std::endl;
-  #ifdef __APPLE__
+
+#ifdef __APPLE__
     glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL);
-  #else
+#else
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL);
-  #endif
+#endif
+  
   glutInitWindowSize(800, 600);
   glutInitWindowPosition(0, 0);  
   glutCreateWindow("CSCI 420 homework I");

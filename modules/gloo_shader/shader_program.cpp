@@ -93,12 +93,8 @@ bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode,
                                      const char* tessellationEvaluationShaderCode)
 {
   // Create an overall shader program handle.
-  GLenum err = glewInit();
-  if (err != GLEW_OK)
-	    exit(1); // or handle the error in a nicer way
-    if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
-	      exit(1); // or handle the error in a nicer way
   mHandle = glCreateProgram();
+  
   if (mHandle == 0) 
   {
 #if LOG_OUTPUT_ON == 1
