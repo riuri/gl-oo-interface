@@ -2,3 +2,4 @@ dependencies
 dependencies.zip
 *.a
 modules/lib/libgloo_shader.a
+*.o

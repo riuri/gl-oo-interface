@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 
 #include <gloo/test.h>
 #include <gloo/transform.h>
@@ -94,6 +95,9 @@ void Init(int &argc, char *argv[])
 {
   // NOTE: Next section from starter code.
   std::cout << "Initializing GLUT..." << std::endl;
+#ifdef linux
+  setenv("MESA_GL_VERSION_OVERRIDE", "3.0", 0);
+#endif
   glutInit(&argc, argv);
 
   std::cout << "Initializing OpenGL..." << std::endl;

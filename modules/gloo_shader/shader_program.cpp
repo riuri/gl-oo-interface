@@ -49,7 +49,6 @@ bool ShaderProgram::BuildFromFiles(const char* vertexShaderPath,
       return false;
     }
   }
-
   bool exitCode = BuildFromStrings(shaderCodes[0], shaderCodes[1], shaderCodes[2], shaderCodes[3], shaderCodes[4]);
   for (int i = 0; i < 5; i++) 
   {
@@ -94,6 +93,11 @@ bool ShaderProgram::BuildFromStrings(const char* vertexShaderCode,
                                      const char* tessellationEvaluationShaderCode)
 {
   // Create an overall shader program handle.
+  GLenum err = glewInit();
+  if (err != GLEW_OK)
+	    exit(1); // or handle the error in a nicer way
+    if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
+	      exit(1); // or handle the error in a nicer way
   mHandle = glCreateProgram();
   if (mHandle == 0) 
   {
