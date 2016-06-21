@@ -39,6 +39,13 @@ bool ShaderProgram::BuildFromFiles(const char* vertexShaderPath,
 #if LOG_OUTPUT_ON == 1
       std::cout << "ERRROR: file not found." << std::endl;
 #endif
+
+      // Delete reserved buffers.
+      for (int k = 0; k <= i; k++) 
+      {
+        delete [] (shaderCodes[i]);
+      }
+
       return false;
     }
   }
