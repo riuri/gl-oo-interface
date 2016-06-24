@@ -1,6 +1,8 @@
 #include "transform.h"
 
-#include <vector>
+#include <iomanip>
+#include <sstream>
+
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -138,22 +140,22 @@ void Transform::PushAndLoadIdentity()
 // -> Load/Query methods.
 
 // -- 10
-glm::mat4 Transform::GetTransform()
+glm::mat4 Transform::GetMatrix()
 {
   return mCurrent;
 }
 
-void Transform::GetTransform(float* m)
+void Transform::GetMatrix(float* m)
 {
   memcpy(m, glm::value_ptr(mCurrent), sizeof(float) * 16);
 }
 
-glm::mat4 Transform::GetInverseTransform()
+glm::mat4 Transform::GetInverseMatrix()
 {
   return glm::inverse(mCurrent);
 }
 
-void Transform::GetInverseTransform(float* m)
+void Transform::GetInverseMatrix(float* m)
 {
   glm::mat4 mCurrentInv = glm::inverse(mCurrent);
   memcpy(m, glm::value_ptr(mCurrentInv), sizeof(float) * 16);
@@ -174,5 +176,66 @@ void Transform::LoadMatrix(const float* m)
   mCurrent = glm::make_mat4(m);
 }
 
+// ------------------------------------------------------------------------------------------------
+// -> Utilities/Log.
+
+// -- 11
+
+std::ostream& operator<<(std::ostream& os, const Transform& transform)
+{
+  os << Transform::MatrixToStr(transform.mCurrent);
+  return os;
+}
+
+void Transform::PrintStack(int precision, int width, bool fixed)
+{
+  std::cout << "Current matrix =\n" 
+            << Transform::MatrixToStr(mCurrent, precision, width, fixed) << std::endl;
+  
+  std::cout << "-------------------------- Top  --------------------------" << std::endl;
+  for (int i = mStack.size()-1; i >= 0; i--) 
+  {
+    std::cout << "S[" << i << "] = \n" 
+              << Transform::MatrixToStr(mStack[i], precision, width, fixed) << std::endl;
+  }
+  std::cout << "------------------------ Bottom --------------------------" << std::endl << std::endl;
+}
+
+std::string Transform::MatrixToStr(const glm::mat4 & m, int precision, int width, bool fixed) 
+{
+  std::ostringstream oss;
+  oss << std::setprecision(precision);
+  oss << std::setw(width);
+  
+  if (fixed) 
+  {
+    oss << std::fixed;
+  }
+
+  const float * data = glm::value_ptr(m);
+  for (int i = 0; i < 4; i++) 
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      // Column-major.
+      oss << std::setw(width) << data[4*j + i] << "  ";
+    }
+    oss << std::endl;
+  }
+
+  return oss.str();
+}
+
 }  // namespace gloo.
+
+
+
+
+
+
+
+
+
+
+
 

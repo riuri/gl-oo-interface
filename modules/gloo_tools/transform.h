@@ -16,10 +16,23 @@
 //  Professor Jernej Barbic and his TA Bohan Wang
 //  for CSCI 420 at USC. 
 //
+//  Usage/Instructions
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 #pragma once
 
 #include <vector>
+#include <string>
 #include <iostream>
 #include <glm/glm.hpp>
 
@@ -77,16 +90,27 @@ public:
   void PushAndLoadIdentity();
 
   // -> Load/Query methods.
-  glm::mat4 GetTransform();     // Returns 4x4 matrix which represents the entire transformation (current).
-  void GetTransform(float* m);  // Stores  4x4 matrix which represents the entire transformation into m.
+  glm::mat4 GetMatrix();     // Returns 4x4 matrix which represents the entire transformation (current).
+  void GetMatrix(float* m);  // Stores  4x4 matrix which represents the entire transformation into m.
 
-  glm::mat4 GetInverseTransform();     // Provides the inverse matrix of GetTransform().
-  void GetInverseTransform(float* m);  // Provides the inverse matrix of GetTransform().
+  glm::mat4 GetInverseMatrix();     // Provides the inverse matrix of GetMatrix().
+  void GetInverseMatrix(float* m);  // Provides the inverse matrix of GetMatrix().
 
   void LoadIdentity();                   // Sets the current matrix to be identity 4x4.
   void LoadMatrix(const glm::mat4 & m);  // Sets the current matrix to be m.
   void LoadMatrix(const float* m);       // Sets the current matrix to be m (column-major).
 
+  // -> Utilities/Log.
+
+  // Prints current matrix.
+  friend std::ostream& operator<<(std::ostream& os, const Transform& transform);
+
+  // Prints the entire matrix stack. Precision, width and fixed specifies formatting properties.
+  void PrintStack(int precision = 6, int width = 12, bool fixed = true);
+
+  // Matrix to std::string.
+  static std::string MatrixToStr(const glm::mat4 & m, int precision = 6, 
+                                 int width = 12, bool fixed = true);
 
 private:
   std::vector<glm::mat4> mStack;  // Stack of transforms.
@@ -94,4 +118,4 @@ private:
 };
 
 
-}  // namespace gloo
+}  // namespace gloo.
