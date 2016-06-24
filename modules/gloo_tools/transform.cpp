@@ -17,20 +17,20 @@ Transform::Transform()
   mCurrent = glm::mat4(1.0f);
 }
 
-void Transform::SetUniform(unsigned programHandle, const std::string & uniformName)
+void Transform::SetUniform(unsigned programHandle, const std::string & uniformName) const
 {
   const float* m = glm::value_ptr(mCurrent);
   GLuint uniformLoc = glGetUniformLocation(programHandle, uniformName.c_str());
   glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, m);
 }
 
-void Transform::SetUniform(unsigned uniformHandler)
+void Transform::SetUniform(unsigned uniformHandler) const
 {
   const float* m = glm::value_ptr(mCurrent);
   glUniformMatrix4fv(uniformHandler, 1, GL_FALSE, m);
 }
 
-void Transform::SetInverseUniform(unsigned programHandle, const std::string & uniformName)
+void Transform::SetInverseUniform(unsigned programHandle, const std::string & uniformName) const
 {
   float m_inv[16];
   Transform::GetInverseMatrix(m_inv);
@@ -38,7 +38,7 @@ void Transform::SetInverseUniform(unsigned programHandle, const std::string & un
   glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, m_inv);
 }
 
-void Transform::SetInverseUniform(unsigned uniformHandler)
+void Transform::SetInverseUniform(unsigned uniformHandler) const
 {
   float m_inv[16];
   Transform::GetInverseMatrix(m_inv);
@@ -169,22 +169,22 @@ void Transform::PushAndLoadIdentity()
 // -> Load/Query methods.
 
 // -- 10
-glm::mat4 Transform::GetMatrix()
+glm::mat4 Transform::GetMatrix() const
 {
   return mCurrent;
 }
 
-void Transform::GetMatrix(float* m)
+void Transform::GetMatrix(float* m) const
 {
   memcpy(m, glm::value_ptr(mCurrent), sizeof(float) * 16);
 }
 
-glm::mat4 Transform::GetInverseMatrix()
+glm::mat4 Transform::GetInverseMatrix() const
 {
   return glm::inverse(mCurrent);
 }
 
-void Transform::GetInverseMatrix(float* m)
+void Transform::GetInverseMatrix(float* m) const
 {
   glm::mat4 mCurrentInv = glm::inverse(mCurrent);
   memcpy(m, glm::value_ptr(mCurrentInv), sizeof(float) * 16);
@@ -210,13 +210,19 @@ void Transform::LoadMatrix(const float* m)
 
 // -- 11
 
+void Transform::Combine(const Transform & other)
+{
+  Transform::MultMatrix(other.GetMatrix());
+}
+
+// -- 12
 std::ostream& operator<<(std::ostream& os, const Transform& transform)
 {
   os << Transform::MatrixToStr(transform.mCurrent);
   return os;
 }
 
-void Transform::PrintStack(int precision, int width, bool fixed)
+void Transform::PrintStack(int precision, int width, bool fixed) const
 {
   std::cout << "Current matrix =\n" 
             << Transform::MatrixToStr(mCurrent, precision, width, fixed) << std::endl;
@@ -231,7 +237,7 @@ void Transform::PrintStack(int precision, int width, bool fixed)
             << std::endl;
 }
 
-std::string Transform::MatrixToStr(const glm::mat4 & m, int precision, int width, bool fixed) 
+std::string Transform::MatrixToStr(const glm::mat4 & m, int precision, int width, bool fixed)
 {
   std::ostringstream oss;
   oss << std::setprecision(precision);
@@ -257,15 +263,4 @@ std::string Transform::MatrixToStr(const glm::mat4 & m, int precision, int width
 }
 
 }  // namespace gloo.
-
-
-
-
-
-
-
-
-
-
-
 

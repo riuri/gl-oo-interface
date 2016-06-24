@@ -38,12 +38,10 @@ void DisplayFunc()
   blah_angle += 0.01;
   // GLfloat m[16];
 
-  GLfloat m[16];
   gloo::Transform MV;
   MV.Translate(+0.0f, 0.0f, -0.25f);
-  MV.GetMatrix(m);
-
-  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "V"), 1, GL_FALSE, m);
+  MV.SetUniform(shaderProgram->GetHandle(), "V");
+  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "V"), 1, GL_FALSE, m);
 
   MV.LoadIdentity();
   MV.PushMatrix();
@@ -53,15 +51,14 @@ void DisplayFunc()
 
   // MV.PrintStack();
 
-  // exit(0);
-
   // MV.Invert();
   // MV.Scale(0.5, 0.75, 1.0);
 
   std::cout << MV << std::endl;
 
-  MV.GetMatrix(m);
-  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
+  GLuint uniformLoc = glGetUniformLocation(shaderProgram->GetHandle(), "M");
+  MV.SetUniform(uniformLoc);
+  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
   
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);

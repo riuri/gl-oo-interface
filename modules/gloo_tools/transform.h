@@ -18,16 +18,13 @@
 //
 //  Usage/Instructions:
 //
-//
 //  Simple example (as a model matrix):
 //  gloo::Transform* model = new gloo::Transform();
 //  model->Translate(0, 0, -1.0f);
 //  model->Rotate(M_PI/2.0f, 0, 0, 1);
-//  model-
-//
-//
-//
-//
+//  model-SetUniform(shaderProgram->GetHandle(), "modelMatrix");
+//  ...
+//  delete model;
 //
 
 #pragma once
@@ -53,12 +50,12 @@ public:
   // Uploads current matrix to GPU (in an uniform in shader program).
   // Note: the corresponding shader has to be binded so that the name
   // is successfully retrieved.
-  void SetUniform(unsigned programHandle, const std::string & uniformName);
-  void SetUniform(unsigned uniformHandler);
+  void SetUniform(unsigned programHandle, const std::string & uniformName) const;
+  void SetUniform(unsigned uniformHandler) const;
 
   // Has the same functionality as SetUniform, but using the inverse current matrix.
-  void SetInverseUniform(unsigned programHandle, const std::string & uniformName);
-  void SetInverseUniform(unsigned uniformHandler);
+  void SetInverseUniform(unsigned programHandle, const std::string & uniformName) const;
+  void SetInverseUniform(unsigned uniformHandler) const;
 
   // -> Methods for setting the current matrix as model/view transformation.
   // Rotates theta degrees around axis [x, y, z]'.
@@ -104,11 +101,11 @@ public:
   void PushAndLoadIdentity();
 
   // -> Load/Query methods.
-  glm::mat4 GetMatrix();     // Returns 4x4 matrix which represents the entire transformation (current).
-  void GetMatrix(float* m);  // Stores  4x4 matrix which represents the entire transformation into m.
+  glm::mat4 GetMatrix() const;     // Returns 4x4 matrix which represents the entire transformation (current).
+  void GetMatrix(float* m) const;  // Stores  4x4 matrix which represents the entire transformation into m.
 
-  glm::mat4 GetInverseMatrix();     // Provides the inverse matrix of GetMatrix().
-  void GetInverseMatrix(float* m);  // Provides the inverse matrix of GetMatrix().
+  glm::mat4 GetInverseMatrix() const;     // Provides the inverse matrix of GetMatrix().
+  void GetInverseMatrix(float* m) const;  // Provides the inverse matrix of GetMatrix().
 
   void LoadIdentity();                   // Sets the current matrix to be identity 4x4.
   void LoadMatrix(const glm::mat4 & m);  // Sets the current matrix to be m.
@@ -116,11 +113,16 @@ public:
 
   // -> Utilities/Log.
 
+  // Combines current transform with a second transform.
+  // The resulting combination is stored in the first transform.
+  //
+  void Combine(const Transform & other);
+
   // Prints current matrix.
   friend std::ostream& operator<<(std::ostream& os, const Transform& transform);
 
   // Prints the entire matrix stack. Precision, width and fixed specifies formatting properties.
-  void PrintStack(int precision = 6, int width = 12, bool fixed = true);
+  void PrintStack(int precision = 6, int width = 12, bool fixed = true) const;
 
   // Matrix to std::string.
   static std::string MatrixToStr(const glm::mat4 & m, int precision = 6, 
