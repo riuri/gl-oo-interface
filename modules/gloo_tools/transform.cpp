@@ -1,4 +1,5 @@
 #include "transform.h"
+#include "gl_header.h"
 
 #include <iomanip>
 #include <sstream>
@@ -14,6 +15,34 @@ Transform::Transform()
 {
   // Initialize first matrix with identity.
   mCurrent = glm::mat4(1.0f);
+}
+
+void Transform::SetUniform(unsigned programHandle, const std::string & uniformName)
+{
+  const float* m = glm::value_ptr(mCurrent);
+  GLuint uniformLoc = glGetUniformLocation(programHandle, uniformName.c_str());
+  glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, m);
+}
+
+void Transform::SetUniform(unsigned uniformHandler)
+{
+  const float* m = glm::value_ptr(mCurrent);
+  glUniformMatrix4fv(uniformHandler, 1, GL_FALSE, m);
+}
+
+void Transform::SetInverseUniform(unsigned programHandle, const std::string & uniformName)
+{
+  float m_inv[16];
+  Transform::GetInverseMatrix(m_inv);
+  GLuint uniformLoc = glGetUniformLocation(programHandle, uniformName.c_str());
+  glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, m_inv);
+}
+
+void Transform::SetInverseUniform(unsigned uniformHandler)
+{
+  float m_inv[16];
+  Transform::GetInverseMatrix(m_inv);
+  glUniformMatrix4fv(uniformHandler, 1, GL_FALSE, m_inv);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -198,7 +227,8 @@ void Transform::PrintStack(int precision, int width, bool fixed)
     std::cout << "S[" << i << "] = \n" 
               << Transform::MatrixToStr(mStack[i], precision, width, fixed) << std::endl;
   }
-  std::cout << "------------------------ Bottom --------------------------" << std::endl << std::endl;
+  std::cout << "------------------------ Bottom --------------------------" << std::endl
+            << std::endl;
 }
 
 std::string Transform::MatrixToStr(const glm::mat4 & m, int precision, int width, bool fixed) 

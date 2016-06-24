@@ -16,13 +16,14 @@
 //  Professor Jernej Barbic and his TA Bohan Wang
 //  for CSCI 420 at USC. 
 //
-//  Usage/Instructions
+//  Usage/Instructions:
 //
 //
-//
-//
-//
-//
+//  Simple example (as a model matrix):
+//  gloo::Transform* model = new gloo::Transform();
+//  model->Translate(0, 0, -1.0f);
+//  model->Rotate(M_PI/2.0f, 0, 0, 1);
+//  model-
 //
 //
 //
@@ -42,9 +43,22 @@ namespace gloo
 class Transform
 {
 public:
+  // -> Constructor/Destructor.
+  // Constructs Transform and loads identity in it.
   Transform();
+  
   ~Transform() 
   { }
+
+  // Uploads current matrix to GPU (in an uniform in shader program).
+  // Note: the corresponding shader has to be binded so that the name
+  // is successfully retrieved.
+  void SetUniform(unsigned programHandle, const std::string & uniformName);
+  void SetUniform(unsigned uniformHandler);
+
+  // Has the same functionality as SetUniform, but using the inverse current matrix.
+  void SetInverseUniform(unsigned programHandle, const std::string & uniformName);
+  void SetInverseUniform(unsigned uniformHandler);
 
   // -> Methods for setting the current matrix as model/view transformation.
   // Rotates theta degrees around axis [x, y, z]'.

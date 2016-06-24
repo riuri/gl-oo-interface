@@ -51,14 +51,14 @@ void DisplayFunc()
   MV.PushMatrix();
   MV.Rotate(blah_angle, 0, 0, 1);
 
-  MV.PrintStack();
+  // MV.PrintStack();
 
-  exit(0);
+  // exit(0);
 
   // MV.Invert();
   // MV.Scale(0.5, 0.75, 1.0);
 
-  // std::cout << MV << std::endl;
+  std::cout << MV << std::endl;
 
   MV.GetMatrix(m);
   glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
@@ -76,8 +76,9 @@ void DisplayFunc()
   //MV.Translate(+0.75f, 0.0f, 0.0f);
   // MV.PushAndLoadIdentity();
   MV.Rotate(blah_angle, 0, 0, 1);
-  MV.GetInverseMatrix(m);
-  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
+  //MV.GetInverseMatrix(m);
+  MV.SetInverseUniform(shaderProgram->GetHandle(), "M");
+  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
   
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   
