@@ -16,16 +16,44 @@
 //  Professor Jernej Barbic and his TA Bohan Wang
 //  for CSCI 420 at USC. 
 //
-//  Usage/Instructions:
+//  It stores a matrix and a stack of matrices so that
+//  any hierarchical transform can be modeled. All me-
+//  thods modify the current matrix, which carries all
+//  the transform so far.
+//  Whenever a method such as Rotate() or Perspective()
+//  is called, the current matrix is changed to accumulate
+//  the transform (by multiplying by the right side).
 //
-//  Simple example (as a model matrix):
-//  gloo::Transform* model = new gloo::Transform();
-//  model->Translate(0, 0, -1.0f);
-//  model->Rotate(M_PI/2.0f, 0, 0, 1);
-//  model-SetUniform(shaderProgram->GetHandle(), "modelMatrix");
-//  ...
-//  delete model;
+//  ----------------------------------------------------------------------
+//  INSTRUCTIONS
 //
+//  1. Simple example (as a model matrix):
+//  gloo::Transform model();
+//  model.Translate(0, 0, -1.0f);
+//  model.Rotate(M_PI/2.0f, 0, 0, 1);
+//  model.SetUniform(shaderProgram->GetHandle(), "modelMatrix");
+//
+//  2. In order to use in a hierarchical rendering, the methods
+//  PushMatrix and PopMatrix must be called, so that the curent
+//  transform is saved in the matrices stack. 
+//
+//  3. GetMatrix() returns the current transform, either as glm::mat4
+//  or a double column-major array. GetInverseMatrix() does the same
+//  routine, but using the inverse of the current matrix.
+//
+//  4. The operator << to ostream is overloaded. Then, you're allowed
+//  to do:   std::cout << model << std::endl;
+//  It will print the current matrix. For more detailed information 
+//  about the entire stack, use PrintStack().
+//
+//  5. The default assignment operator works. So, you're allowed to use
+//  gloo::Transform copy = model;
+//
+//  6. You can combine transforms using Combine():
+//  MVP.Perspective(...);     // Set projection 
+//  MVP.Combine(modelView);   // Combine with modelView (right side)
+//  MVP.SetUniform(shaderProgram->GetHandle(), "MVP");
+//  ----------------------------------------------------------------------
 
 #pragma once
 
@@ -115,7 +143,6 @@ public:
 
   // Combines current transform with a second transform.
   // The resulting combination is stored in the first transform.
-  //
   void Combine(const Transform & other);
 
   // Prints current matrix.

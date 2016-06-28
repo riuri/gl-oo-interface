@@ -12,6 +12,8 @@
 //  TA Bohan Wang for CSCI 420 at USC. I adapted
 //  for an easier and more general use.
 //
+//
+//  -----------------------------------------------------------------------------------------------
 //  INSTRUCTIONS
 //
 //  Initialization/Compilation:
@@ -31,6 +33,7 @@
 //
 //  Getting handle for variables by the name:
 //  GLuint h_modelView = program->GetVariableHandle("MV");
+//  -----------------------------------------------------------------------------------------------
 
 #pragma once
 
