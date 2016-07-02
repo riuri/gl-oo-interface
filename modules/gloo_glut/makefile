@@ -15,7 +15,7 @@ GLOO_GLUT_OBJECTS=view_controller.o
 GLOO_GLUT_LIBS=
 
 # the headers in this library
-GLOO_GLUT_HEADERS=view_controller.h
+GLOO_GLUT_HEADERS=view_controller.h model_base.h
 
 GLOO_GLUT_LINK=$(addprefix -l, $(GLOO_GLUT_LIBS)) $(IMAGE_LIBS) $(STANDARD_LIBS)
 
