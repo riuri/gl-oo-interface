@@ -4,14 +4,14 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 //
-//  gloo::ViewController is a base class for a
+//  gloo::GlutViewController is a base class for a
 //  view-controller design pattern for any app 
-//  using GLUT. The ViewController contains a
+//  using GLUT. The GlutViewController contains a
 //  gloo::ModelBase pointer, which can be used for
 //  a derived class of ModelBase. Then, on your 
 //  custom application, you should derive Mo-
 //  del class and specify its instance to the 
-//  ViewController, using SetModel() method.
+//  GlutViewController, using SetModel() method.
 
 #pragma once
 
@@ -22,16 +22,16 @@ namespace gloo
 
 class ModelBase;  // gloo::ModelBase
 
-class ViewController
+class GlutViewController
 {
 public:
-  ViewController();
-  virtual ~ViewController();
+  GlutViewController();
+  virtual ~GlutViewController();
 
   // Sets the gloo::ModelBase to be called on every callback. 
-  // By default, ViewController does not own the model,
+  // By default, GlutViewController does not own the model,
   // so it means that the ModelBase has to be manually destroyed.
-  // If you want ViewController to automatically destroy model,
+  // If you want GlutViewController to automatically destroy model,
   // please use the second version of SetModel and specify true. 
   inline void SetModel(class ModelBase* model) { mModel = model; }
   void SetModel(class ModelBase* model, bool ownsModel);
@@ -39,10 +39,10 @@ public:
   // Returns the pointer for the current model.
   inline class ModelBase* GetModel() { return mModel; }
 
-  // Tells if ViewController owns the strong reference to ModelBase.
+  // Tells if GlutViewController owns the strong reference to ModelBase.
   inline bool OwnsModel() { return mOwnsModel; }
 
-  // Tells if ViewController has a ModelBase* initialized.
+  // Tells if GlutViewController has a ModelBase* initialized.
   inline bool HasModel() { return mModel != nullptr; }
 
   // -- Essential Callbacks --
@@ -64,7 +64,7 @@ protected:
   bool mOwnsModel { false };
 };
 
-inline void ViewController::SetModel(class ModelBase* model, bool ownsModel)
+inline void GlutViewController::SetModel(class ModelBase* model, bool ownsModel)
 {
   mModel = model;
   mOwnsModel = ownsModel;

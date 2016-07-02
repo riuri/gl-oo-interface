@@ -9,13 +9,13 @@ include ../../build/makefile-header
 R ?= ../..
 
 # the object files to be compiled for this library
-GLOO_GLUT_OBJECTS=view_controller.o
+GLOO_GLUT_OBJECTS=glut_view_controller.o
 
 # the libraries this library depends on
 GLOO_GLUT_LIBS=
 
 # the headers in this library
-GLOO_GLUT_HEADERS=view_controller.h model_base.h
+GLOO_GLUT_HEADERS=glut_view_controller.h model_base.h
 
 GLOO_GLUT_LINK=$(addprefix -l, $(GLOO_GLUT_LIBS)) $(IMAGE_LIBS) $(STANDARD_LIBS)
 

@@ -6,14 +6,13 @@
 //
 //  gloo::ModelBase is a base class for a model,
 //  following the MVC design pattern in UI apps
-//  using GLUT. The gloo::ViewController contains
+//  Each gloo::ViewController-like class contains
 //  a pointer to ModelBase instance. Therefore,
 //  once you implement your custom Model class
 //  derived from ModelBase, you will set it to be
-//  the model in gloo::ViewController (please, 
-//  use the method SetModel() and see ViewController
-//  for more details).
-//
+//  the model in corresponding view-controller 
+//  (please, use the method SetModel()).
+
 
 #pragma once
 
