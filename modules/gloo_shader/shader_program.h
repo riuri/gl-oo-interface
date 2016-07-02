@@ -1,6 +1,6 @@
 // + ======================================== +
 // |         gl-oo-interface library          |
-// |        Module: GLOO ShaderProgram.       |
+// |        Module: GLOO Shader.              |
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 //
@@ -11,7 +11,6 @@
 //  provided by Professor Jernej Barbic and his
 //  TA Bohan Wang for CSCI 420 at USC. I adapted
 //  for an easier and more general use.
-//
 //
 //  -----------------------------------------------------------------------------------------------
 //  INSTRUCTIONS
