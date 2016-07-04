@@ -25,7 +25,10 @@ class ModelBase
 {
 public:
   // Virtual destructor.
-  virtual ~ModelBase();
+  virtual ~ModelBase() {}
+
+  // -- Initialization method --
+  virtual bool Init() = 0;
 
   // -- Essential Callbacks --
   virtual void Idle() = 0;       // Default callback in each cycle of GLUT.

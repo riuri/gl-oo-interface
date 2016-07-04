@@ -28,6 +28,8 @@ public:
   GlutViewController();
   virtual ~GlutViewController();
 
+  bool Init();
+
   // Sets the gloo::ModelBase to be called on every callback. 
   // By default, GlutViewController does not own the model,
   // so it means that the ModelBase has to be manually destroyed.
@@ -37,13 +39,13 @@ public:
   void SetModel(class ModelBase* model, bool ownsModel);
 
   // Returns the pointer for the current model.
-  inline class ModelBase* GetModel() { return mModel; }
+  inline class ModelBase* GetModel() const { return mModel; }
 
   // Tells if GlutViewController owns the strong reference to ModelBase.
-  inline bool OwnsModel() { return mOwnsModel; }
+  inline bool OwnsModel() const { return mOwnsModel; }
 
   // Tells if GlutViewController has a ModelBase* initialized.
-  inline bool HasModel() { return mModel != nullptr; }
+  inline bool HasModel() const { return mModel != nullptr; }
 
   // -- Essential Callbacks --
   virtual void Idle();                 // Default callback in each cycle of GLUT.

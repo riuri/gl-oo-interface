@@ -7,6 +7,8 @@
 namespace gloo
 {
 
+GlutViewController* GlutApplication::sViewController = nullptr;
+
 // ===================== Static functions for OpenGL callbacks ==========================  
 void GlutApplication::Idle()
 {
@@ -105,6 +107,7 @@ bool GlutApplication::Init(int argc, char* argv[], ModelBase* model,
     return false;
   }
 
+  model->Init();
   sViewController->SetModel(model, true);
 
   return true;

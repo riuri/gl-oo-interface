@@ -6,6 +6,8 @@
 //
 // TODO: description.
 
+#pragma once
+
 #include <string>
 
 #include "model_base.h"
@@ -22,7 +24,7 @@ public:
   static bool Init(int argc, char* argv[], ModelBase* model,
                    const std::string & windowTitle = "",
                    int windowWidth = 800, int windowHeight = 600);
-  
+
   // Starts MainLoop of GlutApplication
   static void Run();
 

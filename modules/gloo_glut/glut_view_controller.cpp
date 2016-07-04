@@ -17,6 +17,16 @@ GlutViewController::~GlutViewController()
   }
 }
 
+bool GlutViewController::Init()
+{
+  if (HasModel())
+  {
+    return mModel->Init();
+  }
+
+  return false;
+}
+
 void GlutViewController::Idle()
 {
   if (HasModel())
