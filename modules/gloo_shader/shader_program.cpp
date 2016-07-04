@@ -37,7 +37,7 @@ bool ShaderProgram::BuildFromFiles(const char* vertexShaderPath,
     {
       mCompilationStatus = kLoadFailure;
 #if LOG_OUTPUT_ON == 1
-      std::cout << "ERRROR: file not found." << std::endl;
+      std::cerr << "ERROR: file not found." << std::endl;
 #endif
 
       // Delete reserved buffers.
