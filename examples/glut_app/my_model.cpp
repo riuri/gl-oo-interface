@@ -41,6 +41,13 @@ bool MyModel::Init()
   shaderProgram->PrintCompilationLog();
   gloo::CompilationStatus status = shaderProgram->GetCompilationStatus();
   // std::cout << "Compilation Status = " << status << std::endl;
+
+  if (status != gloo::CompilationStatus::kSuccess) 
+  {
+    delete shaderProgram;
+    return false;
+  }
+
   program = shaderProgram->GetHandle();
   shaderProgram->Bind();
 

@@ -53,6 +53,8 @@ void GlutViewController::Reshape(int w, int h)
 
 void GlutViewController::ActiveMouseMotion(int x, int y)
 {
+  mMouseState.SetPos(x, y);
+
   if (HasModel())
   {
     mModel->ActiveMouseMotion(x, y);
@@ -61,6 +63,8 @@ void GlutViewController::ActiveMouseMotion(int x, int y)
 
 void GlutViewController::PassiveMouseMotion(int x, int y)
 {
+  mMouseState.SetPos(x, y);
+
   if (HasModel())
   {
     mModel->PassiveMouseMotion(x, y);
@@ -69,6 +73,9 @@ void GlutViewController::PassiveMouseMotion(int x, int y)
 
 void GlutViewController::MouseButtonChange(int button, int state, int x, int y)
 {
+  mMouseState.SetPos(x, y);
+  mMouseState.SetState(button, state);
+
   if (HasModel())
   {
     mModel->MouseButtonChange(button, state, x, y);

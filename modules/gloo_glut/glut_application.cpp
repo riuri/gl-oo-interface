@@ -108,8 +108,15 @@ int GlutApplication::Run(int argc, char* argv[], ModelBase* model,
     return 1;
   }
 
-  // 
-  model->Init();
+  if (!model->Init())
+  {
+#if LOG_OUTPUT_ON == 1
+    std::cerr << "ERROR: Couldn't initialize internal model"
+                 " (GlutApplication::sViewController::mModel). " << std::endl;
+#endif
+    return 1;
+  }  
+
   sViewController->SetModel(model, true);
 
   // Install callbacks.
