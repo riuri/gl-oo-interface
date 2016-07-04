@@ -7,9 +7,5 @@ using namespace gloo;
 
 int main(int argc, char* argv[]  )
 {
-  GlutApplication::Init(argc, argv, new MyModel());
-  GlutApplication::Run();
-  GlutApplication::Close();
-
-  return 0;
+  return GlutApplication::Run(argc, argv, new MyModel());;
 }

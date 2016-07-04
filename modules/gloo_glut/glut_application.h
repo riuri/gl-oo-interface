@@ -21,15 +21,13 @@ class GlutApplication
 public:
   
   // Initializes OpenGL and GLUT context according to OS.
-  static bool Init(int argc, char* argv[], ModelBase* model,
-                   const std::string & windowTitle = "",
-                   int windowWidth = 800, int windowHeight = 600);
-
-  // Starts MainLoop of GlutApplication
-  static void Run();
-
+  // Builds internal GlutViewController.
+  // Starts MainLoop of GlutApplication.
+  // Exits return a code - 0 for success, 1 for error and so on.
   // Destroys data of GlutApplication.
-  static void Close();
+  static int Run(int argc, char* argv[], ModelBase* model,
+                 const std::string & windowTitle = "",
+                 int windowWidth = 800, int windowHeight = 600);
 
 private:
   static GlutViewController* sViewController;

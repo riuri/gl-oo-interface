@@ -52,28 +52,30 @@ void GlutApplication::SpecialKeyboardChange(int key, int x, int y)
 
 // ======================================================================================  
 
-bool GlutApplication::Init(int argc, char* argv[], ModelBase* model,
+int GlutApplication::Run(int argc, char* argv[], ModelBase* model,
                            const std::string & windowTitle,
                            int windowWidth, int windowHeight)
 {
 #if LOG_OUTPUT_ON == 1
+  std::cout << "------------------------------------------------------------------" << std::endl;
   std::cout << "1. Initializing GLUT..." << std::endl;
 #endif
 
 #ifdef __LINUX__
-  GLenum err = glewInit();  
+  GLenum err = glewInit();
   
-  // Check that the machine supports the 2.1 API.
+  // Check if machine supports the 2.1 API.
   if (err != GLEW_OK || (!GLEW_VERSION_2_1))
   {
 #if LOG_OUTPUT_ON == 1
-    std::cerr << "ERROR: could not load GLEW. " << std::endl;
+    std::cerr << "ERROR: could not load GLEW on Linux. " << std::endl;
 #endif
 
-    return false;
+    return 1;
   }
 #endif
   
+  // Create context.
   glutInit(&argc, argv);
 
 #if LOG_OUTPUT_ON == 1
@@ -93,7 +95,7 @@ bool GlutApplication::Init(int argc, char* argv[], ModelBase* model,
   std::cout << "------------------------------------------------------------------" << std::endl;
   std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
   std::cout << "OpenGL Renderer: " << glGetString(GL_RENDERER) << std::endl;
-  std::cout << "Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << "\n\n";
+  std::cout << "Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
   std::cout << "------------------------------------------------------------------" << std::endl;
 
   sViewController = new GlutViewController();
@@ -103,43 +105,29 @@ bool GlutApplication::Init(int argc, char* argv[], ModelBase* model,
 #if LOG_OUTPUT_ON == 1
     std::cerr << "ERROR: Couldn't allocate GlutViewController. " << std::endl;
 #endif
-
-    return false;
+    return 1;
   }
 
+  // 
   model->Init();
   sViewController->SetModel(model, true);
 
-  return true;
-}
+  // Install callbacks.
+  glutDisplayFunc(GlutApplication::Display);
+  glutIdleFunc(GlutApplication::Idle); 
+  glutReshapeFunc(GlutApplication::Reshape); 
+  glutMotionFunc(GlutApplication::ActiveMouseMotion);
+  glutPassiveMotionFunc(GlutApplication::PassiveMouseMotion);
+  glutMouseFunc(GlutApplication::MouseButtonChange);
+  glutKeyboardFunc(GlutApplication::KeyboardChange);
+  glutSpecialFunc(GlutApplication::SpecialKeyboardChange);
 
-void GlutApplication::Run()
-{
-  if (sViewController == nullptr)
-  {
-#if LOG_OUTPUT_ON == 1
-      std::cerr << "ERROR: OpenGL and GLUT context must be created before running."
-                   " Please refer to GlutApplication::Init(). Call it before Run()" << std::endl;
-#endif
-  }
-  else
-  {
-    glutDisplayFunc(GlutApplication::Display);
-    glutIdleFunc(GlutApplication::Idle); 
-    glutReshapeFunc(GlutApplication::Reshape); 
-    glutMotionFunc(GlutApplication::ActiveMouseMotion);
-    glutPassiveMotionFunc(GlutApplication::PassiveMouseMotion);
-    glutMouseFunc(GlutApplication::MouseButtonChange);
-    glutKeyboardFunc(GlutApplication::KeyboardChange);
-    glutSpecialFunc(GlutApplication::SpecialKeyboardChange);
+  glutMainLoop();
 
-    glutMainLoop();
-  }
-}
-
-void GlutApplication::Close()
-{
   delete sViewController;
+
+  return 0;
 }
+
 
 }  // namespace gloo.
