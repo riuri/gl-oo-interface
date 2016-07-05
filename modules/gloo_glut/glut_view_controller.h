@@ -16,27 +16,12 @@
 #pragma once
 
 #include "gl_header.h"
+#include "mouse_event.h"
 
 namespace gloo 
 {
 
 class ModelBase;  // gloo::ModelBase
-
-// State machine for GLUT mouse.
-struct GlutMouseState
-{
-  // Current (x, y) coordinates of mouse (viewport).
-  int mPosX { 0 };
-  int mPosY { 0 };
-
-  // State of each button - 1 is pressed, 0 is released.
-  int mLftButton { 0 };
-  int mRgtButton { 0 };
-  int mMidButton { 0 };
-
-  void SetPos(int x, int y);
-  void SetState(int button, int state);
-};
 
 // Base class for view controller (MVC paradigm).
 class GlutViewController
@@ -82,7 +67,7 @@ protected:
   class ModelBase* mModel { nullptr };
   bool mOwnsModel { false };
 
-  struct GlutMouseState mMouseState;
+  MouseState mMouseState;
 };
 
 // =========== GlutViewController Inline Methods =============== 
@@ -91,30 +76,6 @@ inline void GlutViewController::SetModel(class ModelBase* model, bool ownsModel)
 {
   mModel = model;
   mOwnsModel = ownsModel;
-}
-
-// =========== GlutMouseState Inline Methods =============== 
-
-inline void GlutMouseState::SetPos(int x, int y)
-{
-  mPosX = x;
-  mPosY = y;
-}
-
-inline void GlutMouseState::SetState(int button, int state)
-{
-  if (button == GLUT_LEFT_BUTTON)
-  {
-    mLftButton = (state == GLUT_DOWN);
-  }
-  else if (button == GLUT_RIGHT_BUTTON)
-  {
-    mRgtButton = (state == GLUT_DOWN);
-  }
-  else
-  {
-    mMidButton = (state == GLUT_DOWN);
-  }
 }
 
 }  // namespace gloo.

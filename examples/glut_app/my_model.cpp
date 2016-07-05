@@ -1,6 +1,7 @@
 #include "my_model.h"
 
 #include <gloo/transform.h>
+#include <gloo/mouse_event.h>
 #include <gloo/shader_program.h>
 
 #include <cstdio>
@@ -151,19 +152,43 @@ void MyModel::Reshape(int w, int h)
   glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "P"), 1, GL_FALSE, m);
 }
 
-void MyModel::ActiveMouseMotion(int x, int y)
+void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)
 {
 
 }
 
-void MyModel::PassiveMouseMotion(int x, int y)
+void MyModel::PassiveMouseMotion(const MouseEvent & mouseEvent)
 {
-
+  // std::cout << "Coordinates: " << mouseState.mPosX << ", " << mouseState.mPosY << std::endl;
 }
 
-void MyModel::MouseButtonChange(int button, int state, int x, int y)
+void MyModel::MouseButtonChange(const MouseEvent & mouseEvent)
 {
+  if (mouseEvent.mMouseState.mModifier == MouseState::kCTRL)
+  {
+    std::cout << "CTRL.\n";
+  }
+  if (mouseEvent.mMouseState.mModifier == MouseState::kSHIFT)
+  {
+    std::cout << "SHIFT.\n";
+  }
+  if (mouseEvent.mMouseState.mModifier == MouseState::kALT)
+  {
+    std::cout << "ALT.\n";
+  }
 
+  if (mouseEvent.mButton == MouseState::kLeft && mouseEvent.mButtonState == MouseState::kUp)
+  {
+    std::cout << "Left button pressed.\n";
+  }
+  if (mouseEvent.mButton == MouseState::kRight && mouseEvent.mButtonState == MouseState::kUp)
+  {
+    std::cout << "Right button pressed.\n";
+  }
+  if (mouseEvent.mButton == MouseState::kMiddle && mouseEvent.mButtonState == MouseState::kUp)
+  {
+    std::cout << "Middle button pressed.\n";
+  }
 }
 
 void MyModel::KeyboardChange(unsigned char key, int x, int y)

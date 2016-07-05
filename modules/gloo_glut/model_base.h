@@ -36,9 +36,9 @@ public:
   virtual void Reshape(int w, int h) = 0;  // Called when the app window is resized.
 
   // -- Mouse Callbacks --
-  virtual void  ActiveMouseMotion(int x, int y) = 0;  // Mouse moves while a button is pressed.
-  virtual void PassiveMouseMotion(int x, int y) = 0;  // Mouse moves with no buttons pressed.
-  virtual void MouseButtonChange(int button, int state, int x, int y) = 0;  // Buttons state changes.
+  virtual void  ActiveMouseMotion(const struct MouseEvent & mouseEvent) = 0;  // Mouse moves while a button is pressed.
+  virtual void PassiveMouseMotion(const struct MouseEvent & mouseEvent) = 0;  // Mouse moves with no buttons pressed.
+  virtual void  MouseButtonChange(const struct MouseEvent & mouseEvent) = 0;  // Buttons state changes.
 
   // -- Keyboard Callbacks --
   virtual void KeyboardChange(unsigned char key, int x, int y) = 0;  // Normal ASCII keys pressed.

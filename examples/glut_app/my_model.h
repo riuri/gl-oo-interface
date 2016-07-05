@@ -16,9 +16,9 @@ public:
   virtual void Reshape(int w, int h);
 
   // -- Mouse Callbacks --
-  virtual void ActiveMouseMotion(int x, int y);
-  virtual void PassiveMouseMotion(int x, int y);
-  virtual void MouseButtonChange(int button, int state, int x, int y);
+  virtual void  ActiveMouseMotion(const MouseEvent & mouseEvent);
+  virtual void PassiveMouseMotion(const MouseEvent & mouseEvent);
+  virtual void  MouseButtonChange(const MouseEvent & mouseEvent);
 
   // -- Keyboard Callbacks --
   virtual void KeyboardChange(unsigned char key, int x, int y);
