@@ -54,7 +54,8 @@ void GlutApplication::SpecialKeyboardChange(int key, int x, int y)
 
 int GlutApplication::Run(int argc, char* argv[], ModelBase* model,
                            const std::string & windowTitle,
-                           int windowWidth, int windowHeight)
+                           int windowWidth, int windowHeight,
+                           unsigned int displayMode)
 {
 #if LOG_OUTPUT_ON == 1
   std::cout << "------------------------------------------------------------------" << std::endl;
@@ -83,9 +84,9 @@ int GlutApplication::Run(int argc, char* argv[], ModelBase* model,
 #endif
 
 #ifdef __APPLE__
-    glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL);
+    glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | displayMode);
 #else
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL);
+    glutInitDisplayMode(displayMode);
 #endif
   
   glutInitWindowPosition(0, 0);

@@ -58,7 +58,7 @@ void GlutViewController::ActiveMouseMotion(int x, int y)
   if (HasModel())
   {
     MouseEvent event = { mMouseState, MouseState::kNone, MouseState::kDown };
-    mModel->ActiveMouseMotion( event );
+    mModel->ActiveMouseMotion(event);
   }
 }
 
@@ -69,7 +69,7 @@ void GlutViewController::PassiveMouseMotion(int x, int y)
   if (HasModel())
   {
     MouseEvent event = { mMouseState, MouseState::kNone, MouseState::kUp };
-    mModel->PassiveMouseMotion( event );
+    mModel->PassiveMouseMotion(event);
   }
 }
 
@@ -78,10 +78,8 @@ void GlutViewController::MouseButtonChange(int button, int state, int x, int y)
   mMouseState.SetPos(x, y);
   mMouseState.SetGlutState(button, state);
 
-  MouseState::State buttonState = (state == GLUT_DOWN ? MouseState::kDown : MouseState::kUp);
-
   MouseEvent event;
-  event.mButtonState = buttonState;
+  event.mButtonState = (state == GLUT_DOWN ? MouseState::kDown : MouseState::kUp);
   event.mMouseState = mMouseState;
 
   if (button == GLUT_LEFT_BUTTON)
@@ -99,7 +97,7 @@ void GlutViewController::MouseButtonChange(int button, int state, int x, int y)
 
   if (HasModel())
   {
-    mModel->MouseButtonChange( event );
+    mModel->MouseButtonChange(event);
   }
 }
 

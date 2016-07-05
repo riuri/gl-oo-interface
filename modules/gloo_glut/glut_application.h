@@ -4,7 +4,16 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 //
-// TODO: description.
+// GlutApplication provides an interface made up of static 
+// functions to help creating a single-window glut applica-
+// tion.
+// 
+// The use is very simple: just call the method Run() and
+// pass argc and argv from main(), the ModelBase-derived
+// class instance (and optionally the window title and size).
+// Run() returns similar int codes to main() in any application. 
+// See the glut_app example in the folder "../../examples/glut_app".
+//
 
 #pragma once
 
@@ -15,6 +24,8 @@
 
 namespace gloo
 {
+
+const unsigned int _kDefaultDisplayMode = (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL);
 
 class GlutApplication
 {
@@ -27,7 +38,8 @@ public:
   // Destroys data of GlutApplication.
   static int Run(int argc, char* argv[], ModelBase* model,
                  const std::string & windowTitle = "",
-                 int windowWidth = 800, int windowHeight = 600);
+                 int windowWidth = 800, int windowHeight = 600,
+                 unsigned int displayMode = _kDefaultDisplayMode);
 
 private:
   static GlutViewController* sViewController;

@@ -3,6 +3,23 @@
 // |        Module: GLOO GLUT.                |
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
+//
+// This file provides structures for mouse events data. 
+//
+// MouseState contains all information about the current state of main 
+// functionalities of a mouse, such as left, right and middle button 
+// and also its coordinates.
+// 
+// MouseEvent contains the information that was changed
+// during a mouse event and the new mouse state. Then,
+// when implementing a mouse method handler for ModelBase,
+// you can access the public data of MouseEvent to query
+// about new position, as well as which buttons've changed.
+// 
+// If you want to use auxiliar keys (CTRL, SHIFT, ALT), you
+// can check the member MouseState::mModifier, which tells
+// what is the current modifier (key). The possible values 
+// are kCTRL, kALT, kSHIFT or kNoMod.
 
 #pragma once
 
