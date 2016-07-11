@@ -72,7 +72,7 @@ public:
   // Constructs Transform and loads identity in it.
   Transform();
   
-  ~Transform() 
+  ~Transform()
   { }
 
   // Uploads current matrix to GPU (in an uniform in shader program).

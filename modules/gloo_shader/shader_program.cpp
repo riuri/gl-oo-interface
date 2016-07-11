@@ -278,7 +278,7 @@ GLuint ShaderProgram::GetVariableHandle(const std::string & variableName) const
   return GetVariableHandle(variableName.c_str());
 }
 
-void ShaderProgram::PrintCompilationLog()
+void ShaderProgram::PrintCompilationLog() const
 {
   for (int i = 0; i < mCompilationLog.size(); i++)
   {
