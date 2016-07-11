@@ -81,7 +81,7 @@ public:
   void SetUniform(unsigned programHandle, const std::string & uniformName) const;
   void SetUniform(unsigned uniformHandler) const;
 
-  // Has the same functionality as SetUniform, but using the inverse current matrix.
+  // Has the same functionality as SetUniform, but uses the inverse current matrix.
   void SetInverseUniform(unsigned programHandle, const std::string & uniformName) const;
   void SetInverseUniform(unsigned uniformHandler) const;
 
@@ -103,7 +103,7 @@ public:
               float centerX, float centerY, float centerZ, 
               float upX,     float upY,     float upZ);
   void LookAt(const glm::vec3 & eye, 
-              const glm::vec3 & center, 
+              const glm::vec3 & center,
               const glm::vec3 & up);
 
   // Inverts the current matrix.
