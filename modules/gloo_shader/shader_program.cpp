@@ -37,7 +37,7 @@ bool ShaderProgram::BuildFromFiles(const char* vertexShaderPath,
     {
       mCompilationStatus = kLoadFailure;
 #if LOG_OUTPUT_ON == 1
-      std::cout << "ERRROR: file not found." << std::endl;
+      std::cerr << "ERROR: file not found." << std::endl;
 #endif
 
       // Delete reserved buffers.
@@ -278,7 +278,7 @@ GLuint ShaderProgram::GetVariableHandle(const std::string & variableName) const
   return GetVariableHandle(variableName.c_str());
 }
 
-void ShaderProgram::PrintCompilationLog()
+void ShaderProgram::PrintCompilationLog() const
 {
   for (int i = 0; i < mCompilationLog.size(); i++)
   {

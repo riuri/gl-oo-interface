@@ -38,20 +38,29 @@ void DisplayFunc()
   blah_angle += 0.01;
   // GLfloat m[16];
 
-  GLfloat m[16];
   gloo::Transform MV;
   MV.Translate(+0.0f, 0.0f, -0.25f);
-  MV.GetTransform(m);
-  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "V"), 1, GL_FALSE, m);
+  MV.SetUniform(shaderProgram->GetHandle(), "V");
+  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "V"), 1, GL_FALSE, m);
 
   MV.LoadIdentity();
+  MV.PushMatrix();
   MV.Translate(-0.75f, 0.0f, 0.0f);
+  MV.PushMatrix();
   MV.Rotate(blah_angle, 0, 0, 1);
+
+  gloo::Transform copyMV = MV;
+
+  // MV.PrintStack();
+
   // MV.Invert();
   // MV.Scale(0.5, 0.75, 1.0);
 
-  MV.GetTransform(m);
-  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
+  std::cout << copyMV << std::endl;
+
+  GLuint uniformLoc = glGetUniformLocation(shaderProgram->GetHandle(), "M");
+  copyMV.SetUniform(uniformLoc);
+  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
   
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
@@ -66,8 +75,9 @@ void DisplayFunc()
   //MV.Translate(+0.75f, 0.0f, 0.0f);
   // MV.PushAndLoadIdentity();
   MV.Rotate(blah_angle, 0, 0, 1);
-  MV.GetInverseTransform(m);
-  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
+  //MV.GetInverseMatrix(m);
+  MV.SetInverseUniform(shaderProgram->GetHandle(), "M");
+  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
   
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   
@@ -84,7 +94,7 @@ void ReshapeFunc(int w, int h)
   P.Ortho(-2.0f, +2.0f, -1.5f, +1.5f, 0.05f, 10.0f);
   // P.Perspective(60.0f, 4.0f/3.0f, 0.05f, 10.0f);
   // projectionMatrix.GetMatrix(m);
-  P.GetTransform(m);
+  P.GetMatrix(m);
   glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "P"), 1, GL_FALSE, m);
 
   // shaderProgram->SetProjectionMatrix(m);

@@ -1,6 +1,6 @@
 // + ======================================== +
 // |         gl-oo-interface library          |
-// |        Module: GLOO ShaderProgram.       |
+// |        Module: GLOO Shader.              |
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 //
@@ -12,6 +12,7 @@
 //  TA Bohan Wang for CSCI 420 at USC. I adapted
 //  for an easier and more general use.
 //
+//  -----------------------------------------------------------------------------------------------
 //  INSTRUCTIONS
 //
 //  Initialization/Compilation:
@@ -31,6 +32,7 @@
 //
 //  Getting handle for variables by the name:
 //  GLuint h_modelView = program->GetVariableHandle("MV");
+//  -----------------------------------------------------------------------------------------------
 
 #pragma once
 
@@ -76,7 +78,7 @@ public:
 
 
   // Binds this shader program as the currrent renderer shader.
-  inline void Bind() { glUseProgram(mHandle); }
+  inline void Bind() const { glUseProgram(mHandle); }
 
   // Returns shader program handle.
   inline GLuint GetHandle() const { return mHandle; }
@@ -86,14 +88,14 @@ public:
   GLuint GetVariableHandle(const std::string & variableName) const;
 
   // Returns the vector of compilation messages (as a copy).
-  std::vector<std::string> GetCompilationLog() { return mCompilationLog; }
+  std::vector<std::string> GetCompilationLog() const { return mCompilationLog; }
 
   // Returns compilation status - kError, kLinkError, kLoadFailure, kSuccess if BuildFromFiles was called.
   // It returns kUnitilized if it wasn't built.
-  CompilationStatus GetCompilationStatus() { return mCompilationStatus; }
+  CompilationStatus GetCompilationStatus() const { return mCompilationStatus; }
 
   // Shows the compilate error log on the console output.
-  void PrintCompilationLog();
+  void PrintCompilationLog() const;
 
   // Compiles shader code stored in buffer shaderCode.
   //   shaderCode: the shader code.

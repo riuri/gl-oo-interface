@@ -9,13 +9,13 @@ include ../../build/makefile-header
 R ?= ../..
 
 # the object files to be compiled for this library
-GLOO_TOOLS_OBJECTS=transform.o
+GLOO_TOOLS_OBJECTS=transform.o camera.o
 
 # the libraries this library depends on
 GLOO_TOOLS_LIBS=
 
 # the headers in this library
-GLOO_TOOLS_HEADERS=transform.h
+GLOO_TOOLS_HEADERS=transform.h camera.h
 
 GLOO_TOOLS_LINK=$(addprefix -l, $(GLOO_TOOLS_LIBS)) $(IMAGE_LIBS) $(STANDARD_LIBS)
 
