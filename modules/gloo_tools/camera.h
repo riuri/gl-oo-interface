@@ -69,13 +69,24 @@ public:
   // This method updates the internal matrices so they can be set as uniforms in the shader.
   void OnRendering();
 
-  // UNDER DEVELOPMENT.
+  // TODO: test.
+  // The following methods set internal transforms as uniforms in shader.
+  // Please call OnRendering() before setting uniforms.
   void SetUniformViewMatrix(unsigned uniformLoc);
   void SetUniformProjMatrix(unsigned uniformLoc);
   void SetUniformModelViewProj(unsigned uniformLoc);
   void SetUniformModelViewProj(unsigned uniformLoc, const Transform & model);
 
-  // TODO: methods for animation (Translate, Rotate, ...)
+  // TODO: test.
+  // Animate camera center, orientation and scale -> glm::vec3.
+  void Translate(const glm::vec3 & dPos);
+  void Rotate(const glm::vec3 & dRot);
+  void Scale(const glm::vec3 & dScale);
+
+  // Animate camera center, orientation and scale -> 3 floats.
+  void Translate(float dx, float dy, float dz);
+  void Rotate(   float dx, float dy, float dz);
+  void Scale(    float dx, float dy, float dz);
 
   // 2. Setter methods -> change the internal parameters.
 
@@ -123,7 +134,52 @@ protected:
   ProjectionParameters mProjParameters;  // Specifies the type of projection.
 };
 
-// =========== IMPLEMENTATION OF INLINE METHODS ===============
+// =========== IMPLEMENTATION OF INLINE METHODS ===================================================
+
+inline
+void Camera::Translate(const glm::vec3 & dPos)
+{
+  mPos += dPos;
+}
+
+inline
+void Camera::Rotate(const glm::vec3 & dRot)
+{
+  mRot += dRot;
+}
+
+inline
+void Camera::Scale(const glm::vec3 & dScale)
+{
+  mScale[0] *= (1.0f + dScale[0]);
+  mScale[1] *= (1.0f + dScale[1]);
+  mScale[2] *= (1.0f + dScale[2]);
+}
+
+/// ===============================================================================================
+
+void Camera::Translate(float dx, float dy, float dz)
+{
+  mPos[0] += dx;
+  mPos[1] += dy;
+  mPos[2] += dz;
+}
+
+void Camera::Rotate(float dx, float dy, float dz)
+{
+  mRot[0] += dx;
+  mRot[1] += dy;
+  mRot[2] += dz;
+}
+
+void Camera::Scale(float dx, float dy, float dz)
+{
+  mScale[0] *= (1.0f + dx);
+  mScale[1] *= (1.0f + dy);
+  mScale[2] *= (1.0f + dz);
+}
+
+/// ===============================================================================================
 
 inline
 void Camera::SetPosition(float xc, float yc, float zc)
@@ -148,6 +204,8 @@ void Camera::SetScale(float sx, float sy, float sz)
   mScale[1] = sy;
   mScale[2] = sz;
 }
+
+/// ===============================================================================================
 
 inline
 void Camera::SetProjectionParameters(const ProjectionParameters & projParameters)
