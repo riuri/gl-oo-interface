@@ -30,6 +30,25 @@ void Camera::OnRendering()
   mView.Scale(mScale);
 }
 
+void Camera::SetUniformModelViewProj(unsigned uniformLoc)
+{
+  // Compute MVP = P * V * M, where M is identity here.
+  mProj.PushMatrix();  // Save P.
+  mProj.Combine(mView);          // P = P * V.
+  mProj.SetUniform(uniformLoc);  // Upload P.
+  mProj.PopMatrix();   // Restore P.
+}
+
+void Camera::SetUniformModelViewProj(unsigned uniformLoc, const Transform & model)
+{
+  // Compute MVP = P * V * M.
+  mProj.PushMatrix();  // Save P.
+  mProj.Combine(mView);          // P = P * V.
+  mProj.Combine(model);          // P = P * M.
+  mProj.SetUniform(uniformLoc);  // Upload P.
+  mProj.PopMatrix();   // Restore P.
+}
+
 glm::vec3 Camera::ComputeRayAt(float x_v, float y_v, float w, float h) const
 {
   // Compute boundaries of near clip plane.

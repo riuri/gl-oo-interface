@@ -123,8 +123,8 @@ public:
   void Perspective(float fovY, float aspect, float zNear, float zFar);
 
   // -> Hierachy/Chain manipulation methods.
-  void PushMatrix();
-  void PopMatrix();
+  void PushMatrix();  // Saves the current matrix on the top of the stack.
+  void PopMatrix();   // Restores the top of the stack into current matrix.
 
   void PushAndLoadIdentity();
 

@@ -40,7 +40,7 @@ namespace gloo
 
 struct ProjectionParameters
 {
-  float mFovy   { M_PI/3.0 } ;  // Field of view of Y [angle in radians].
+  float mFovy   { M_PI/3.0 } ;  // Field of view in Y [angle in radians].
   float mFarZ   {  0.1  };      // Maximum rendering distance.
   float mNearZ  { 100.0 };      // Minimum rendering distance.
   float mAspect { 4.0/3.0 } ;   // Ratio a = W / H  [width/height].
@@ -60,17 +60,20 @@ public:
 
   // 1. Main methods -> must be called when rendering.
   //                 -> should be used to move/animate camera.
+  //                 -> they provide a pretty interface to set uniform matrices.
 
   // Must be called when the viewport changes (changes internal projection parameters).
   void OnWindowResize(int xo, int yo, int w, int h);
 
   // Must be called before rendering objects (if you want to use this camera as the active one).
+  // This method updates the internal matrices so they can be set as uniforms in the shader.
   void OnRendering();
 
-  // TODO: methods for setting uniforms. Available options should be:
-  // 1. ViewMatrix only;
-  // 2. ProjMatrix only;
-  // 3. ModelViewMatrix (must specify an argument to combine with). ??? 
+  // UNDER DEVELOPMENT.
+  void SetUniformViewMatrix(unsigned uniformLoc);
+  void SetUniformProjMatrix(unsigned uniformLoc);
+  void SetUniformModelViewProj(unsigned uniformLoc);
+  void SetUniformModelViewProj(unsigned uniformLoc, const Transform & model);
 
   // TODO: methods for animation (Translate, Rotate, ...)
 
@@ -150,6 +153,18 @@ inline
 void Camera::SetProjectionParameters(const ProjectionParameters & projParameters)
 {
   mProjParameters = projParameters;
+}
+
+inline
+void Camera::SetUniformViewMatrix(unsigned uniformLoc)
+{
+  mView.SetUniform(uniformLoc);
+}
+
+inline
+void Camera::SetUniformProjMatrix(unsigned uniformLoc)
+{
+  mProj.SetUniform(uniformLoc);
 }
 
 }  // namespace gloo.
