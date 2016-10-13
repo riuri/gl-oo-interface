@@ -83,7 +83,7 @@ public:
   // Returns shader program handle.
   inline GLuint GetHandle() const { return mHandle; }
   
-  // Returns the handle for a variable stored into this shader program.
+  // Returns the handle for a variable stored in this shader program.
   GLuint GetVariableHandle(const char * variableName) const;
   GLuint GetVariableHandle(const std::string & variableName) const;
 
@@ -98,7 +98,7 @@ public:
   void PrintCompilationLog() const;
 
   // Compiles shader code stored in buffer shaderCode.
-  //   shaderCode: the shader code.
+  //   shaderCode: the shader source code.
   //   shaderType: GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, 
   //               GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER.
   // Output:

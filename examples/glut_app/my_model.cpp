@@ -2,7 +2,6 @@
 
 #include <gloo/transform.h>
 #include <gloo/mouse_event.h>
-#include <gloo/shader_program.h>
 
 #include <cstdio>
 #include <iostream>
@@ -23,12 +22,17 @@ GLuint vbo = 0;  // Vertex buffer object.
 GLuint vao = 0;  // Vertex array object.
 GLuint eab = 0;  // Element array buffer.
 
-gloo::ShaderProgram *shaderProgram;
 GLuint program; 
 
 MyModel::MyModel()
 {
-  
+
+}
+
+MyModel::~MyModel()
+{
+  delete mCamera;
+  delete mShaderProgram;
 }
 
 bool MyModel::Init()
@@ -37,20 +41,24 @@ bool MyModel::Init()
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   glPointSize(2);
   
-  shaderProgram = new gloo::ShaderProgram();
-  shaderProgram->BuildFromFiles("phong_no_shadow/vertex_shader.glsl", "phong_no_shadow/fragment_shader.glsl");
-  shaderProgram->PrintCompilationLog();
-  gloo::CompilationStatus status = shaderProgram->GetCompilationStatus();
-  // std::cout << "Compilation Status = " << status << std::endl;
+  mShaderProgram = new gloo::ShaderProgram();
+  mShaderProgram->BuildFromFiles("phong_no_shadow/vertex_shader.glsl", 
+                                 "phong_no_shadow/fragment_shader.glsl");
+  mShaderProgram->PrintCompilationLog();
+  gloo::CompilationStatus status = mShaderProgram->GetCompilationStatus();
+  std::cout << "Compilation Status = " << status << std::endl;
 
   if (status != gloo::CompilationStatus::kSuccess) 
   {
-    delete shaderProgram;
+    delete mShaderProgram;
     return false;
   }
 
-  program = shaderProgram->GetHandle();
-  shaderProgram->Bind();
+  program = mShaderProgram->GetHandle();
+  mShaderProgram->Bind();
+
+  mCamera = new Camera();
+  mCamera->SetPosition(0, 0, 1.0f);
 
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
@@ -90,31 +98,31 @@ void MyModel::Display()
 
   static float blah_angle = 0.0;
   blah_angle += 0.01;
-  // GLfloat m[16];
 
-  gloo::Transform MV;
-  MV.Translate(+0.0f, 0.0f, -0.25f);
-  MV.SetUniform(shaderProgram->GetHandle(), "V");
-  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "V"), 1, GL_FALSE, m);
+  mCamera->Set();
+  mCamera->SetUniformViewMatrix( mShaderProgram->GetVariableHandle("V") );
+  // mCamera->SetUniformViewProj( mShaderProgram->GetVariableHandle("PV") );
 
-  MV.LoadIdentity();
-  MV.PushMatrix();
-  MV.Translate(-0.75f, 0.0f, 0.0f);
-  MV.PushMatrix();
-  MV.Rotate(blah_angle, 0, 0, 1);
+  /* Scale, Rotate, Translate method of camera */
+  // mCamera->Scale(-0.01, -0.004, -0.004);
+  // mCamera->Translate(0, 0, 0.001f);
+  mCamera->SetPosition(0, 0, 2);
+  // mCamera->Rotate(0, 0, 0.04f);
+  // mCamera->Rotate(0.01f, 0, 0);
 
-  gloo::Transform copyMV = MV;
+  gloo::Transform M;
+  M.LoadIdentity();
+  M.Translate(0.75f, 0.0f, 0.0);
+  // M.Rotate(blah_angle, 0, 0, 1);
 
-  // MV.PrintStack();
+  GLuint uniformLoc = glGetUniformLocation(mShaderProgram->GetHandle(), "M");
+  M.SetUniform(uniformLoc);
 
-  // MV.Invert();
-  // MV.Scale(0.5, 0.75, 1.0);
+  // mShaderProgram->GetVariableHandle("MV")
+  // mCamera->SetUniformModelView( glGetUniformLocation(mShaderProgram->GetHandle(), "MV"), M);
+  // mCamera->SetUniformModelViewProj( glGetUniformLocation(mShaderProgram->GetHandle(), "MVP"), M);
 
-  // std::cout << copyMV << std::endl;
-
-  GLuint uniformLoc = glGetUniformLocation(shaderProgram->GetHandle(), "M");
-  copyMV.SetUniform(uniformLoc);
-  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
+  // glUniformMatrix4fv( glGetUniformLocation(mShaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
   
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
@@ -125,14 +133,15 @@ void MyModel::Display()
       (void*)0           // element array buffer offset
   );
 
-  MV.LoadIdentity();
-  //MV.Translate(+0.75f, 0.0f, 0.0f);
-  // MV.PushAndLoadIdentity();
-  MV.Rotate(blah_angle, 0, 0, 1);
-  //MV.GetInverseMatrix(m);
-  MV.SetInverseUniform(shaderProgram->GetHandle(), "M");
-  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
-  
+  M.LoadIdentity();
+  M.Translate(-0.75f, 0.0f, 0.0f);
+  M.Rotate(blah_angle, 0, 0, 1);
+
+  M.SetUniform(uniformLoc);
+
+  // mCamera->SetUniformModelView( glGetUniformLocation(mShaderProgram->GetHandle(), "MV"), M);
+  // mCamera->SetUniformModelViewProj( glGetUniformLocation(mShaderProgram->GetHandle(), "MVP"), M);
+
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   
   glutSwapBuffers();
@@ -141,15 +150,9 @@ void MyModel::Display()
 void MyModel::Reshape(int w, int h)
 {
   glViewport(0, 0, w, h);
+  mCamera->OnReshape(0, 0, w, h);
 
-  gloo::Transform P;
-
-  GLfloat m[16];
-  P.Ortho(-2.0f, +2.0f, -1.5f, +1.5f, 0.05f, 10.0f);
-  // P.Perspective(60.0f, 4.0f/3.0f, 0.05f, 10.0f);
-  // projectionMatrix.GetMatrix(m);
-  P.GetMatrix(m);
-  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "P"), 1, GL_FALSE, m);
+  mCamera->SetUniformProjMatrix( mShaderProgram->GetVariableHandle("P") );
 }
 
 void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)

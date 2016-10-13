@@ -1,4 +1,6 @@
+#include <gloo/camera.h>
 #include <gloo/model_base.h>
+#include <gloo/shader_program.h>
 
 using namespace gloo;
 
@@ -6,7 +8,7 @@ class MyModel : public ModelBase
 {
 public:
   MyModel();
-  virtual ~MyModel() {}
+  virtual ~MyModel();
 
   virtual bool Init();
 
@@ -25,5 +27,7 @@ public:
   virtual void SpecialKeyboardChange(unsigned char key, int x, int y);
 
 private:
+  Camera* mCamera { nullptr };
+  ShaderProgram* mShaderProgram { nullptr };
 
 };

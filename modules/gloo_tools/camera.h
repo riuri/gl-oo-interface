@@ -14,7 +14,7 @@
 // 1. Create a camera:  gloo::Camera* camera = new Camera( );
 //     [Optionally pass ProjectiveParameters as arguments ^ ]
 // 2. On window resize/reshape, call OnWindowResize().
-// 3. On rendering function call OnRendering() before objects.
+// 3. On rendering function call Set() before rendering objects.
 // 
 // ...
 //
@@ -26,7 +26,7 @@
 // to it and all the main work will be done by the renderer.
 //
 // NOTE2: by calling getter methods for Transforms, you'll get
-// the transform set from the last rendering.
+// the transform set from the last frame.
 
 #pragma once
 
@@ -38,6 +38,8 @@
 namespace gloo
 {
 
+// This structure stores the perspective projection attributes
+// of this camera.
 struct ProjectionParameters
 {
   float mFovy   { M_PI/3.0 } ;  // Field of view in Y [angle in radians].
@@ -56,28 +58,29 @@ public:
   Camera(const ProjectionParameters & projParameters)
   : mProjParameters(projParameters) { }
 
-  ~Camera();
+  ~Camera() { }
 
   // 1. Main methods -> must be called when rendering.
   //                 -> should be used to move/animate camera.
   //                 -> they provide a pretty interface to set uniform matrices.
 
   // Must be called when the viewport changes (changes internal projection parameters).
-  void OnWindowResize(int xo, int yo, int w, int h);
+  void OnReshape(int xo, int yo, int w, int h);
 
   // Must be called before rendering objects (if you want to use this camera as the active one).
   // This method updates the internal matrices so they can be set as uniforms in the shader.
-  void OnRendering();
+  void Set();
 
-  // TODO: test.
+
   // The following methods set internal transforms as uniforms in shader.
-  // Please call OnRendering() before setting uniforms.
-  void SetUniformViewMatrix(unsigned uniformLoc);
-  void SetUniformProjMatrix(unsigned uniformLoc);
-  void SetUniformModelViewProj(unsigned uniformLoc);
-  void SetUniformModelViewProj(unsigned uniformLoc, const Transform & model);
+  // Please call Set() before setting uniforms.
+  void SetUniformViewMatrix(unsigned uniformLoc);  // Just view matrix.
+  void SetUniformProjMatrix(unsigned uniformLoc);  // Just projection matrix.
+  void SetUniformViewProj(unsigned uniformLoc);    // Proj * View.
+  void SetUniformModelView(unsigned uniformLoc, const Transform & model);      // View * Model.
+  void SetUniformModelViewProj(unsigned uniformLoc, const Transform & model);  // Proj * View * Model.
 
-  // TODO: test.
+
   // Animate camera center, orientation and scale -> glm::vec3.
   void Translate(const glm::vec3 & dPos);
   void Rotate(const glm::vec3 & dRot);
@@ -131,7 +134,7 @@ protected:
   // Transform stacks.
   Transform mView;  // Specifies camera position, orientation and so on [a stack].
   Transform mProj;  // Specifies projective transform.
-  ProjectionParameters mProjParameters;  // Specifies the type of projection.
+  ProjectionParameters mProjParameters;  // Specifies parameters of projection.
 };
 
 // =========== IMPLEMENTATION OF INLINE METHODS ===================================================
@@ -158,6 +161,7 @@ void Camera::Scale(const glm::vec3 & dScale)
 
 /// ===============================================================================================
 
+inline
 void Camera::Translate(float dx, float dy, float dz)
 {
   mPos[0] += dx;
@@ -165,6 +169,7 @@ void Camera::Translate(float dx, float dy, float dz)
   mPos[2] += dz;
 }
 
+inline
 void Camera::Rotate(float dx, float dy, float dz)
 {
   mRot[0] += dx;
@@ -172,6 +177,7 @@ void Camera::Rotate(float dx, float dy, float dz)
   mRot[2] += dz;
 }
 
+inline
 void Camera::Scale(float dx, float dy, float dz)
 {
   mScale[0] *= (1.0f + dx);

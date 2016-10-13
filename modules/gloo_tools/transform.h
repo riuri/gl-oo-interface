@@ -116,6 +116,10 @@ public:
   void MultMatrix(const glm::mat4 & m);
   void MultMatrix(const float* m);  // Column-major.
 
+  // Left multiplication of current matrix by m.
+  void LeftMultMatrix(const glm::mat4 & m);
+  void LeftMultMatrix(const float* m);  // Column-major.
+
   // -> Methods for setting the current matrix as projective transformation.
   // Specify the projection type and the corresponding parameters (limits or aspect).
   void Ortho(      float left, float right, float bottom, float top, float zNear, float zFar);
@@ -144,6 +148,7 @@ public:
   // Combines current transform with a second transform.
   // The resulting combination is stored in the first transform.
   void Combine(const Transform & other);
+  void LeftCombine(const Transform & other);  // TODO: description.
 
   // Prints current matrix.
   friend std::ostream& operator<<(std::ostream& os, const Transform& transform);
