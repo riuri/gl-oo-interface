@@ -46,7 +46,7 @@ bool MyModel::Init()
                                  "phong_no_shadow/fragment_shader.glsl");
   mShaderProgram->PrintCompilationLog();
   gloo::CompilationStatus status = mShaderProgram->GetCompilationStatus();
-  std::cout << "Compilation Status = " << status << std::endl;
+  // std::cout << "Compilation Status = " << status << std::endl;
 
   if (status != gloo::CompilationStatus::kSuccess) 
   {

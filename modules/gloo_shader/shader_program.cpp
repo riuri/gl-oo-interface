@@ -1,7 +1,7 @@
 #include "shader_program.h"
 #include <iostream>
 
-#define LOG_OUTPUT_ON 1
+#define LOG_OUTPUT_ON 0
 
 namespace gloo
 {
@@ -280,11 +280,21 @@ GLuint ShaderProgram::GetVariableHandle(const std::string & variableName) const
 
 void ShaderProgram::PrintCompilationLog() const
 {
+  std::cout << "Compilation Log: " << std::endl;
+
   for (int i = 0; i < mCompilationLog.size(); i++)
   {
-    std::cout << mCompilationLog[i];
+    std::cout << '\t' << mCompilationLog[i];
   }
-  std::cout << std::endl;
+
+  if (mCompilationLog.size() > 0)
+  {
+    std::cout << std::endl;
+  }
+  else
+  {
+    std::cout << "\t <empty>" << std::endl;
+  }
 }
 
 } // namespace gloo.
