@@ -3,7 +3,7 @@
 namespace gloo
 {
 
-void Camera::OnReshape(int xo, int yo, int w, int h)
+void Camera::SetOnReshape(int xo, int yo, int w, int h)
 {
   mProjParameters.mAspect = static_cast<float>(w - xo) / static_cast<float>(h - yo);
   mProj.LoadIdentity();
@@ -16,7 +16,7 @@ void Camera::OnReshape(int xo, int yo, int w, int h)
   mProj.Perspective(mFovy, mAspect, mNearZ, mFarZ);
 }
 
-void Camera::Set()
+void Camera::SetOnRendering()
 {
   mView.LoadIdentity();
 

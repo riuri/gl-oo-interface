@@ -14,7 +14,7 @@
 // 1. Create a camera:  gloo::Camera* camera = new Camera( );
 //     [Optionally pass ProjectiveParameters as arguments ^ ]
 // 2. On window resize/reshape, call OnWindowResize().
-// 3. On rendering function call Set() before rendering objects.
+// 3. On rendering function call SetOnRendering() before rendering objects.
 // 
 // ...
 //
@@ -65,15 +65,15 @@ public:
   //                 -> they provide a pretty interface to set uniform matrices.
 
   // Must be called when the viewport changes (changes internal projection parameters).
-  void OnReshape(int xo, int yo, int w, int h);
+  void SetOnReshape(int xo, int yo, int w, int h);
 
   // Must be called before rendering objects (if you want to use this camera as the active one).
   // This method updates the internal matrices so they can be set as uniforms in the shader.
-  void Set();
+  void SetOnRendering();
 
 
   // The following methods set internal transforms as uniforms in shader.
-  // Please call Set() before setting uniforms.
+  // Please call SetOnRendering() before setting uniforms.
   void SetUniformViewMatrix(unsigned uniformLoc);  // Just view matrix.
   void SetUniformProjMatrix(unsigned uniformLoc);  // Just projection matrix.
   void SetUniformViewProj(unsigned uniformLoc);    // Proj * View.

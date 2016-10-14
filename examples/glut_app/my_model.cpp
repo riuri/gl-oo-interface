@@ -2,6 +2,7 @@
 
 #include <gloo/transform.h>
 #include <gloo/mouse_event.h>
+#include <gloo/group.h>
 
 #include <cstdio>
 #include <iostream>
@@ -83,6 +84,14 @@ bool MyModel::Init()
   glVertexAttribPointer(locPositionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glVertexAttribPointer(locColorAttrib, 3, GL_FLOAT, GL_FALSE, 0, (void*)sizeof(triangleColors));
 
+  auto group = new StaticGroup<Interleave>();
+
+  group->Load(program, NULL, NULL, 
+                       NULL, NULL, NULL, 6, 10, GL_TRIANGLE_STRIP);
+
+  delete group;
+
+
   return true;
 }
 
@@ -99,7 +108,7 @@ void MyModel::Display()
   static float blah_angle = 0.0;
   blah_angle += 0.01;
 
-  mCamera->Set();
+  mCamera->SetOnRendering();
   mCamera->SetUniformViewMatrix( mShaderProgram->GetVariableHandle("V") );
   // mCamera->SetUniformViewProj( mShaderProgram->GetVariableHandle("PV") );
 
@@ -150,7 +159,7 @@ void MyModel::Display()
 void MyModel::Reshape(int w, int h)
 {
   glViewport(0, 0, w, h);
-  mCamera->OnReshape(0, 0, w, h);
+  mCamera->SetOnReshape(0, 0, w, h);
 
   mCamera->SetUniformProjMatrix( mShaderProgram->GetVariableHandle("P") );
 }

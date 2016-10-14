@@ -1,46 +1,46 @@
-ifndef GLOO_OBJ
-GLOO_OBJ=GLOO_OBJ
+ifndef GLOO_MESH
+GLOO_MESH=GLOO_MESH
 
 ifndef CLEANFOLDER
-CLEANFOLDER=GLOO_OBJ
+CLEANFOLDER=GLOO_MESH
 endif
 
 include ../../build/makefile-header
 R ?= ../..
 
 # the object files to be compiled for this library
-GLOO_OBJ_OBJECTS=test.o
+GLOO_MESH_OBJECTS=group.o
 
 # the libraries this library depends on
-GLOO_OBJ_LIBS=
+GLOO_MESH_LIBS=
 
 # the headers in this library
-GLOO_OBJ_HEADERS=test.h
+GLOO_MESH_HEADERS=group.h
 
-GLOO_OBJ_LINK=$(addprefix -l, $(GLOO_OBJ_LIBS)) $(IMAGE_LIBS) $(STANDARD_LIBS)
+GLOO_MESH_LINK=$(addprefix -l, $(GLOO_MESH_LIBS)) $(IMAGE_LIBS) $(STANDARD_LIBS)
 
-GLOO_OBJ_OBJECTS_FILENAMES=$(addprefix $(L)/gloo_obj/, $(GLOO_OBJ_OBJECTS))
-GLOO_OBJ_HEADER_FILENAMES=$(addprefix $(L)/gloo_obj/, $(GLOO_OBJ_HEADERS))
-GLOO_OBJ_MAKEFILES=$(call GET_LIB_MAKEFILES, $(GLOO_OBJ_LIBS))
-GLOO_OBJ_FILENAMES=$(call GET_LIB_FILENAMES, $(GLOO_OBJ_LIBS))
+GLOO_MESH_OBJECTS_FILENAMES=$(addprefix $(L)/gloo_mesh/, $(GLOO_MESH_OBJECTS))
+GLOO_MESH_HEADER_FILENAMES=$(addprefix $(L)/gloo_mesh/, $(GLOO_MESH_HEADERS))
+GLOO_MESH_MAKEFILES=$(call GET_LIB_MAKEFILES, $(GLOO_MESH_LIBS))
+GLOO_MESH_FILENAMES=$(call GET_LIB_FILENAMES, $(GLOO_MESH_LIBS))
 
-include $(GLOO_OBJ_MAKEFILES)
+include $(GLOO_MESH_MAKEFILES)
 
-all: $(L)/gloo_obj/libgloo_obj.a
+all: $(L)/gloo_mesh/libgloo_mesh.a
 
-$(L)/gloo_obj/libgloo_obj.a: $(GLOO_OBJ_OBJECTS_FILENAMES)
-	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/gloo_obj/*.h $(L)/include/gloo
+$(L)/gloo_mesh/libgloo_mesh.a: $(GLOO_MESH_OBJECTS_FILENAMES)
+	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/gloo_mesh/*.h $(L)/include/gloo
 
-$(GLOO_OBJ_OBJECTS_FILENAMES): %.o: %.cpp $(GLOO_OBJ_FILENAMES) $(GLOO_OBJ_HEADER_FILENAMES)
+$(GLOO_MESH_OBJECTS_FILENAMES): %.o: %.cpp $(GLOO_MESH_FILENAMES) $(GLOO_MESH_HEADER_FILENAMES)
 	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $< -o $@
 
-ifeq ($(CLEANFOLDER), GLOO_OBJ)
-cleanGLOO_OBJ: cleanGLOO_OBJ
+ifeq ($(CLEANFOLDER), GLOO_MESH)
+cleanGLOO_MESH: cleanGLOO_MESH
 endif
 
-deepclean: cleanGLOO_OBJ
+deepclean: cleanGLOO_MESH
 
-cleanGLOO_OBJ:
-	$(RM) $(GLOO_OBJ_FILENAMES) $(L)/gloo_obj/libgloo_obj.a
+cleanGLOO_MESH:
+	$(RM) $(GLOO_MESH_FILENAMES) $(L)/gloo_mesh/libgloo_mesh.a
 
 endif

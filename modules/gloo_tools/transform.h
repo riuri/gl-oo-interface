@@ -34,8 +34,8 @@
 //  model.SetUniform(shaderProgram->GetHandle(), "modelMatrix");
 //
 //  2. In order to use in a hierarchical rendering, the methods
-//  PushMatrix and PopMatrix must be called, so that the curent
-//  transform is saved in the matrices stack. 
+//  PushMatrix and PopMatrix must be called, so that the current
+//  transform is saved into the matrices stack. 
 //
 //  3. GetMatrix() returns the current transform, either as glm::mat4
 //  or a double column-major array. GetInverseMatrix() does the same
