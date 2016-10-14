@@ -1,6 +1,6 @@
 #version 330
 
-in vec2 in_tex_coord;
+in vec2 in_uv;
 in vec3 in_position;
 in vec3 in_normal;
 in vec3 in_color;
@@ -28,7 +28,7 @@ void main()
 
   // compute the vertex color (into col)
   v_color = vec4(in_color, 1.0);
-  v_tex_coord = in_tex_coord;
+  v_tex_coord = in_uv;
 
   // Fragment position computation in camera coordinates.
   f_pos = V * (M * vec4(in_position, 1.0f));

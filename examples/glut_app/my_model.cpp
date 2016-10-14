@@ -17,6 +17,16 @@ GLfloat triangleColors[] = {1.0f, 0.0f, 0.0f,
                             0.0f, 0.0f, 1.0f,
                             0.4f, 0.4f, 0.4f};
 
+GLfloat squareVertices[] = {-0.5f,  0.5f, 0.0f,
+                             0.5f,  0.5f, 0.0f,
+                            -0.5f, -0.5f, 0.0f,
+                             0.5f, -0.5f, 0.0f};
+
+GLfloat squareColors[] = {1.0f, 0.0f, 0.0f, 
+                          0.0f, 1.0f, 0.0f,
+                          0.0f, 0.0f, 1.0f,
+                          0.4f, 0.4f, 0.4f};
+
 GLuint indices[] = {0, 2, 1, 3};
 
 GLuint vbo = 0;  // Vertex buffer object.
@@ -34,6 +44,7 @@ MyModel::~MyModel()
 {
   delete mCamera;
   delete mShaderProgram;
+  delete mMeshGroup;
 }
 
 bool MyModel::Init()
@@ -74,7 +85,7 @@ bool MyModel::Init()
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-  // get location index of the “position” shader variable
+  // Get location index of the “position” shader variable
   GLuint locPositionAttrib = glGetAttribLocation(program, "in_position"); 
   GLuint locColorAttrib    = glGetAttribLocation(program, "in_color");
 
@@ -84,12 +95,12 @@ bool MyModel::Init()
   glVertexAttribPointer(locPositionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glVertexAttribPointer(locColorAttrib, 3, GL_FLOAT, GL_FALSE, 0, (void*)sizeof(triangleColors));
 
-  auto group = new StaticGroup<Interleave>();
 
-  group->Load(program, NULL, NULL, 
-                       NULL, NULL, NULL, 6, 10, GL_TRIANGLE_STRIP);
-
-  delete group;
+  mMeshGroup = new StaticGroup<Batch>();
+  mMeshGroup->Load(program, squareVertices,
+                            squareColors,
+                            NULL, NULL,
+                            indices, 4, 4, GL_TRIANGLE_STRIP);
 
 
   return true;
@@ -115,13 +126,13 @@ void MyModel::Display()
   /* Scale, Rotate, Translate method of camera */
   // mCamera->Scale(-0.01, -0.004, -0.004);
   // mCamera->Translate(0, 0, 0.001f);
-  mCamera->SetPosition(0, 0, 2);
+  mCamera->SetPosition(0, 0, 3);
   // mCamera->Rotate(0, 0, 0.04f);
   // mCamera->Rotate(0.01f, 0, 0);
 
   gloo::Transform M;
   M.LoadIdentity();
-  M.Translate(0.75f, 0.0f, 0.0);
+  M.Translate(1.2f, 0.0f, 0.0);
   // M.Rotate(blah_angle, 0, 0, 1);
 
   GLuint uniformLoc = glGetUniformLocation(mShaderProgram->GetHandle(), "M");
@@ -143,16 +154,20 @@ void MyModel::Display()
   );
 
   M.LoadIdentity();
-  M.Translate(-0.75f, 0.0f, 0.0f);
+  M.Translate(-1.2f, 0.0f, 0.0f);
   M.Rotate(blah_angle, 0, 0, 1);
 
   M.SetUniform(uniformLoc);
-
   // mCamera->SetUniformModelView( glGetUniformLocation(mShaderProgram->GetHandle(), "MV"), M);
   // mCamera->SetUniformModelViewProj( glGetUniformLocation(mShaderProgram->GetHandle(), "MVP"), M);
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   
+  M.LoadIdentity();
+  M.SetUniform(uniformLoc);
+
+  mMeshGroup->Render();
+
   glutSwapBuffers();
 }
 

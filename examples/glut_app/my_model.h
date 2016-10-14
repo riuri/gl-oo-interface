@@ -1,3 +1,4 @@
+#include <gloo/group.h>
 #include <gloo/camera.h>
 #include <gloo/model_base.h>
 #include <gloo/shader_program.h>
@@ -29,5 +30,8 @@ public:
 private:
   Camera* mCamera { nullptr };
   ShaderProgram* mShaderProgram { nullptr };
+
+  // XXX - Test.
+  StaticGroup<Batch>* mMeshGroup { nullptr };
 
 };

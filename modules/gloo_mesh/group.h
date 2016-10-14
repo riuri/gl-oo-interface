@@ -35,9 +35,7 @@ class StaticGroup
 {
 public:
   StaticGroup()  { }
-  ~StaticGroup() { }
-
-  // 1. Methods for loading geometry.
+  ~StaticGroup() { }  // TODO: free GPU buffers.
 
   // Loads specified geometry into GPU buffers, without storing it in client-side memory.
   bool Load(GLuint programHandle,       // ShaderProgram Handle.
@@ -52,6 +50,10 @@ public:
   );
 
 
+  void Render() const;
+
+  void ClearBuffers();  // TODO.
+
 private:
   // OpenGL buffer IDs.
   GLuint mEab { 0 };
@@ -59,22 +61,13 @@ private:
   GLuint mVbo { 0 };
 
   // Geometry and rendering options.
+  GLuint mNumIndices { 0 };
   GLenum mDrawMode { GL_TRIANGLES };
 };
 
-// template <>
-// bool StaticGroup<Interleave>::Load(GLuint programHandle,
-//                                    const GLfloat* positions, 
-//                                    const GLfloat* colors,
-//                                    const GLfloat* normals,
-//                                    const GLfloat* uv,
-//                                    const GLuint* indices,
-//                                    int numVertices,
-//                                    int numIndices,
-//                                    GLenum drawMode)
-// {
 
-// }
+// ============================================================================== //
+// Specializations for different StorageFormats.
 
 template <>
 bool StaticGroup<Interleave>::Load(GLuint programHandle,
@@ -98,6 +91,25 @@ bool StaticGroup<Batch>::Load(GLuint programHandle,
                               int numVertices,
                               int numIndices,
                               GLenum drawMode);
+
+
+// ============================================================================== //
+// Implementation of template functions.
+
+
+template <StorageFormat F>
+void StaticGroup<F>::Render() const
+{
+  glBindVertexArray(mVao);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
+
+  glDrawElements(
+   mDrawMode,         // mode (GL_LINES, GL_TRIANGLES, ...)
+   mNumIndices,       // number of vertices.
+   GL_UNSIGNED_INT,   // type.
+   (void*)0           // element array buffer offset.
+  );
+}
 
 
 }  // namespace gloo.
