@@ -10,11 +10,13 @@
 // 3D-surface meshes are made up by groups, which are parts that share the same
 // materials or textures.
 //
-// Each group has a single buffer in GPU, which can follow two kinds of storage:
+// Each group has a single vertex buffer in GPU, which can follow two kinds of storage:
 // 1. Interleaved (Tighly Packed):  (P N T) (P N T) ... (P N T)
 // 2. Batched (Sub-Buffered):       (P P ... P) (N N ... N) (T T ... T)
 // Where P is the vertex positions array, N is the vertex normals array and so on.
-// 
+//
+// The storage format is provided by the template parameter Storage Format. 
+//
 // Usage:
 // 
 // StaticGroup<Batch>* meshGroup = new StaticGroup<Batch>();
@@ -25,6 +27,11 @@
 // meshGroup->Render();
 //
 // meshGroup->Clear();
+//
+// IMPORTANT:
+// If you want to use a group in different shader programs, you should 
+// make sure that all of them have the same attribute location (typically,
+// loc=0 for position, loc=1 for normal and so on).
 //
 // ============================================================================================ //
 

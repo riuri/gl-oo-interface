@@ -42,6 +42,10 @@ struct MouseState
   int mPosX { 0 };
   int mPosY { 0 };
 
+  // Current (x, y) velocities of mouse pointer.
+  int mVelX { 0 };
+  int mVelY { 0 };
+
   // State of each button.
   State mLftButton { kUp };
   State mRgtButton { kUp };
@@ -58,6 +62,9 @@ struct MouseState
 
 inline void MouseState::SetPos(int x, int y)
 {
+  mVelX = (x - mPosX);
+  mVelY = (y - mPosY);
+
   mPosX = x;
   mPosY = y;
 }

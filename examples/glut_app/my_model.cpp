@@ -17,10 +17,10 @@ GLfloat triangleColors[] = {1.0f, 0.0f, 0.0f,
                             0.0f, 0.0f, 1.0f,
                             0.4f, 0.4f, 0.4f};
 
-GLfloat squareVertices[] = {-0.5f,  0.5f, 0.0f,
-                             0.5f,  0.5f, 0.0f,
-                            -0.5f, -0.5f, 0.0f,
-                             0.5f, -0.5f, 0.0f};
+GLfloat squareVertices[] = {-0.5f, 0.0f,  0.5f,
+                             0.5f, 0.0f,  0.5f,
+                            -0.5f, 0.0f, -0.5f,
+                             0.5f, 0.0f, -0.5f};
 
 GLfloat squareColors[] = {1.0f, 0.0f, 0.0f, 
                           0.0f, 1.0f, 0.0f,
@@ -75,7 +75,7 @@ bool MyModel::Init()
   mShaderProgram->Bind();
 
   mCamera = new Camera();
-  mCamera->SetPosition(0, 0, 1.0f);
+  mCamera->SetPosition(0, 0, 3.0f);
 
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
@@ -108,8 +108,7 @@ bool MyModel::Init()
   GLuint normAttribLoc = glGetAttribLocation(program, "in_normal");
   GLuint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
 
-  mMeshGroup->Load({ 
-                     {3, normAttribLoc, squareNormals},
+  mMeshGroup->Load({ {3, normAttribLoc, squareNormals},
                      {3, colAttribLoc, squareColors},
                      {3, posAttribLoc,  squareVertices}},
                      nullptr, 4, 4, GL_TRIANGLE_STRIP);
@@ -138,7 +137,7 @@ void MyModel::Display()
   /* Scale, Rotate, Translate method of camera */
   // mCamera->Scale(-0.01, -0.004, -0.004);
   // mCamera->Translate(0, 0, 0.001f);
-  mCamera->SetPosition(0, 0, 3);
+  // mCamera->SetPosition(0, 0, 3);
   // mCamera->Rotate(0, 0, 0.04f);
   // mCamera->Rotate(0.01f, 0, 0);
 
@@ -187,12 +186,44 @@ void MyModel::Reshape(int w, int h)
 {
   glViewport(0, 0, w, h);
   mCamera->SetOnReshape(0, 0, w, h);
-
   mCamera->SetUniformProjMatrix( mShaderProgram->GetVariableHandle("P") );
 }
 
 void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)
 {
+  switch (mouseEvent.mMouseState.mModifier)
+  {
+    case MouseState::kCTRL:
+
+    break;
+
+    case MouseState::kSHIFT:
+
+    break;
+
+    case MouseState::kALT:
+
+    break;
+  
+    default:
+      if (mouseEvent.mMouseState.mLftButton == MouseState::kDown)
+      {
+        // std::cout << "Left button dragged.\n";
+      }
+      if (mouseEvent.mMouseState.mRgtButton == MouseState::kDown)
+      {
+        mCamera->Rotate(mouseEvent.mMouseState.mVelY/100.0f, 
+                        mouseEvent.mMouseState.mVelX/100.0f,
+                        0.0f);
+        // std::cout << "Right button dragged.\n";
+      }
+      if (mouseEvent.mMouseState.mMidButton == MouseState::kDown)
+      {
+        // std::cout << "dy = " << mouseEvent.mMouseState.mVelY * 1e-2 << std::endl;
+        mCamera->Translate(0.0f, 0.0f, -mouseEvent.mMouseState.mVelY * 1e-2);
+        // std::cout << "Middle button dragged.\n";
+      }
+  }  // end switch.
 
 }
 
