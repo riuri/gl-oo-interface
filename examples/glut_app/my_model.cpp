@@ -97,10 +97,19 @@ bool MyModel::Init()
 
 
   mMeshGroup = new StaticGroup<Batch>();
-  mMeshGroup->Load(program, squareVertices,
-                            squareColors,
-                            NULL, NULL,
-                            indices, 4, 4, GL_TRIANGLE_STRIP);
+  // mMeshGroup->Load(program, squareVertices,
+  //                           squareColors,
+  //                           NULL, NULL,
+  //                           nullptr, 4, 4,  GL_LINE_STRIP);
+
+  GLuint posAttribLoc = glGetAttribLocation(program, "in_position");
+  GLuint colAttribLoc = glGetAttribLocation(program, "in_color");
+  GLuint normAttribLoc = glGetAttribLocation(program, "in_normal");
+  GLuint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
+
+  mMeshGroup->Load({ {3, colAttribLoc, squareColors},
+                     {3, posAttribLoc,  squareVertices}},
+                     nullptr, 4, 4, GL_TRIANGLE_STRIP);
 
 
   return true;

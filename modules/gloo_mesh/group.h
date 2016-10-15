@@ -15,19 +15,39 @@
 // 2. Batched (Sub-Buffered):       (P P ... P) (N N ... N) (T T ... T)
 // Where P is the vertex positions array, N is the vertex normals array and so on.
 // 
+// Usage:
 // 
+// StaticGroup<Batch>* meshGroup = new StaticGroup<Batch>();
+// meshGroup->Load({ {3, colAttribLoc,  squareColors},
+//                   {3, posAttribLoc,  squareVertices}},
+//                    nullptr, 4, 4, GL_TRIANGLES);
+// ...
+// meshGroup->Render();
+//
+// meshGroup->Clear();
 
 #pragma once
 
 #include "gl_header.h"
 
+#include <vector>
+
 namespace gloo
 {
 
+// StorageFormat specifies how geometry data is stored into the GPU buffer.
 enum StorageFormat
 {
-  Interleave,
-  Batch,
+  Interleave,  // (Tighly Packed):  (P N T) (P N T) ... (P N T)
+  Batch,       // (Sub-Buffered):   (P P ... P) (N N ... N) (T T ... T)
+};
+
+// VertexAttribute specifies a per-vertex data such as position, normal or even tangent vector.
+struct VertexAttribute
+{
+  GLuint mSize;      // Dimensionality of data (position = 3d, uv = 2d, normal = 3d).
+  GLuint mLoc;       // GL Attribute Location (usually provided by gloo::Renderer).
+  GLfloat* mBuffer;  // Buffer containing contiguous geometry data (like a vector of positions).
 };
 
 template <StorageFormat F>
@@ -49,10 +69,12 @@ public:
             GLenum drawMode  // GL_LINES, GL_LINE_STRIP, GL_POINTS, GL_TRIANGLES, ...
   );
 
+  bool Load(const std::vector<VertexAttribute> & vertexAttributeList,
+            const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
 
   void Render() const;
 
-  void ClearBuffers();  // TODO.
+  void Clear();
 
 private:
   // OpenGL buffer IDs.
@@ -80,6 +102,9 @@ bool StaticGroup<Interleave>::Load(GLuint programHandle,
                                    int numIndices,
                                    GLenum drawMode);
 
+template <>
+bool StaticGroup<Interleave>::Load(const std::vector<VertexAttribute> & vertexAttributeList,
+                                   const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
 
 template <>
 bool StaticGroup<Batch>::Load(GLuint programHandle,
@@ -92,6 +117,9 @@ bool StaticGroup<Batch>::Load(GLuint programHandle,
                               int numIndices,
                               GLenum drawMode);
 
+template <>
+bool StaticGroup<Batch>::Load(const std::vector<VertexAttribute> & vertexAttributeList,
+                              const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
 
 // ============================================================================== //
 // Implementation of template functions.
@@ -109,6 +137,12 @@ void StaticGroup<F>::Render() const
    GL_UNSIGNED_INT,   // type.
    (void*)0           // element array buffer offset.
   );
+}
+
+template <StorageFormat F>
+void StaticGroup<F>::Clear()
+{
+  // TODO.
 }
 
 
