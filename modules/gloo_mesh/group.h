@@ -4,9 +4,9 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 
-// ============================================================================== //
+// ============================================================================================ //
 // Group
-// ============================================================================== //
+// ============================================================================================ //
 // 3D-surface meshes are made up by groups, which are parts that share the same
 // materials or textures.
 //
@@ -25,11 +25,12 @@
 // meshGroup->Render();
 //
 // meshGroup->Clear();
+//
+// ============================================================================================ //
 
 #pragma once
 
 #include "gl_header.h"
-
 #include <vector>
 
 namespace gloo
@@ -55,25 +56,16 @@ class StaticGroup
 {
 public:
   StaticGroup()  { }
-  ~StaticGroup() { }  // TODO: free GPU buffers.
+  ~StaticGroup();
 
-  // Loads specified geometry into GPU buffers, without storing it in client-side memory.
-  bool Load(GLuint programHandle,       // ShaderProgram Handle.
-            const GLfloat* positions,   // Format: { (x, y, z) }
-            const GLfloat* colors,      // Format: { (r, g, b) }
-            const GLfloat* normals,     // Format: { (nx, ny, nz) }
-            const GLfloat* uv,          // Format: { (u, v) }
-            const GLuint* indices,      // Format: { i0, i1, i2, ... }.
-            int numVertices,            // Number of vertices.
-            int numIndices,             // Number of indices/elements.
-            GLenum drawMode  // GL_LINES, GL_LINE_STRIP, GL_POINTS, GL_TRIANGLES, ...
-  );
-
+  // TODO: document.
   bool Load(const std::vector<VertexAttribute> & vertexAttributeList,
             const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
 
+  // Should be called on display function (it calls glDrawElements).
   void Render() const;
 
+  // Destroys buffers on GPU (VAO, VBO, EAB).
   void Clear();
 
 private:
@@ -88,42 +80,26 @@ private:
 };
 
 
-// ============================================================================== //
+// ============================================================================================= //
 // Specializations for different StorageFormats.
 
 template <>
-bool StaticGroup<Interleave>::Load(GLuint programHandle,
-                                   const GLfloat* positions, 
-                                   const GLfloat* colors,
-                                   const GLfloat* normals,
-                                   const GLfloat* uv,
-                                   const GLuint* indices,
-                                   int numVertices,
-                                   int numIndices,
-                                   GLenum drawMode);
-
-template <>
 bool StaticGroup<Interleave>::Load(const std::vector<VertexAttribute> & vertexAttributeList,
-                                   const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
-
-template <>
-bool StaticGroup<Batch>::Load(GLuint programHandle,
-                              const GLfloat* positions, 
-                              const GLfloat* colors,
-                              const GLfloat* normals,
-                              const GLfloat* uv,
-                              const GLuint* indices,
-                              int numVertices,
-                              int numIndices,
-                              GLenum drawMode);
+    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
 
 template <>
 bool StaticGroup<Batch>::Load(const std::vector<VertexAttribute> & vertexAttributeList,
-                              const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
+    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
 
-// ============================================================================== //
+// ============================================================================================ //
 // Implementation of template functions.
 
+
+template <StorageFormat F>
+StaticGroup<F>::~StaticGroup() 
+{
+  StaticGroup<F>::Clear();
+}
 
 template <StorageFormat F>
 void StaticGroup<F>::Render() const
@@ -142,7 +118,9 @@ void StaticGroup<F>::Render() const
 template <StorageFormat F>
 void StaticGroup<F>::Clear()
 {
-  // TODO.
+  glDeleteBuffers(1, &mVbo);
+  glDeleteBuffers(1, &mEab);
+  glDeleteVertexArrays(1, &mVao);
 }
 
 

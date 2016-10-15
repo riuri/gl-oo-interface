@@ -27,6 +27,11 @@ GLfloat squareColors[] = {1.0f, 0.0f, 0.0f,
                           0.0f, 0.0f, 1.0f,
                           0.4f, 0.4f, 0.4f};
 
+GLfloat squareNormals[] = {1.0f, 0.0f, 0.0f, 
+                           0.0f, 1.0f, 0.0f,
+                           0.0f, 0.0f, 1.0f,
+                           0.4f, 0.4f, 0.4f};
+
 GLuint indices[] = {0, 2, 1, 3};
 
 GLuint vbo = 0;  // Vertex buffer object.
@@ -96,18 +101,16 @@ bool MyModel::Init()
   glVertexAttribPointer(locColorAttrib, 3, GL_FLOAT, GL_FALSE, 0, (void*)sizeof(triangleColors));
 
 
-  mMeshGroup = new StaticGroup<Batch>();
-  // mMeshGroup->Load(program, squareVertices,
-  //                           squareColors,
-  //                           NULL, NULL,
-  //                           nullptr, 4, 4,  GL_LINE_STRIP);
+  mMeshGroup = new StaticGroup<Interleave>();
 
   GLuint posAttribLoc = glGetAttribLocation(program, "in_position");
   GLuint colAttribLoc = glGetAttribLocation(program, "in_color");
   GLuint normAttribLoc = glGetAttribLocation(program, "in_normal");
   GLuint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
 
-  mMeshGroup->Load({ {3, colAttribLoc, squareColors},
+  mMeshGroup->Load({ 
+                     {3, normAttribLoc, squareNormals},
+                     {3, colAttribLoc, squareColors},
                      {3, posAttribLoc,  squareVertices}},
                      nullptr, 4, 4, GL_TRIANGLE_STRIP);
 

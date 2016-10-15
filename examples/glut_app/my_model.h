@@ -32,6 +32,6 @@ private:
   ShaderProgram* mShaderProgram { nullptr };
 
   // XXX - Test.
-  StaticGroup<Batch>* mMeshGroup { nullptr };
+  StaticGroup<Interleave>* mMeshGroup { nullptr };
 
 };

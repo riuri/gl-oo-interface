@@ -4,72 +4,20 @@ namespace gloo
 {
 
 template <>
-bool StaticGroup<Interleave>::Load(GLuint programHandle,
-                                   const GLfloat* positions, 
-                                   const GLfloat* colors,
-                                   const GLfloat* normals,
-                                   const GLfloat* uv,
-                                   const GLuint* indices,
-                                   int numVertices,
-                                   int numIndices,
-                                   GLenum drawMode)
-{
-  mDrawMode = drawMode;
-
-
-
-}
-
-template <>
 bool StaticGroup<Interleave>::Load(const std::vector<VertexAttribute> & vertexAttributeList,
                                    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode)
-{
-
-}
-
-template <>
-bool StaticGroup<Batch>::Load(GLuint programHandle,
-                              const GLfloat* positions, 
-                              const GLfloat* colors,
-                              const GLfloat* normals,
-                              const GLfloat* uv,
-                              const GLuint* indices,
-                              int numVertices,
-                              int numIndices,
-                              GLenum drawMode)
 {
   mDrawMode = drawMode;
   mNumIndices = numIndices;
 
-  // Initialize format flags.
-  bool hasColors  = (colors  != nullptr);
-  bool hasNormals = (normals != nullptr);
-  bool hasUV      = (uv      != nullptr);
-  int vertexSize = 3 + 3*hasColors + 3*hasNormals + 2*hasUV;
+  // Compute vertex size by adding up all attribute sizes.
+  int vertexSize = 0;
+  for (auto& attrib : vertexAttributeList) 
+    vertexSize += attrib.mSize; 
 
   // Create temporary buffers for transfering geometry and elements to GPU.
-  std::vector<GLfloat> bufferVertices(vertexSize * numVertices);
+  std::vector<GLfloat> bufferVertices;
   std::vector<GLuint> bufferIndices(numIndices);
-
-  // Copy geometry and elements to temporary buffers.
-  GLfloat* dest = bufferVertices.data();
-  memcpy(dest, positions, 3*sizeof(GLfloat)*numVertices);
-  dest += 3*numVertices;
-  if (hasColors)
-  {
-    memcpy(dest, colors, 3*sizeof(GLfloat)*numVertices);
-    dest += 3*numVertices;
-  }
-  if (hasNormals)
-  {
-    memcpy(dest, normals, 3*sizeof(GLfloat)*numVertices);
-    dest += 3*numVertices;
-  }
-  if (hasUV)
-  {
-    memcpy(dest, uv, 2*sizeof(GLfloat)*numVertices);
-    dest += 2*numVertices;
-  }
 
   // Initialize element array (indices array).
   if (indices)  // Element array provided.
@@ -84,11 +32,6 @@ bool StaticGroup<Batch>::Load(GLuint programHandle,
     }
   }
 
-  GLuint locTexCoordAttrib = glGetAttribLocation(programHandle, "in_uv");
-  GLuint locPositionAttrib = glGetAttribLocation(programHandle, "in_position");
-  GLuint locNormalAttrib   = glGetAttribLocation(programHandle, "in_normal");
-  GLuint locColorAttrib    = glGetAttribLocation(programHandle, "in_color");
-
   // Generate Buffers.
   glGenVertexArrays(1, &mVao);  // Vertex array object.
   glGenBuffers(1, &mVbo);       // Vertex buffer object.
@@ -102,40 +45,55 @@ bool StaticGroup<Batch>::Load(GLuint programHandle,
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(GLuint), 
                bufferIndices.data(), GL_STATIC_DRAW);
 
-  // Enable/Disable each vertex attributes.
-  glEnableVertexAttribArray(locPositionAttrib);
-
-  if (hasColors)
-    glEnableVertexAttribArray(locColorAttrib);
-  else
-    glDisableVertexAttribArray(locColorAttrib);
+  // Copy geometry and elements to temporary buffers.
+  GLfloat* dest = bufferVertices.data();
   
-  if (hasNormals)
-    glEnableVertexAttribArray(locNormalAttrib);
-  else
-    glDisableVertexAttribArray(locNormalAttrib);
+  // For each vertex,
+  for (int i = 0; i < numVertices; i++)
+  {
+    // For each attribute,
+    for (auto & attrib : vertexAttributeList)
+    {
+      const int size      = attrib.mSize;
+      const float* buffer = attrib.mBuffer;
+      const GLuint loc    = attrib.mLoc;
 
-  if (hasUV)
-    glEnableVertexAttribArray(locTexCoordAttrib);
-  else
-    glDisableVertexAttribArray(locTexCoordAttrib);
+      if ((size > 0) && (buffer != nullptr))
+      {
+        glEnableVertexAttribArray(loc);
+
+        // Add elements (coordinate, normals, ...).
+        for (int k = 0; k < size; k++) 
+        {
+          bufferVertices.push_back(buffer[size*i + k]);
+        }
+      }
+      else 
+      {
+        glDisableVertexAttribArray(loc);
+      }
+    }
+  }
 
   // Upload vertices to GPU.
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, vertexSize * numVertices * sizeof(GLfloat), 
+  glBufferData(GL_ARRAY_BUFFER, vertexSize * numVertices * sizeof(GLfloat),
                bufferVertices.data(), GL_STATIC_DRAW);
 
-  // Specify internal storage of Vertex Buffer.
-  glVertexAttribPointer(locPositionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  int startIndex = 0;
+  GLfloat stride = sizeof(GLfloat) * vertexSize;
+  for (auto & attrib: vertexAttributeList)
+  { 
+    const int size      = attrib.mSize;
+    const float* buffer = attrib.mBuffer;
+    const GLuint loc    = attrib.mLoc;
 
-  glVertexAttribPointer(locColorAttrib,    3, GL_FLOAT, GL_FALSE, 0, 
-      (void*)(sizeof(GLfloat) * 3*numVertices));
+    // Specify internal storage architecture of Vertex Buffer.
+    glVertexAttribPointer(loc, size, GL_FLOAT, GL_FALSE, stride, 
+        (void*)(sizeof(GLfloat) * startIndex));
 
-  glVertexAttribPointer(locNormalAttrib,   3, GL_FLOAT, GL_FALSE, 0, 
-      (void*)(sizeof(GLfloat) * (3 + 3*hasColors)*numVertices));
-
-  glVertexAttribPointer(locTexCoordAttrib, 2, GL_FLOAT, GL_FALSE, 0, 
-      (void*)(sizeof(GLfloat) * (3 + 3*hasColors + 3*hasNormals)*numVertices));
+    startIndex += size;
+  }
 }
 
 template <>
@@ -152,7 +110,7 @@ bool StaticGroup<Batch>::Load(const std::vector<VertexAttribute> & vertexAttribu
 
   // Create temporary buffers for transfering geometry and elements to GPU.
   std::vector<GLfloat> bufferVertices(vertexSize * numVertices);
-  std::vector<GLuint> bufferIndices(numIndices);  
+  std::vector<GLuint> bufferIndices(numIndices);
 
   // Initialize element array (indices array).
   if (indices)  // Element array provided.
