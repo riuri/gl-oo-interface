@@ -33,5 +33,6 @@ private:
 
   // XXX - Test.
   StaticGroup<Batch>* mMeshGroup { nullptr };
+  StaticGroup<Interleave>* mMeshGroup2 { nullptr };
 
 };

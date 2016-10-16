@@ -50,12 +50,11 @@ enum StorageFormat
   Batch,       // (Sub-Buffered):   (P P ... P) (N N ... N) (T T ... T)
 };
 
-// VertexAttribute specifies a per-vertex data such as position, normal or even tangent vector.
+// VertexAttribute specifies properties of a per-vertex data such as position or normal.
 struct VertexAttribute
 {
   GLuint mSize;      // Dimensionality of data (position = 3d, uv = 2d, normal = 3d).
   GLuint mLoc;       // GL Attribute Location (usually provided by gloo::Renderer).
-  GLfloat* mBuffer;  // Buffer containing contiguous geometry data (like a vector of positions).
 };
 
 template <StorageFormat F>
@@ -66,7 +65,13 @@ public:
   ~StaticGroup();
 
   // TODO: document.
-  bool Load(const std::vector<VertexAttribute> & vertexAttributeList,
+  bool Load(const std::vector<GLfloat*>        & bufferList,
+            const std::vector<VertexAttribute> & vertexAttributeList,
+            const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
+
+
+  bool Load(const GLfloat* buffer,
+            const std::vector<VertexAttribute> & vertexAttributeList,
             const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
 
   // Should be called on display function (it calls glDrawElements).
@@ -74,6 +79,11 @@ public:
 
   // Destroys buffers on GPU (VAO, VBO, EAB).
   void Clear();
+
+  // Specifies vertex attribute object (how attributes are spatially stored into VBO and
+  // mapped to attribute locations on shader).
+  void SpecifyVAO(const std::vector<VertexAttribute> & vertexAttributeList, 
+    int vertexSize, int numVertices);
 
 private:
   // OpenGL buffer IDs.
@@ -91,12 +101,43 @@ private:
 // Specializations for different StorageFormats.
 
 template <>
-bool StaticGroup<Interleave>::Load(const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
+bool StaticGroup<Interleave>::Load(
+    const std::vector<GLfloat*>        & bufferList,
+    const std::vector<VertexAttribute> & vertexAttributeList,
+    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode
+);
 
 template <>
-bool StaticGroup<Batch>::Load(const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
+bool StaticGroup<Batch>::Load(
+    const std::vector<GLfloat*>        & bufferList,
+    const std::vector<VertexAttribute> & vertexAttributeList,
+    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode
+);
+
+template <>
+void StaticGroup<Interleave>::SpecifyVAO(const std::vector<VertexAttribute> & vertexAttributeList, 
+    int vertexSize, int numVertices);
+
+
+// ================
+
+template <>
+bool StaticGroup<Interleave>::Load(
+    const GLfloat* buffer,
+    const std::vector<VertexAttribute> & vertexAttributeList,
+    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode
+);
+
+template <>
+bool StaticGroup<Batch>::Load(
+    const GLfloat* buffer,
+    const std::vector<VertexAttribute> & vertexAttributeList,
+    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode
+);
+
+template <>
+void StaticGroup<Batch>::SpecifyVAO(const std::vector<VertexAttribute> & vertexAttributeList, 
+    int vertexSize, int numVertices);
 
 // ============================================================================================ //
 // Implementation of template functions.
