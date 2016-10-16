@@ -101,7 +101,7 @@ bool MyModel::Init()
   glVertexAttribPointer(locColorAttrib, 3, GL_FLOAT, GL_FALSE, 0, (void*)sizeof(triangleColors));
 
 
-  mMeshGroup = new StaticGroup<Interleave>();
+  mMeshGroup = new StaticGroup<Batch>();
 
   GLuint posAttribLoc = glGetAttribLocation(program, "in_position");
   GLuint colAttribLoc = glGetAttribLocation(program, "in_color");

@@ -109,7 +109,6 @@ bool StaticGroup<Batch>::Load(const std::vector<VertexAttribute> & vertexAttribu
     vertexSize += attrib.mSize; 
 
   // Create temporary buffers for transfering geometry and elements to GPU.
-  std::vector<GLfloat> bufferVertices(vertexSize * numVertices);
   std::vector<GLuint> bufferIndices(numIndices);
 
   // Initialize element array (indices array).
@@ -139,8 +138,13 @@ bool StaticGroup<Batch>::Load(const std::vector<VertexAttribute> & vertexAttribu
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(GLuint), 
                bufferIndices.data(), GL_STATIC_DRAW);
 
+  // Upload vertices to GPU.
+  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
+  glBufferData(GL_ARRAY_BUFFER, vertexSize * numVertices * sizeof(GLfloat),
+               nullptr, GL_STATIC_DRAW);
+
   // Copy geometry and elements to temporary buffers.
-  GLfloat* dest = bufferVertices.data();
+  int offset = 0;
   for (auto & attrib : vertexAttributeList)
   {
     const int size      = attrib.mSize;
@@ -150,8 +154,9 @@ bool StaticGroup<Batch>::Load(const std::vector<VertexAttribute> & vertexAttribu
     if ((size > 0) && (buffer != nullptr))
     {
       glEnableVertexAttribArray(loc);
-      memcpy(dest, buffer, size*sizeof(GLfloat)*numVertices);
-      dest += size*numVertices;
+      // memcpy(dest, buffer, size*sizeof(GLfloat)*numVertices);
+      glBufferSubData(GL_ARRAY_BUFFER, offset, size*numVertices*sizeof(GLfloat), buffer);
+      offset += size*numVertices * sizeof(GLfloat);
     }
     else 
     {
@@ -159,12 +164,7 @@ bool StaticGroup<Batch>::Load(const std::vector<VertexAttribute> & vertexAttribu
     }
   }
 
-  // Upload vertices to GPU.
-  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, vertexSize * numVertices * sizeof(GLfloat), 
-               bufferVertices.data(), GL_STATIC_DRAW);
-
-  int startIndex = 0;
+  offset = 0;
   for (auto & attrib: vertexAttributeList)
   { 
     const int size      = attrib.mSize;
@@ -173,9 +173,9 @@ bool StaticGroup<Batch>::Load(const std::vector<VertexAttribute> & vertexAttribu
 
     // Specify internal storage architecture of Vertex Buffer.
     glVertexAttribPointer(loc, size, GL_FLOAT, GL_FALSE, 0, 
-        (void*)(sizeof(GLfloat) * startIndex*numVertices));
+        (void*)(sizeof(GLfloat) * offset*numVertices));
 
-    startIndex += size;
+    offset += size;
   }
 }
 
