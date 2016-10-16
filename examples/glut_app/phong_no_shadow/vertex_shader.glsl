@@ -32,8 +32,7 @@ void main()
 
   // Fragment position computation in camera coordinates.
   f_pos = V * (M * vec4(in_position, 1.0f));
-  //f_pos = MV * vec4(in_position, 1.0f);
-  //f_pos = f_pos/f_pos.w;
+  f_pos = f_pos/f_pos.w;
 
   // Normal computation in camera coordinates.
   v_normal = (V * (inverse(transpose(M)) * vec4(in_normal, 0.0))).xyz;

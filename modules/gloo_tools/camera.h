@@ -43,8 +43,8 @@ namespace gloo
 struct ProjectionParameters
 {
   float mFovy   { M_PI/3.0 } ;  // Field of view in Y [angle in radians].
-  float mFarZ   {  0.1  };      // Maximum rendering distance.
-  float mNearZ  { 100.0 };      // Minimum rendering distance.
+  float mFarZ   { 100.0 };      // Maximum rendering distance.
+  float mNearZ  {   0.1 };      // Minimum rendering distance.
   float mAspect { 4.0/3.0 } ;   // Ratio a = W / H  [width/height].
 };
 
