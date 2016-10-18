@@ -21,9 +21,7 @@
 // 
 // TODO(Castiel).
 // ...
-// meshGroup->Render();
 //
-// meshGroup->Clear();
 //
 // IMPORTANT:
 // If you want to use a group in different shader programs, you should 
@@ -59,11 +57,10 @@ template <StorageFormat F>
 class MeshGroup
 {
 public:
-  // MeshGroup(const std::vector<VertexAttribute> & vertexAttributeList, 
-  //           int numVertices, int numElements);
+  /* Most used methods */
+  // TODO: add options for draw mode and buffer data usage.
   MeshGroup(std::initializer_list<VertexAttribute> vertexAttributeList,
             int numVertices, int numElements);
-
 
   ~MeshGroup();
 
@@ -74,37 +71,37 @@ public:
   // Should be called on display function (it calls glDrawElements).
   void Render() const;
 
+  // Generate buffers on GPU (VAO, VBO, EAB).
+  void GenerateBuffers(const GLfloat* vertices, const GLuint* elements);
+
   // Destroys buffers on GPU (VAO, VBO, EAB).
-  void Clear();
+  void ClearBuffers();
 
 private:
   // Specifies vertex attribute object (how attributes are spatially stored into VBO and
   // mapped to attribute locations on shader).
   void BuildVAO();
 
+  /* Attributes */
+
   // OpenGL buffer IDs.
   GLuint mEab { 0 };  // Element array buffer.
   GLuint mVao { 0 };  // Vertex attribute object.
   GLuint mVbo { 0 };  // Vertex buffer object.
 
-  // Geometry and rendering options.
-  GLenum mDrawMode { GL_TRIANGLES };
+  // Mesh attributes.
+  GLenum mDrawMode { GL_TRIANGLES };  // How mesh is rendered (drawing mode).
+  GLuint mVertexSize;   // Number of floating points stored per vertex.
+  GLuint mNumVertices;  // Number of vertices in this group.
+  GLuint mNumElements;  // Number of elements (of indices of vertex).
 
   // Vertex attributes descriptor -> specifies which attributes a vertex contain and also
   // their dimensionality and order. This is constant within the lifetime of a MeshGroup.
   std::vector<VertexAttribute> mVertexAttributeList;
-  
-  // Number of floating points stored per vertex.
-  GLuint mVertexSize;
-
-  // Number of vertices and elements.
-  GLuint mNumVertices;
-  GLuint mNumElements;
 };
 
 // ============================================================================================ //
 // Implementation of template functions.
-
 
 /* Constructor */
 template <StorageFormat F>
@@ -125,7 +122,7 @@ MeshGroup<F>::MeshGroup(std::initializer_list<VertexAttribute> vertexAttributeLi
 template <StorageFormat F>
 MeshGroup<F>::~MeshGroup() 
 {
-  MeshGroup<F>::Clear();
+  MeshGroup<F>::ClearBuffers();
 }
 
 /* Rendering method */
@@ -143,9 +140,29 @@ void MeshGroup<F>::Render() const
    );
 }
 
+/* Generate buffers */
+template <StorageFormat F>
+void MeshGroup<F>::GenerateBuffers(const GLfloat* vertices, const GLuint* elements)
+{
+  // Generate Buffers.
+  glGenVertexArrays(1, &mVao);  // Vertex array object.
+  glGenBuffers(1, &mVbo);       // Vertex buffer object.
+  glGenBuffers(1, &mEab);       // Element array buffer.
+
+  // Allocate buffer for elements (EAB).
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint),
+               elements, GL_STATIC_DRAW);
+
+  // Allocate buffer for vertices (VBO).
+  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
+  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
+               vertices, GL_STATIC_DRAW);
+}
+
 /* Delete buffers */
 template <StorageFormat F>
-void MeshGroup<F>::Clear()
+void MeshGroup<F>::ClearBuffers()
 {
   glDeleteBuffers(1, &mVbo);
   glDeleteBuffers(1, &mEab);

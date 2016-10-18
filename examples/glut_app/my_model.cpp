@@ -91,15 +91,17 @@ bool MyModel::Init()
 
   mMeshGroup  = new MeshGroup<Batch>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4);
   mMeshGroup->Load( {squareColors, squareNormals, squareVertices},
-                     indices, GL_TRIANGLE_STRIP);
+                     nullptr, GL_TRIANGLE_STRIP);
 
   // mMeshGroup = new MeshGroup<Batch>({{3, posAttribLoc}, {3, colAttribLoc}}, 4, 4);
-  // mMeshGroup->Load(squareBuffer, indices, GL_TRIANGLE_STRIP);
+  // mMeshGroup->Load(squareBuffer, nullptr, GL_TRIANGLE_STRIP);
 
-  // mMeshGroup2->Load(squareBufferInterleaved, {{3, posAttribLoc}, {3, colAttribLoc}}, indices, 4, 4, GL_TRIANGLE_STRIP);
-  mMeshGroup2 = new MeshGroup<Interleave>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4 );
-  mMeshGroup2->Load( {squareColors, squareNormals, squareVertices},
-                     indices, GL_TRIANGLE_STRIP);
+  // mMeshGroup2 = new MeshGroup<Interleave>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4 );
+  // mMeshGroup2->Load( {squareColors, squareNormals, squareVertices},
+  //                    indices, GL_TRIANGLE_STRIP);
+
+  mMeshGroup2 = new MeshGroup<Interleave>({{3, posAttribLoc}, {3, colAttribLoc}}, 4, 4);
+  mMeshGroup2->Load(squareBufferInterleaved, indices, GL_TRIANGLE_STRIP);
 
   return true;
 }

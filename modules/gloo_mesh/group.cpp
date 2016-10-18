@@ -5,39 +5,15 @@ namespace gloo
 
 template <>
 bool MeshGroup<Interleave>::Load(
-    const std::vector<GLfloat*> & bufferList, const GLuint* indices, GLenum drawMode) 
+    const std::vector<GLfloat*> & bufferList, const GLuint* indices, GLenum drawMode)
 {
   mDrawMode = drawMode;
 
-  // Create temporary buffers for transfering geometry and elements to GPU.
-  std::vector<GLfloat> bufferVertices;
-  std::vector<GLuint> bufferIndices(mNumElements);
-  bufferVertices.reserve(mNumVertices * mVertexSize);
+  // Create temporary buffers to transfer geometry and elements to GPU.
+  std::vector<GLfloat> vertexBuffer;
+  vertexBuffer.reserve(mNumVertices * mVertexSize);
 
-  // Initialize element array (indices array).
-  if (indices)  // Element array provided.
-  {
-    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*mNumElements);
-  }
-  else  // Element array wasn't provided -- build it up.
-  {
-    for (int i = 0; i < mNumElements; i++)
-    {
-      bufferIndices[i] = i;
-    }
-  }
-
-  // Generate Buffers.
-  glGenVertexArrays(1, &mVao);  // Vertex array object.
-  glGenBuffers(1, &mVbo);       // Vertex buffer object.
-  glGenBuffers(1, &mEab);       // Element array buffer.
-
-  // Upload indices to GPU.
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint), 
-               bufferIndices.data(), GL_STATIC_DRAW);
-
-  // Copy geometry to temporary buffers.
+  // Copy geometry to temporary buffers in memory.
   for (int i = 0; i < mNumVertices; i++)
   {
     // For each attribute,
@@ -54,16 +30,26 @@ bool MeshGroup<Interleave>::Load(
         // Add elements (coordinate, normals, ...).
         for (int k = 0; k < size; k++) 
         {
-          bufferVertices.push_back(buffer[size*i + k]);
+          vertexBuffer.push_back(buffer[size*i + k]);
         }
       }
     }
   }
 
-  // Upload vertices to GPU.
-  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
-               bufferVertices.data(), GL_STATIC_DRAW);
+  // Reserve vertex buffer and initialize element array (indices array).
+  if (indices)  // Element array provided.
+  {
+    MeshGroup<Interleave>::GenerateBuffers(vertexBuffer.data(), indices);
+  }
+  else  // Element array wasn't provided -- build it up.
+  {
+    std::vector<GLuint> elementsBuffer(mNumElements);
+
+    for (int i = 0; i < mNumElements; i++)
+      elementsBuffer[i] = i;
+
+    MeshGroup<Interleave>::GenerateBuffers(vertexBuffer.data(), elementsBuffer.data());
+  }
 
   MeshGroup<Interleave>::BuildVAO();
 }
@@ -74,37 +60,20 @@ bool MeshGroup<Interleave>::Load(
 {
   mDrawMode = drawMode;
 
-  // Create temporary buffers for transfering geometry and elements to GPU.
-  std::vector<GLuint> bufferIndices(mNumElements);
-
-  // Initialize element array (indices array).
+  // Reserve vertex buffer and initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*mNumElements);
+    MeshGroup<Interleave>::GenerateBuffers(buffer, indices);
   }
   else  // Element array wasn't provided -- build it up.
   {
+    std::vector<GLuint> elementsBuffer(mNumElements);
+
     for (int i = 0; i < mNumElements; i++)
-    {
-      bufferIndices[i] = i;
-    }
+      elementsBuffer[i] = i;
+
+    MeshGroup<Interleave>::GenerateBuffers(buffer, elementsBuffer.data());
   }
-
-  // Generate Buffers.
-  glGenVertexArrays(1, &mVao);  // Vertex array object.
-  glGenBuffers(1, &mVbo);       // Vertex buffer object.
-  glGenBuffers(1, &mEab);       // Element array buffer.
-
-  // Upload indices to GPU.
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint), 
-               bufferIndices.data(), GL_STATIC_DRAW);
-
- 
-  // Upload vertices to GPU.
-  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
-               buffer, GL_STATIC_DRAW);
 
   MeshGroup<Interleave>::BuildVAO();
 }
@@ -146,36 +115,22 @@ bool MeshGroup<Batch>::Load(
 {
   mDrawMode = drawMode;
 
-  // Create temporary buffers for transfering geometry and elements to GPU.
-  std::vector<GLuint> bufferIndices(mNumElements);
-
-  // Initialize element array (indices array).
+  // Reserve vertex buffer and initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*mNumElements);
+    MeshGroup<Batch>::GenerateBuffers(nullptr, indices);
   }
   else  // Element array wasn't provided -- build it up.
   {
+    std::vector<GLuint> elementsBuffer(mNumElements);
+
     for (int i = 0; i < mNumElements; i++)
-    {
-      bufferIndices[i] = i;
-    }
+      elementsBuffer[i] = i;
+
+    MeshGroup<Batch>::GenerateBuffers(nullptr, elementsBuffer.data());
   }
 
-  // Generate Buffers.
-  glGenVertexArrays(1, &mVao);  // Vertex array object.
-  glGenBuffers(1, &mVbo);       // Vertex buffer object.
-  glGenBuffers(1, &mEab);       // Element array buffer.
-
-  // Upload indices to GPU.
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint), 
-               bufferIndices.data(), GL_STATIC_DRAW);
-
-  // Reserve buffer on GPU.
-  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
-               nullptr, GL_STATIC_DRAW);
+  MeshGroup<Batch>::BuildVAO();
 
   // Upload subdata of geometry to GPU.
   int offset = 0;
@@ -193,8 +148,6 @@ bool MeshGroup<Batch>::Load(
 
     offset += size*mNumVertices * sizeof(GLfloat);
   }
-
-  MeshGroup<Batch>::BuildVAO();
 }
 
 template <>
@@ -203,37 +156,20 @@ bool MeshGroup<Batch>::Load(
 {
   mDrawMode = drawMode;
 
-  // Create temporary buffers for transfering geometry and elements to GPU.
-  std::vector<GLuint> bufferIndices(mNumElements);
-
   // Initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*mNumElements);
+    MeshGroup<Batch>::GenerateBuffers(buffer, indices);
   }
   else  // Element array wasn't provided -- build it up.
   {
+    std::vector<GLuint> elementsBuffer(mNumElements);
+
     for (int i = 0; i < mNumElements; i++)
-    {
-      bufferIndices[i] = i;
-    }
+      elementsBuffer[i] = i;
+
+    MeshGroup<Batch>::GenerateBuffers(buffer, elementsBuffer.data());
   }
-
-  // Generate Buffers.
-  glGenVertexArrays(1, &mVao);  // Vertex array object.
-  glGenBuffers(1, &mVbo);       // Vertex buffer object.
-  glGenBuffers(1, &mEab);       // Element array buffer.
-
-  // Upload indices to GPU.
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint), 
-               bufferIndices.data(), GL_STATIC_DRAW);
-
-  // Upload entire buffer to GPU.
-  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
-               buffer, GL_STATIC_DRAW);
-
 
   MeshGroup<Batch>::BuildVAO();
 }
@@ -244,9 +180,8 @@ void MeshGroup<Batch>::BuildVAO()
   // Specify VAO.
   glBindVertexArray(mVao);
   int offset = 0;
-  for (int j = 0; j < mVertexAttributeList.size(); j++)
+  for (auto & attrib : mVertexAttributeList)
   {
-    auto & attrib = mVertexAttributeList[j];
     const int size      = attrib.mSize;
     const GLuint loc    = attrib.mLoc;
 
