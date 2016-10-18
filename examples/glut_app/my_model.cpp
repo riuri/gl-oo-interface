@@ -83,27 +83,23 @@ bool MyModel::Init()
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
 
-
-  mMeshGroup  = new StaticGroup<Batch>();
-  mMeshGroup2 = new StaticGroup<Interleave>();
-
   GLuint posAttribLoc = glGetAttribLocation(program, "in_position");
   GLuint colAttribLoc = glGetAttribLocation(program, "in_color");
   GLuint normAttribLoc = glGetAttribLocation(program, "in_normal");
   GLuint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
 
-  
-  mMeshGroup->Load( {squareColors, squareNormals, squareVertices},
-                    { {3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}},
-                     indices, 4, 4, GL_TRIANGLE_STRIP);
 
-  // mMeshGroup->Load(squareBuffer, {{3, posAttribLoc}, {3, colAttribLoc}}, indices, 4, 4, GL_TRIANGLE_STRIP);
+  mMeshGroup  = new MeshGroup<Batch>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4);
+  mMeshGroup->Load( {squareColors, squareNormals, squareVertices},
+                     indices, GL_TRIANGLE_STRIP);
+
+  // mMeshGroup = new MeshGroup<Batch>({{3, posAttribLoc}, {3, colAttribLoc}}, 4, 4);
+  // mMeshGroup->Load(squareBuffer, indices, GL_TRIANGLE_STRIP);
 
   // mMeshGroup2->Load(squareBufferInterleaved, {{3, posAttribLoc}, {3, colAttribLoc}}, indices, 4, 4, GL_TRIANGLE_STRIP);
+  mMeshGroup2 = new MeshGroup<Interleave>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4 );
   mMeshGroup2->Load( {squareColors, squareNormals, squareVertices},
-                    { {3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}},
-                     indices, 4, 4, GL_TRIANGLE_STRIP);
-
+                     indices, GL_TRIANGLE_STRIP);
 
   return true;
 }

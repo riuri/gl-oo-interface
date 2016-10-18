@@ -4,32 +4,24 @@ namespace gloo
 {
 
 template <>
-bool StaticGroup<Interleave>::Load(
-    const std::vector<GLfloat*>        & bufferList,
-    const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode) 
+bool MeshGroup<Interleave>::Load(
+    const std::vector<GLfloat*> & bufferList, const GLuint* indices, GLenum drawMode) 
 {
   mDrawMode = drawMode;
-  mNumIndices = numIndices;
-
-  // Compute vertex size by adding up all attribute sizes.
-  int vertexSize = 0;
-  for (auto& attrib : vertexAttributeList) 
-    vertexSize += attrib.mSize; 
 
   // Create temporary buffers for transfering geometry and elements to GPU.
   std::vector<GLfloat> bufferVertices;
-  std::vector<GLuint> bufferIndices(numIndices);
-  bufferVertices.reserve(numVertices * vertexSize);
+  std::vector<GLuint> bufferIndices(mNumElements);
+  bufferVertices.reserve(mNumVertices * mVertexSize);
 
   // Initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*numIndices);
+    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*mNumElements);
   }
   else  // Element array wasn't provided -- build it up.
   {
-    for (int i = 0; i < numIndices; i++)
+    for (int i = 0; i < mNumElements; i++)
     {
       bufferIndices[i] = i;
     }
@@ -42,17 +34,17 @@ bool StaticGroup<Interleave>::Load(
 
   // Upload indices to GPU.
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(GLuint), 
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint), 
                bufferIndices.data(), GL_STATIC_DRAW);
 
   // Copy geometry to temporary buffers.
-  for (int i = 0; i < numVertices; i++)
+  for (int i = 0; i < mNumVertices; i++)
   {
     // For each attribute,
-    // for (auto & attrib : vertexAttributeList)
-    for (int j = 0; j < vertexAttributeList.size(); j++)
+    // for (auto & attrib : mVertexAttributeList)
+    for (int j = 0; j < mVertexAttributeList.size(); j++)
     {
-      auto & attrib = vertexAttributeList[j];
+      auto & attrib = mVertexAttributeList[j];
       const int size      = attrib.mSize;
       const float* buffer = bufferList[j];
       const GLuint loc    = attrib.mLoc;
@@ -70,37 +62,29 @@ bool StaticGroup<Interleave>::Load(
 
   // Upload vertices to GPU.
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, vertexSize * numVertices * sizeof(GLfloat),
+  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
                bufferVertices.data(), GL_STATIC_DRAW);
 
-  StaticGroup<Interleave>::SpecifyVAO(vertexAttributeList, vertexSize, numVertices);
+  MeshGroup<Interleave>::BuildVAO();
 }
 
 template <>
-bool StaticGroup<Interleave>::Load(
-    const GLfloat* buffer,
-    const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode) 
+bool MeshGroup<Interleave>::Load(
+    const GLfloat* buffer, const GLuint* indices, GLenum drawMode) 
 {
   mDrawMode = drawMode;
-  mNumIndices = numIndices;
-
-  // Compute vertex size by adding up all attribute sizes.
-  int vertexSize = 0;
-  for (auto& attrib : vertexAttributeList) 
-    vertexSize += attrib.mSize; 
 
   // Create temporary buffers for transfering geometry and elements to GPU.
-  std::vector<GLuint> bufferIndices(numIndices);
+  std::vector<GLuint> bufferIndices(mNumElements);
 
   // Initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*numIndices);
+    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*mNumElements);
   }
   else  // Element array wasn't provided -- build it up.
   {
-    for (int i = 0; i < numIndices; i++)
+    for (int i = 0; i < mNumElements; i++)
     {
       bufferIndices[i] = i;
     }
@@ -113,27 +97,26 @@ bool StaticGroup<Interleave>::Load(
 
   // Upload indices to GPU.
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(GLuint), 
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint), 
                bufferIndices.data(), GL_STATIC_DRAW);
 
  
   // Upload vertices to GPU.
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, vertexSize * numVertices * sizeof(GLfloat),
+  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
                buffer, GL_STATIC_DRAW);
 
-  StaticGroup<Interleave>::SpecifyVAO(vertexAttributeList, vertexSize, numVertices);
+  MeshGroup<Interleave>::BuildVAO();
 }
 
 template <>
-void StaticGroup<Interleave>::SpecifyVAO(const std::vector<VertexAttribute> & vertexAttributeList, 
-    int vertexSize, int numVertices)
+void MeshGroup<Interleave>::BuildVAO()
 {
   // Specify VAO.
   glBindVertexArray(mVao);
   int offset = 0;
-  GLfloat stride = sizeof(GLfloat) * vertexSize;
-  for (auto & attrib : vertexAttributeList)
+  GLfloat stride = sizeof(GLfloat) * mVertexSize;
+  for (auto & attrib : mVertexAttributeList)
   {
     const int size      = attrib.mSize;
     const GLuint loc    = attrib.mLoc;
@@ -158,30 +141,22 @@ void StaticGroup<Interleave>::SpecifyVAO(const std::vector<VertexAttribute> & ve
 // ============================================================================================= //
 
 template <>
-bool StaticGroup<Batch>::Load(
-    const std::vector<GLfloat*>        & bufferList,
-    const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode)
+bool MeshGroup<Batch>::Load(
+    const std::vector<GLfloat*> & bufferList, const GLuint* indices, GLenum drawMode)
 {
   mDrawMode = drawMode;
-  mNumIndices = numIndices;
-
-  // Compute vertex size by adding up all attribute sizes.
-  int vertexSize = 0;
-  for (auto& attrib : vertexAttributeList) 
-    vertexSize += attrib.mSize; 
 
   // Create temporary buffers for transfering geometry and elements to GPU.
-  std::vector<GLuint> bufferIndices(numIndices);
+  std::vector<GLuint> bufferIndices(mNumElements);
 
   // Initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*numIndices);
+    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*mNumElements);
   }
   else  // Element array wasn't provided -- build it up.
   {
-    for (int i = 0; i < numIndices; i++)
+    for (int i = 0; i < mNumElements; i++)
     {
       bufferIndices[i] = i;
     }
@@ -194,59 +169,51 @@ bool StaticGroup<Batch>::Load(
 
   // Upload indices to GPU.
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(GLuint), 
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint), 
                bufferIndices.data(), GL_STATIC_DRAW);
 
   // Reserve buffer on GPU.
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, vertexSize * numVertices * sizeof(GLfloat),
+  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
                nullptr, GL_STATIC_DRAW);
 
   // Upload subdata of geometry to GPU.
   int offset = 0;
-  for (int j = 0; j < vertexAttributeList.size(); j++)
+  for (int j = 0; j < mVertexAttributeList.size(); j++)
   {
-    auto & attrib = vertexAttributeList[j];
+    auto & attrib = mVertexAttributeList[j];
     const int size      = attrib.mSize;
     const float* buffer = bufferList[j];
     const GLuint loc    = attrib.mLoc;
 
     if ((size > 0) && (buffer != nullptr))
     {
-      glBufferSubData(GL_ARRAY_BUFFER, offset, size*numVertices*sizeof(GLfloat), buffer);
+      glBufferSubData(GL_ARRAY_BUFFER, offset, size*mNumVertices*sizeof(GLfloat), buffer);
     }
 
-    offset += size*numVertices * sizeof(GLfloat);
+    offset += size*mNumVertices * sizeof(GLfloat);
   }
 
-  StaticGroup<Batch>::SpecifyVAO(vertexAttributeList, vertexSize, numVertices);
+  MeshGroup<Batch>::BuildVAO();
 }
 
 template <>
-bool StaticGroup<Batch>::Load(
-    const GLfloat* buffer,
-    const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode)
+bool MeshGroup<Batch>::Load(
+    const GLfloat* buffer, const GLuint* indices, GLenum drawMode)
 {
   mDrawMode = drawMode;
-  mNumIndices = numIndices;
-
-  // Compute vertex size by adding up all attribute sizes.
-  int vertexSize = 0;
-  for (auto& attrib : vertexAttributeList) 
-    vertexSize += attrib.mSize; 
 
   // Create temporary buffers for transfering geometry and elements to GPU.
-  std::vector<GLuint> bufferIndices(numIndices);
+  std::vector<GLuint> bufferIndices(mNumElements);
 
   // Initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*numIndices);
+    memcpy(bufferIndices.data(), indices, sizeof(GLuint)*mNumElements);
   }
   else  // Element array wasn't provided -- build it up.
   {
-    for (int i = 0; i < numIndices; i++)
+    for (int i = 0; i < mNumElements; i++)
     {
       bufferIndices[i] = i;
     }
@@ -259,28 +226,27 @@ bool StaticGroup<Batch>::Load(
 
   // Upload indices to GPU.
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(GLuint), 
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint), 
                bufferIndices.data(), GL_STATIC_DRAW);
 
   // Upload entire buffer to GPU.
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-  glBufferData(GL_ARRAY_BUFFER, vertexSize * numVertices * sizeof(GLfloat),
+  glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
                buffer, GL_STATIC_DRAW);
 
 
-  StaticGroup<Batch>::SpecifyVAO(vertexAttributeList, vertexSize, numVertices);
+  MeshGroup<Batch>::BuildVAO();
 }
 
 template <>
-void StaticGroup<Batch>::SpecifyVAO(const std::vector<VertexAttribute> & vertexAttributeList, 
-    int vertexSize, int numVertices)
+void MeshGroup<Batch>::BuildVAO()
 {
   // Specify VAO.
   glBindVertexArray(mVao);
   int offset = 0;
-  for (int j = 0; j < vertexAttributeList.size(); j++)
+  for (int j = 0; j < mVertexAttributeList.size(); j++)
   {
-    auto & attrib = vertexAttributeList[j];
+    auto & attrib = mVertexAttributeList[j];
     const int size      = attrib.mSize;
     const GLuint loc    = attrib.mLoc;
 
@@ -290,7 +256,7 @@ void StaticGroup<Batch>::SpecifyVAO(const std::vector<VertexAttribute> & vertexA
 
       // Specify internal storage architecture of Vertex Buffer.
       glVertexAttribPointer(loc, size, GL_FLOAT, GL_FALSE, 0, 
-        (void*)(sizeof(GLfloat) * offset*numVertices));
+        (void*)(sizeof(GLfloat) * offset*mNumVertices));
     }
     else 
     {

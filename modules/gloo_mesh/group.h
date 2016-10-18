@@ -19,10 +19,7 @@
 //
 // Usage:
 // 
-// StaticGroup<Batch>* meshGroup = new StaticGroup<Batch>();
-// meshGroup->Load({ {3, colAttribLoc,  squareColors},
-//                   {3, posAttribLoc,  squareVertices}},
-//                    nullptr, 4, 4, GL_TRIANGLES);
+// TODO(Castiel).
 // ...
 // meshGroup->Render();
 //
@@ -39,6 +36,7 @@
 
 #include "gl_header.h"
 #include <vector>
+#include <initializer_list>
 
 namespace gloo
 {
@@ -58,21 +56,20 @@ struct VertexAttribute
 };
 
 template <StorageFormat F>
-class StaticGroup
+class MeshGroup
 {
 public:
-  StaticGroup()  { }
-  ~StaticGroup();
+  // MeshGroup(const std::vector<VertexAttribute> & vertexAttributeList, 
+  //           int numVertices, int numElements);
+  MeshGroup(std::initializer_list<VertexAttribute> vertexAttributeList,
+            int numVertices, int numElements);
+
+
+  ~MeshGroup();
 
   // TODO: document.
-  bool Load(const std::vector<GLfloat*>        & bufferList,
-            const std::vector<VertexAttribute> & vertexAttributeList,
-            const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
-
-
-  bool Load(const GLfloat* buffer,
-            const std::vector<VertexAttribute> & vertexAttributeList,
-            const GLuint* indices, int numVertices, int numIndices, GLenum drawMode);
+  bool Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices, GLenum drawMode);
+  bool Load(const GLfloat* buffer, const GLuint* indices, GLenum drawMode);
 
   // Should be called on display function (it calls glDrawElements).
   void Render() const;
@@ -80,96 +77,113 @@ public:
   // Destroys buffers on GPU (VAO, VBO, EAB).
   void Clear();
 
+private:
   // Specifies vertex attribute object (how attributes are spatially stored into VBO and
   // mapped to attribute locations on shader).
-  void SpecifyVAO(const std::vector<VertexAttribute> & vertexAttributeList, 
-    int vertexSize, int numVertices);
+  void BuildVAO();
 
-private:
   // OpenGL buffer IDs.
-  GLuint mEab { 0 };
-  GLuint mVao { 0 };
-  GLuint mVbo { 0 };
+  GLuint mEab { 0 };  // Element array buffer.
+  GLuint mVao { 0 };  // Vertex attribute object.
+  GLuint mVbo { 0 };  // Vertex buffer object.
 
   // Geometry and rendering options.
-  GLuint mNumIndices { 0 };
   GLenum mDrawMode { GL_TRIANGLES };
+
+  // Vertex attributes descriptor -> specifies which attributes a vertex contain and also
+  // their dimensionality and order. This is constant within the lifetime of a MeshGroup.
+  std::vector<VertexAttribute> mVertexAttributeList;
+  
+  // Number of floating points stored per vertex.
+  GLuint mVertexSize;
+
+  // Number of vertices and elements.
+  GLuint mNumVertices;
+  GLuint mNumElements;
 };
-
-
-// ============================================================================================= //
-// Specializations for different StorageFormats.
-
-template <>
-bool StaticGroup<Interleave>::Load(
-    const std::vector<GLfloat*>        & bufferList,
-    const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode
-);
-
-template <>
-bool StaticGroup<Batch>::Load(
-    const std::vector<GLfloat*>        & bufferList,
-    const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode
-);
-
-template <>
-void StaticGroup<Interleave>::SpecifyVAO(const std::vector<VertexAttribute> & vertexAttributeList, 
-    int vertexSize, int numVertices);
-
-
-// ================
-
-template <>
-bool StaticGroup<Interleave>::Load(
-    const GLfloat* buffer,
-    const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode
-);
-
-template <>
-bool StaticGroup<Batch>::Load(
-    const GLfloat* buffer,
-    const std::vector<VertexAttribute> & vertexAttributeList,
-    const GLuint* indices, int numVertices, int numIndices, GLenum drawMode
-);
-
-template <>
-void StaticGroup<Batch>::SpecifyVAO(const std::vector<VertexAttribute> & vertexAttributeList, 
-    int vertexSize, int numVertices);
 
 // ============================================================================================ //
 // Implementation of template functions.
 
 
+/* Constructor */
 template <StorageFormat F>
-StaticGroup<F>::~StaticGroup() 
-{
-  StaticGroup<F>::Clear();
+MeshGroup<F>::MeshGroup(std::initializer_list<VertexAttribute> vertexAttributeList, 
+                        int numVertices, int numElements)
+: mVertexAttributeList(vertexAttributeList)
+, mNumVertices(numVertices)
+, mNumElements(numElements)
+{ 
+  mVertexSize = 0;
+  for (auto & attribute : mVertexAttributeList) 
+  {
+    mVertexSize += attribute.mSize;
+  }
 }
 
+/* Destructor */
 template <StorageFormat F>
-void StaticGroup<F>::Render() const
+MeshGroup<F>::~MeshGroup() 
+{
+  MeshGroup<F>::Clear();
+}
+
+/* Rendering method */
+template <StorageFormat F>
+void MeshGroup<F>::Render() const
 {
   glBindVertexArray(mVao);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
 
   glDrawElements(
-   mDrawMode,         // mode (GL_LINES, GL_TRIANGLES, ...)
-   mNumIndices,       // number of vertices.
-   GL_UNSIGNED_INT,   // type.
-   (void*)0           // element array buffer offset.
-  );
+    mDrawMode,         // mode (GL_LINES, GL_TRIANGLES, ...)
+    mNumElements,      // number of vertices.
+    GL_UNSIGNED_INT,   // type.
+    (void*)0           // element array buffer offset.
+   );
 }
 
+/* Delete buffers */
 template <StorageFormat F>
-void StaticGroup<F>::Clear()
+void MeshGroup<F>::Clear()
 {
   glDeleteBuffers(1, &mVbo);
   glDeleteBuffers(1, &mEab);
   glDeleteVertexArrays(1, &mVao);
 }
 
+// ============================================================================================= //
+// Specializations for different StorageFormats.
+
+// ================ Batched Storage =================== // 
+
+template <>
+bool MeshGroup<Interleave>::Load(
+    const std::vector<GLfloat*> & bufferList, const GLuint* indices, GLenum drawMode
+);
+
+template <>
+bool MeshGroup<Batch>::Load(
+    const std::vector<GLfloat*> & bufferList, const GLuint* indices, GLenum drawMode
+);
+
+template <>
+void MeshGroup<Interleave>::BuildVAO();
+
+
+// ================ Interleaved Storage ==================== // 
+
+template <>
+bool MeshGroup<Interleave>::Load(
+    const GLfloat* buffer, const GLuint* indices, GLenum drawMode
+);
+
+template <>
+bool MeshGroup<Batch>::Load(
+    const GLfloat* buffer, const GLuint* indices, GLenum drawMode
+);
+
+template <>
+void MeshGroup<Batch>::BuildVAO();
 
 }  // namespace gloo.
