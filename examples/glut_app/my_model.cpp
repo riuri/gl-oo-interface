@@ -88,20 +88,19 @@ bool MyModel::Init()
   GLuint normAttribLoc = glGetAttribLocation(program, "in_normal");
   GLuint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
 
+  mMeshGroup = new MeshGroup<Batch>(4, 4);
+  mMeshGroup2 = new MeshGroup<Interleave>(4, 4);
 
-  mMeshGroup  = new MeshGroup<Batch>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4);
-  mMeshGroup->Load( {squareColors, squareNormals, squareVertices},
-                     nullptr, GL_TRIANGLE_STRIP);
+  // mMeshGroup  = new MeshGroup<Batch>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4);
+  
+  mMeshGroup->SetVertexAttribList({{3, posAttribLoc}, {3, colAttribLoc}});
+  mMeshGroup->Load( {squareVertices, squareColors}, indices);
+  // mMeshGroup->Load(squareBuffer, nullptr);
 
-  // mMeshGroup = new MeshGroup<Batch>({{3, posAttribLoc}, {3, colAttribLoc}}, 4, 4);
-  // mMeshGroup->Load(squareBuffer, nullptr, GL_TRIANGLE_STRIP);
 
-  // mMeshGroup2 = new MeshGroup<Interleave>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4 );
-  // mMeshGroup2->Load( {squareColors, squareNormals, squareVertices},
-  //                    indices, GL_TRIANGLE_STRIP);
-
-  mMeshGroup2 = new MeshGroup<Interleave>({{3, posAttribLoc}, {3, colAttribLoc}}, 4, 4);
-  mMeshGroup2->Load(squareBufferInterleaved, indices, GL_TRIANGLE_STRIP);
+  mMeshGroup2->SetVertexAttribList({{3, posAttribLoc}, {3, colAttribLoc}});
+  mMeshGroup2->Load( {squareVertices, squareColors}, indices);
+  // mMeshGroup2->Load(squareBufferInterleaved, nullptr);
 
   return true;
 }

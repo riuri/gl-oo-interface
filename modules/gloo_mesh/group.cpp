@@ -5,9 +5,9 @@ namespace gloo
 
 template <>
 bool MeshGroup<Interleave>::Load(
-    const std::vector<GLfloat*> & bufferList, const GLuint* indices, GLenum drawMode)
+    const std::vector<GLfloat*> & bufferList, const GLuint* indices)
 {
-  mDrawMode = drawMode;
+  mDrawMode = mDrawMode;
 
   // Create temporary buffers to transfer geometry and elements to GPU.
   std::vector<GLfloat> vertexBuffer;
@@ -51,14 +51,14 @@ bool MeshGroup<Interleave>::Load(
     MeshGroup<Interleave>::GenerateBuffers(vertexBuffer.data(), elementsBuffer.data());
   }
 
-  MeshGroup<Interleave>::BuildVAO();
+  // MeshGroup<Interleave>::BuildVAO();
 }
 
 template <>
 bool MeshGroup<Interleave>::Load(
-    const GLfloat* buffer, const GLuint* indices, GLenum drawMode) 
+    const GLfloat* buffer, const GLuint* indices) 
 {
-  mDrawMode = drawMode;
+  mDrawMode = mDrawMode;
 
   // Reserve vertex buffer and initialize element array (indices array).
   if (indices)  // Element array provided.
@@ -75,7 +75,7 @@ bool MeshGroup<Interleave>::Load(
     MeshGroup<Interleave>::GenerateBuffers(buffer, elementsBuffer.data());
   }
 
-  MeshGroup<Interleave>::BuildVAO();
+  // MeshGroup<Interleave>::BuildVAO();
 }
 
 template <>
@@ -111,9 +111,9 @@ void MeshGroup<Interleave>::BuildVAO()
 
 template <>
 bool MeshGroup<Batch>::Load(
-    const std::vector<GLfloat*> & bufferList, const GLuint* indices, GLenum drawMode)
+    const std::vector<GLfloat*> & bufferList, const GLuint* indices)
 {
-  mDrawMode = drawMode;
+  mDrawMode = mDrawMode;
 
   // Reserve vertex buffer and initialize element array (indices array).
   if (indices)  // Element array provided.
@@ -130,7 +130,7 @@ bool MeshGroup<Batch>::Load(
     MeshGroup<Batch>::GenerateBuffers(nullptr, elementsBuffer.data());
   }
 
-  MeshGroup<Batch>::BuildVAO();
+  // MeshGroup<Batch>::BuildVAO();
 
   // Upload subdata of geometry to GPU.
   int offset = 0;
@@ -152,9 +152,9 @@ bool MeshGroup<Batch>::Load(
 
 template <>
 bool MeshGroup<Batch>::Load(
-    const GLfloat* buffer, const GLuint* indices, GLenum drawMode)
+    const GLfloat* buffer, const GLuint* indices)
 {
-  mDrawMode = drawMode;
+  mDrawMode = mDrawMode;
 
   // Initialize element array (indices array).
   if (indices)  // Element array provided.
@@ -171,7 +171,7 @@ bool MeshGroup<Batch>::Load(
     MeshGroup<Batch>::GenerateBuffers(buffer, elementsBuffer.data());
   }
 
-  MeshGroup<Batch>::BuildVAO();
+  // MeshGroup<Batch>::BuildVAO();
 }
 
 template <>
@@ -201,5 +201,8 @@ void MeshGroup<Batch>::BuildVAO()
     offset += size;
   }
 }
+
+// ============================================================================================= //
+
 
 }  // namespace gloo.
