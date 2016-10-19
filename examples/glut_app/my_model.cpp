@@ -94,13 +94,13 @@ bool MyModel::Init()
   // mMeshGroup  = new MeshGroup<Batch>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4);
   
   mMeshGroup->SetVertexAttribList({{3, posAttribLoc}, {3, colAttribLoc}});
-  mMeshGroup->Load( {squareVertices, squareColors}, indices);
-  // mMeshGroup->Load(squareBuffer, nullptr);
+  mMeshGroup->Load( {squareVertices, squareColors}, nullptr);
+  // mMeshGroup->Load(squareBuffer, indices);
 
 
   mMeshGroup2->SetVertexAttribList({{3, posAttribLoc}, {3, colAttribLoc}});
-  mMeshGroup2->Load( {squareVertices, squareColors}, indices);
-  // mMeshGroup2->Load(squareBufferInterleaved, nullptr);
+  // mMeshGroup2->Load( {squareVertices, squareColors}, nullptr);
+  mMeshGroup2->Load(squareBufferInterleaved, indices);
 
   return true;
 }
@@ -139,6 +139,10 @@ void MyModel::Display()
   M.LoadIdentity();
   // M.Rotate(blah_angle, -1, 0, 0);
   M.SetUniform(uniformLoc);
+
+  // squareVertices[5] *= 0.999;
+
+  mMeshGroup2->Update({squareVertices, squareColors});
 
   mMeshGroup->Render();
 

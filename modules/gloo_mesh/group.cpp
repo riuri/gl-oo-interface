@@ -4,11 +4,8 @@ namespace gloo
 {
 
 template <>
-bool MeshGroup<Interleave>::Load(
-    const std::vector<GLfloat*> & bufferList, const GLuint* indices)
+bool MeshGroup<Interleave>::Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices)
 {
-  mDrawMode = mDrawMode;
-
   // Create temporary buffers to transfer geometry and elements to GPU.
   std::vector<GLfloat> vertexBuffer;
   vertexBuffer.reserve(mNumVertices * mVertexSize);
@@ -50,32 +47,6 @@ bool MeshGroup<Interleave>::Load(
 
     MeshGroup<Interleave>::GenerateBuffers(vertexBuffer.data(), elementsBuffer.data());
   }
-
-  // MeshGroup<Interleave>::BuildVAO();
-}
-
-template <>
-bool MeshGroup<Interleave>::Load(
-    const GLfloat* buffer, const GLuint* indices) 
-{
-  mDrawMode = mDrawMode;
-
-  // Reserve vertex buffer and initialize element array (indices array).
-  if (indices)  // Element array provided.
-  {
-    MeshGroup<Interleave>::GenerateBuffers(buffer, indices);
-  }
-  else  // Element array wasn't provided -- build it up.
-  {
-    std::vector<GLuint> elementsBuffer(mNumElements);
-
-    for (int i = 0; i < mNumElements; i++)
-      elementsBuffer[i] = i;
-
-    MeshGroup<Interleave>::GenerateBuffers(buffer, elementsBuffer.data());
-  }
-
-  // MeshGroup<Interleave>::BuildVAO();
 }
 
 template <>
@@ -98,7 +69,7 @@ void MeshGroup<Interleave>::BuildVAO()
       glVertexAttribPointer(loc, size, GL_FLOAT, GL_FALSE, stride, 
         (void*)(sizeof(GLfloat) * offset));
     }
-    else 
+    else
     {
       glDisableVertexAttribArray(loc);
     }
@@ -107,14 +78,38 @@ void MeshGroup<Interleave>::BuildVAO()
   }
 }
 
+template <>
+bool MeshGroup<Interleave>::Update(const std::vector<GLfloat*> & bufferList)
+{
+  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
+
+  // Upload subdata of geometry to GPU.
+  int attrib_offset = 0;
+  for (int j = 0; j < mVertexAttributeList.size(); j++)
+  {
+    auto & attrib = mVertexAttributeList[j];
+    const int size      = attrib.mSize;
+    const float* buffer = bufferList[j];
+
+    if ((size > 0) && (buffer != nullptr))
+    {
+      for (int i = 0; i < mNumVertices; i++)
+      {
+        glBufferSubData(GL_ARRAY_BUFFER,
+                        (mVertexSize*i + attrib_offset)*sizeof(GLfloat), // Offset.
+                        size*sizeof(GLfloat), &buffer[size*i]);          // Size.
+      }
+    }
+
+    attrib_offset += size;
+  }
+}
+
 // ============================================================================================= //
 
 template <>
-bool MeshGroup<Batch>::Load(
-    const std::vector<GLfloat*> & bufferList, const GLuint* indices)
+bool MeshGroup<Batch>::Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices)
 {
-  mDrawMode = mDrawMode;
-
   // Reserve vertex buffer and initialize element array (indices array).
   if (indices)  // Element array provided.
   {
@@ -130,7 +125,13 @@ bool MeshGroup<Batch>::Load(
     MeshGroup<Batch>::GenerateBuffers(nullptr, elementsBuffer.data());
   }
 
-  // MeshGroup<Batch>::BuildVAO();
+  MeshGroup<Batch>::Update(bufferList);
+}
+
+template <>
+bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList)
+{
+  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
 
   // Upload subdata of geometry to GPU.
   int offset = 0;
@@ -139,7 +140,6 @@ bool MeshGroup<Batch>::Load(
     auto & attrib = mVertexAttributeList[j];
     const int size      = attrib.mSize;
     const float* buffer = bufferList[j];
-    const GLuint loc    = attrib.mLoc;
 
     if ((size > 0) && (buffer != nullptr))
     {
@@ -148,30 +148,6 @@ bool MeshGroup<Batch>::Load(
 
     offset += size*mNumVertices * sizeof(GLfloat);
   }
-}
-
-template <>
-bool MeshGroup<Batch>::Load(
-    const GLfloat* buffer, const GLuint* indices)
-{
-  mDrawMode = mDrawMode;
-
-  // Initialize element array (indices array).
-  if (indices)  // Element array provided.
-  {
-    MeshGroup<Batch>::GenerateBuffers(buffer, indices);
-  }
-  else  // Element array wasn't provided -- build it up.
-  {
-    std::vector<GLuint> elementsBuffer(mNumElements);
-
-    for (int i = 0; i < mNumElements; i++)
-      elementsBuffer[i] = i;
-
-    MeshGroup<Batch>::GenerateBuffers(buffer, elementsBuffer.data());
-  }
-
-  // MeshGroup<Batch>::BuildVAO();
 }
 
 template <>

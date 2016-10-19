@@ -24,7 +24,7 @@
 //
 // A vertex attribute list must be specified to a group so all data can be successfully passed
 // to the shader during rendering or updating methods.
-// Vertex attribute list (or data) basically defines which properties a vertex contain.
+// Vertex attribute list (or data) basically defines which properties a vertex contains.
 //
 // For example, the list {{3, position_loc}, {3, color_loc}} defines two attributes:
 // 1. {3, position_loc} : dimensionality 3 (3 floating points) and shader location position_loc;
@@ -39,8 +39,8 @@
 // containing all arranged data or pass a list of separate buffers containing per attribute
 // data.
 // You can do it using the two overloaded versions of Load().
-// If you don't to provide elements, just pass nullptr to 'indices' parameter and Load() will
-// automatically build the element array for you (following the default order).
+// If you don't want to provide elements, just pass nullptr to 'indices' parameter and Load()
+// will automatically build the element array for you (following the default order).
 
 // [USAGE]
 /*
@@ -101,15 +101,19 @@ public:
 
   ~MeshGroup();
 
-  // Specifies how data in stored per vertex.
+  // Specifies which data/properties the vertices contain.
   void SetVertexAttribList(std::initializer_list<VertexAttribute> vertexAttribList);
 
   // Should be called on display function (it calls glDrawElements).
   void Render() const;
 
   // TODO: document.
-  bool Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices);
   bool Load(const GLfloat* buffer, const GLuint* indices);
+  bool Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices);
+
+  // TODO: document.
+  bool Update(const GLfloat* buffer);
+  bool Update(const std::vector<GLfloat*> & bufferList);
 
   // Generate buffers on GPU (VAO, VBO, EAB).
   void GenerateBuffers(const GLfloat* vertices, const GLuint* elements);
@@ -221,18 +225,43 @@ void MeshGroup<F>::ClearBuffers()
   glDeleteVertexArrays(1, &mVao);
 }
 
+template <StorageFormat F>
+bool MeshGroup<F>::Load(const GLfloat* buffer, const GLuint* indices)
+{
+  // Reserve vertex buffer and initialize element array (indices array).
+  if (indices)  // Element array provided.
+  {
+    MeshGroup<F>::GenerateBuffers(buffer, indices);
+  }
+  else  // Element array wasn't provided -- build it up.
+  {
+    std::vector<GLuint> elementsBuffer(mNumElements);
+
+    for (int i = 0; i < mNumElements; i++)
+      elementsBuffer[i] = i;
+
+    MeshGroup<F>::GenerateBuffers(buffer, elementsBuffer.data());
+  }
+}
+
+template <StorageFormat F>
+bool MeshGroup<F>::Update(const GLfloat* buffer)
+{
+  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, mVertexSize * mNumVertices * sizeof(GLfloat), buffer);
+}
+
 // ============================================================================================= //
 // Specializations for different StorageFormats.
 
 // ================ Batched Storage =================== // 
 
 template <>
-bool MeshGroup<Batch>::Load(
-    const std::vector<GLfloat*> & bufferList, const GLuint* indices);
+bool MeshGroup<Batch>::Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices);
 
 template <>
-bool MeshGroup<Batch>::Load(
-    const GLfloat* buffer, const GLuint* indices);
+bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList);
+
 
 template <>
 void MeshGroup<Batch>::BuildVAO();
@@ -240,12 +269,11 @@ void MeshGroup<Batch>::BuildVAO();
 // ================ Interleaved Storage ==================== // 
 
 template <>
-bool MeshGroup<Interleave>::Load(
-    const std::vector<GLfloat*> & bufferList, const GLuint* indices);
+bool MeshGroup<Interleave>::Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices);
 
 template <>
-bool MeshGroup<Interleave>::Load(
-    const GLfloat* buffer, const GLuint* indices);
+bool MeshGroup<Interleave>::Update(const std::vector<GLfloat*> & bufferList);
+
 
 template <>
 void MeshGroup<Interleave>::BuildVAO();
