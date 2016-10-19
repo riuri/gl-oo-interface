@@ -121,6 +121,16 @@ public:
   // Destroys buffers on GPU (VAO, VBO, EAB).
   void ClearBuffers();
 
+  // Getters.
+  GLuint GetNumVertices() const { return mNumVertices; }
+  GLuint GetNumElements() const { return mNumElements; }
+  GLuint GetVertexSize() const  { return mVertexSize;  }
+  GLenum GetDataUsage() const { return mDataUsage; }
+  GLenum GetDrawMode()  const { return mDrawMode;  }
+
+  // Setters.
+  void SetDrawMode(GLenum drawMode) { mDrawMode = drawMode; }
+
 private:
   // Specifies vertex attribute object (how attributes are spatially stored into VBO and
   // mapped to attribute locations on shader).
