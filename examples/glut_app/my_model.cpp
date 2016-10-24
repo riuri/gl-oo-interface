@@ -90,17 +90,20 @@ bool MyModel::Init()
 
   mMeshGroup = new MeshGroup<Batch>(4, 4);
   mMeshGroup2 = new MeshGroup<Interleave>(4, 4);
-
-  // mMeshGroup  = new MeshGroup<Batch>( {{3, colAttribLoc}, {3, normAttribLoc}, {3, posAttribLoc}}, 4, 4);
   
-  mMeshGroup->SetVertexAttribList({{3, posAttribLoc}, {3, colAttribLoc}});
-  mMeshGroup->Load( {squareVertices, squareColors}, nullptr);
+  mMeshGroup->SetVertexAttribList({3, 3, 3});
+  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}, {1, normAttribLoc}});
+  mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}, {1, normAttribLoc}});
+
+  mMeshGroup->Load( {squareVertices, nullptr, squareColors}, nullptr);
   // mMeshGroup->Load(squareBuffer, indices);
 
 
-  mMeshGroup2->SetVertexAttribList({{3, posAttribLoc}, {3, colAttribLoc}});
-  // mMeshGroup2->Load( {squareVertices, squareColors}, nullptr);
-  mMeshGroup2->Load(squareBufferInterleaved, indices);
+  mMeshGroup2->SetVertexAttribList({3, 3});
+  mMeshGroup2->AddRenderingPass({{0, posAttribLoc}, {1, colAttribLoc}});
+  mMeshGroup2->Load( {squareVertices, squareColors}, nullptr);
+  
+  // mMeshGroup2->Load(squareBufferInterleaved, indices);
 
   return true;
 }
@@ -142,7 +145,7 @@ void MyModel::Display()
 
   // squareVertices[5] *= 0.999;
 
-  mMeshGroup2->Update({squareVertices, squareColors});
+  // mMeshGroup2->Update({squareVertices, squareColors, nullptr});
 
   mMeshGroup->Render();
 

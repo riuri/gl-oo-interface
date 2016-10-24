@@ -73,6 +73,9 @@
 #include <vector>
 #include <initializer_list>
 
+// XXX
+#include <iostream>
+
 namespace gloo
 {
 
@@ -84,10 +87,17 @@ enum StorageFormat
 };
 
 // VertexAttribute specifies properties of a per-vertex data such as position or normal.
-struct VertexAttribute
+// struct VertexAttribute
+// {
+//   GLuint mSize;      // Dimensionality of data (position = 3d, uv = 2d, normal = 3d).
+//   GLuint mLoc;       // GL Attribute Location (usually provided by gloo::Renderer).
+// };
+
+struct RenderingPassDescriptor
 {
-  GLuint mSize;      // Dimensionality of data (position = 3d, uv = 2d, normal = 3d).
-  GLuint mLoc;       // GL Attribute Location (usually provided by gloo::Renderer).
+  GLuint mVao;                         // Corresponding vertex array object.
+  std::vector<bool>  mStateList;       // Specifies which attributes are enabled/disabled.
+  std::vector<GLuint> mAttribLocList;  // Links each attribute to a shader location.
 };
 
 template <StorageFormat F>
@@ -102,10 +112,15 @@ public:
   ~MeshGroup();
 
   // Specifies which data/properties the vertices contain.
-  void SetVertexAttribList(std::initializer_list<VertexAttribute> vertexAttribList);
+  void SetVertexAttribList(std::initializer_list<GLuint> vertexAttribList);
+
+  // Adds a different way of rendering the object - each one might use different 
+  // attributes of the vertex. The active attribute list specifies which attributes 
+  // are enabled and their corresponding shader locations.
+  int AddRenderingPass(std::initializer_list<std::pair<GLuint, GLuint>> activeAttribList);
 
   // Should be called on display function (it calls glDrawElements).
-  void Render() const;
+  void Render(unsigned renderingPass = 0) const;
 
   // TODO: document.
   bool Load(const GLfloat* buffer, const GLuint* indices);
@@ -116,7 +131,7 @@ public:
   bool Update(const std::vector<GLfloat*> & bufferList);
 
   // Generate buffers on GPU (VAO, VBO, EAB).
-  void GenerateBuffers(const GLfloat* vertices, const GLuint* elements);
+  void AllocateBuffers(const GLfloat* vertices, const GLuint* elements);
 
   // Destroys buffers on GPU (VAO, VBO, EAB).
   void ClearBuffers();
@@ -134,26 +149,28 @@ public:
 private:
   // Specifies vertex attribute object (how attributes are spatially stored into VBO and
   // mapped to attribute locations on shader).
-  void BuildVAO();
+  void BuildVAO(const RenderingPassDescriptor & descriptor);
 
   /* Attributes */
 
   // OpenGL buffer IDs.
   GLuint mEab { 0 };  // Element array buffer.
-  GLuint mVao { 0 };  // Vertex attribute object.
   GLuint mVbo { 0 };  // Vertex buffer object.
 
   // Mesh attributes.
   GLenum mDrawMode;     // How mesh is rendered (drawing mode).
   GLenum mDataUsage;    // Tells if buffers are dynamic/static or for reading/writing.
 
-  GLuint mVertexSize;   // Number of floating points stored per vertex.
   GLuint mNumVertices;  // Number of vertices in this group.
   GLuint mNumElements;  // Number of elements (indices of vertex).
 
+  GLuint mVertexSize    { 0 };  // Number of floating points stored per vertex.
+  GLuint mNumAttributes { 0 };  // Number of attributes.
+
   // Vertex attributes descriptor -> specifies which attributes a vertex contain and also
   // their dimensionality and order. This is constant within the lifetime of a MeshGroup.
-  std::vector<VertexAttribute> mVertexAttributeList;
+  std::vector<GLuint> mVertexAttributeList;
+  std::vector<RenderingPassDescriptor> mRenderingPassList;
 };
 
 // ============================================================================================ //
@@ -179,9 +196,12 @@ MeshGroup<F>::~MeshGroup()
 
 /* Rendering method */
 template <StorageFormat F>
-void MeshGroup<F>::Render() const
+void MeshGroup<F>::Render(unsigned renderingPass) const
 {
-  glBindVertexArray(mVao);
+  const int option = renderingPass;
+  const RenderingPassDescriptor & passDescriptor = mRenderingPassList[option];
+  
+  glBindVertexArray(passDescriptor.mVao);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
 
   glDrawElements(
@@ -193,26 +213,62 @@ void MeshGroup<F>::Render() const
 }
 
 template <StorageFormat F>
-void MeshGroup<F>::SetVertexAttribList(std::initializer_list<VertexAttribute> vertexAttribList)
+void MeshGroup<F>::SetVertexAttribList(std::initializer_list<GLuint> vertexAttribList)
 {
-  mVertexAttributeList = std::vector<VertexAttribute>(vertexAttribList);
+  mVertexAttributeList = std::vector<GLuint>(vertexAttribList);
 
   mVertexSize = 0;
-  for (auto & attribute : mVertexAttributeList) 
+  mNumAttributes = 0;
+  for (GLuint attribSize : mVertexAttributeList) 
   {
-    mVertexSize += attribute.mSize;
+    mVertexSize += attribSize;
+    mNumAttributes++;
   }
+
+  // Generate geometry buffers.
+  glGenBuffers(1, &mVbo);       // Vertex buffer object.
+  glGenBuffers(1, &mEab);       // Element array buffer.
+}
+
+template <StorageFormat F>
+int MeshGroup<F>::AddRenderingPass(std::initializer_list<std::pair<GLuint, GLuint>> activeAttribList)
+{
+  RenderingPassDescriptor descriptor;
+
+  glGenVertexArrays(1, &descriptor.mVao);
+  descriptor.mStateList.resize(mNumAttributes, false);
+  descriptor.mAttribLocList.resize(mNumAttributes, 0);
+
+  for (auto & vertexPair : activeAttribList)
+  {
+    unsigned index = vertexPair.first;
+    descriptor.mStateList[index]     = true;
+    descriptor.mAttribLocList[index] = vertexPair.second;
+  }
+
+  mRenderingPassList.push_back(descriptor);
+
+  // Create vertex array object.
+  glBindBuffer(GL_ARRAY_BUFFER, mVbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
+  MeshGroup<F>::BuildVAO(descriptor);
+
+  // Enable/Disable attributes.
+  for (int i = 0; i < mNumAttributes; i++)
+  {
+    if (descriptor.mStateList[i])
+      glEnableVertexAttribArray(descriptor.mAttribLocList[i]);
+    else
+      glDisableVertexAttribArray(descriptor.mAttribLocList[i]);
+  }
+
+  return mRenderingPassList.size();
 }
 
 /* Generate buffers */
 template <StorageFormat F>
-void MeshGroup<F>::GenerateBuffers(const GLfloat* vertices, const GLuint* elements)
-{
-  // Generate Buffers.
-  glGenVertexArrays(1, &mVao);  // Vertex array object.
-  glGenBuffers(1, &mVbo);       // Vertex buffer object.
-  glGenBuffers(1, &mEab);       // Element array buffer.
-
+void MeshGroup<F>::AllocateBuffers(const GLfloat* vertices, const GLuint* elements)
+{  
   // Allocate buffer for elements (EAB).
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumElements * sizeof(GLuint),
@@ -222,8 +278,6 @@ void MeshGroup<F>::GenerateBuffers(const GLfloat* vertices, const GLuint* elemen
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
   glBufferData(GL_ARRAY_BUFFER, mVertexSize * mNumVertices * sizeof(GLfloat),
                vertices, mDataUsage);
-
-  MeshGroup<F>::BuildVAO();
 }
 
 /* Delete buffers */
@@ -232,7 +286,11 @@ void MeshGroup<F>::ClearBuffers()
 {
   glDeleteBuffers(1, &mVbo);
   glDeleteBuffers(1, &mEab);
-  glDeleteVertexArrays(1, &mVao);
+
+  for (auto & passDescriptor : mRenderingPassList)
+  {
+    glDeleteVertexArrays(1, &passDescriptor.mVao);
+  }
 }
 
 template <StorageFormat F>
@@ -241,7 +299,7 @@ bool MeshGroup<F>::Load(const GLfloat* buffer, const GLuint* indices)
   // Reserve vertex buffer and initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    MeshGroup<F>::GenerateBuffers(buffer, indices);
+    MeshGroup<F>::AllocateBuffers(buffer, indices);
   }
   else  // Element array wasn't provided -- build it up.
   {
@@ -250,7 +308,7 @@ bool MeshGroup<F>::Load(const GLfloat* buffer, const GLuint* indices)
     for (int i = 0; i < mNumElements; i++)
       elementsBuffer[i] = i;
 
-    MeshGroup<F>::GenerateBuffers(buffer, elementsBuffer.data());
+    MeshGroup<F>::AllocateBuffers(buffer, elementsBuffer.data());
   }
 }
 
@@ -264,7 +322,7 @@ bool MeshGroup<F>::Update(const GLfloat* buffer)
 // ============================================================================================= //
 // Specializations for different StorageFormats.
 
-// ================ Batched Storage =================== // 
+// ================ Batched Storage =================== //
 
 template <>
 bool MeshGroup<Batch>::Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices);
@@ -274,9 +332,9 @@ bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList);
 
 
 template <>
-void MeshGroup<Batch>::BuildVAO();
+void MeshGroup<Batch>::BuildVAO(const RenderingPassDescriptor & descriptor);
 
-// ================ Interleaved Storage ==================== // 
+// ================ Interleaved Storage ==================== //
 
 template <>
 bool MeshGroup<Interleave>::Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices);
@@ -286,9 +344,7 @@ bool MeshGroup<Interleave>::Update(const std::vector<GLfloat*> & bufferList);
 
 
 template <>
-void MeshGroup<Interleave>::BuildVAO();
-
-
+void MeshGroup<Interleave>::BuildVAO(const RenderingPassDescriptor & descriptor);
 
 
 }  // namespace gloo.

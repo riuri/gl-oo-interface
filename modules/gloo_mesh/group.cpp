@@ -14,13 +14,10 @@ bool MeshGroup<Interleave>::Load(const std::vector<GLfloat*> & bufferList, const
   for (int i = 0; i < mNumVertices; i++)
   {
     // For each attribute,
-    // for (auto & attrib : mVertexAttributeList)
-    for (int j = 0; j < mVertexAttributeList.size(); j++)
+    for (int j = 0; j < mNumAttributes; j++)
     {
-      auto & attrib = mVertexAttributeList[j];
-      const int size      = attrib.mSize;
+      const GLuint size   = mVertexAttributeList[j];
       const float* buffer = bufferList[j];
-      const GLuint loc    = attrib.mLoc;
 
       if ((size > 0) && (buffer != nullptr))
       {
@@ -36,7 +33,7 @@ bool MeshGroup<Interleave>::Load(const std::vector<GLfloat*> & bufferList, const
   // Reserve vertex buffer and initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    MeshGroup<Interleave>::GenerateBuffers(vertexBuffer.data(), indices);
+    MeshGroup<Interleave>::AllocateBuffers(vertexBuffer.data(), indices);
   }
   else  // Element array wasn't provided -- build it up.
   {
@@ -45,33 +42,28 @@ bool MeshGroup<Interleave>::Load(const std::vector<GLfloat*> & bufferList, const
     for (int i = 0; i < mNumElements; i++)
       elementsBuffer[i] = i;
 
-    MeshGroup<Interleave>::GenerateBuffers(vertexBuffer.data(), elementsBuffer.data());
+    MeshGroup<Interleave>::AllocateBuffers(vertexBuffer.data(), elementsBuffer.data());
   }
 }
 
 template <>
-void MeshGroup<Interleave>::BuildVAO()
+void MeshGroup<Interleave>::BuildVAO(const RenderingPassDescriptor & descriptor)
 {
   // Specify VAO.
-  glBindVertexArray(mVao);
+  glBindVertexArray(descriptor.mVao);
   int offset = 0;
   GLfloat stride = sizeof(GLfloat) * mVertexSize;
-  for (auto & attrib : mVertexAttributeList)
+  for (int j = 0; j < mNumAttributes; j++)
   {
-    const int size      = attrib.mSize;
-    const GLuint loc    = attrib.mLoc;
+    const int size    = mVertexAttributeList[j];
+    const GLuint loc  = descriptor.mAttribLocList[j];
+    const bool active = descriptor.mStateList[j];
 
-    if (size > 0)
+    if ((size > 0) && active)
     {
-      glEnableVertexAttribArray(loc);
-
       // Specify internal storage architecture of Vertex Buffer.
       glVertexAttribPointer(loc, size, GL_FLOAT, GL_FALSE, stride, 
         (void*)(sizeof(GLfloat) * offset));
-    }
-    else
-    {
-      glDisableVertexAttribArray(loc);
     }
 
     offset += size;
@@ -85,10 +77,9 @@ bool MeshGroup<Interleave>::Update(const std::vector<GLfloat*> & bufferList)
 
   // Upload subdata of geometry to GPU.
   int attrib_offset = 0;
-  for (int j = 0; j < mVertexAttributeList.size(); j++)
+  for (int j = 0; j < mNumAttributes; j++)
   {
-    auto & attrib = mVertexAttributeList[j];
-    const int size      = attrib.mSize;
+    const unsigned size = mVertexAttributeList[j];
     const float* buffer = bufferList[j];
 
     if ((size > 0) && (buffer != nullptr))
@@ -113,7 +104,7 @@ bool MeshGroup<Batch>::Load(const std::vector<GLfloat*> & bufferList, const GLui
   // Reserve vertex buffer and initialize element array (indices array).
   if (indices)  // Element array provided.
   {
-    MeshGroup<Batch>::GenerateBuffers(nullptr, indices);
+    MeshGroup<Batch>::AllocateBuffers(nullptr, indices);
   }
   else  // Element array wasn't provided -- build it up.
   {
@@ -122,7 +113,7 @@ bool MeshGroup<Batch>::Load(const std::vector<GLfloat*> & bufferList, const GLui
     for (int i = 0; i < mNumElements; i++)
       elementsBuffer[i] = i;
 
-    MeshGroup<Batch>::GenerateBuffers(nullptr, elementsBuffer.data());
+    MeshGroup<Batch>::AllocateBuffers(nullptr, elementsBuffer.data());
   }
 
   MeshGroup<Batch>::Update(bufferList);
@@ -135,10 +126,9 @@ bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList)
 
   // Upload subdata of geometry to GPU.
   int offset = 0;
-  for (int j = 0; j < mVertexAttributeList.size(); j++)
+  for (int j = 0; j < mNumAttributes; j++)
   {
-    auto & attrib = mVertexAttributeList[j];
-    const int size      = attrib.mSize;
+    const unsigned size = mVertexAttributeList[j];
     const float* buffer = bufferList[j];
 
     if ((size > 0) && (buffer != nullptr))
@@ -151,27 +141,22 @@ bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList)
 }
 
 template <>
-void MeshGroup<Batch>::BuildVAO()
+void MeshGroup<Batch>::BuildVAO(const RenderingPassDescriptor & descriptor)
 {
   // Specify VAO.
-  glBindVertexArray(mVao);
+  glBindVertexArray(descriptor.mVao);
   int offset = 0;
-  for (auto & attrib : mVertexAttributeList)
+  for (int j = 0; j < mNumAttributes; j++)
   {
-    const int size      = attrib.mSize;
-    const GLuint loc    = attrib.mLoc;
+    const int size    = mVertexAttributeList[j];
+    const GLuint loc  = descriptor.mAttribLocList[j];
+    const bool active = descriptor.mStateList[j];
 
-    if (size > 0)
+    if ((size > 0) && active)
     {
-      glEnableVertexAttribArray(loc);
-
       // Specify internal storage architecture of Vertex Buffer.
       glVertexAttribPointer(loc, size, GL_FLOAT, GL_FALSE, 0, 
         (void*)(sizeof(GLfloat) * offset*mNumVertices));
-    }
-    else 
-    {
-      glDisableVertexAttribArray(loc);
     }
 
     offset += size;
