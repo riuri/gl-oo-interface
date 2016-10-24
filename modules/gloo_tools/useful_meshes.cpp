@@ -56,7 +56,8 @@ void AxisMesh::Render() const
 
 // ============================================================================================= //
 
-BoundingBoxMesh::BoundingBoxMesh(GLint positionAttribLoc, GLint colorAttribLoc)
+BoundingBoxMesh::BoundingBoxMesh(GLint positionAttribLoc, GLint colorAttribLoc, 
+                                 GLfloat r, GLfloat g, GLfloat b)
 {
   const int numVertices = 8;
   const int numElements = 12*2;
@@ -68,10 +69,10 @@ BoundingBoxMesh::BoundingBoxMesh(GLint positionAttribLoc, GLint colorAttribLoc)
                          -0.5f, -0.5f, +0.5f,  +0.5f, -0.5f, +0.5f,
                          -0.5f, -0.5f, -0.5f,  +0.5f, -0.5f, -0.5f };
 
-  GLfloat colors [] =   {0.7f, 0.0f, 0.0f, 0.7f, 0.0f, 0.0f,
-                         0.7f, 0.0f, 0.0f, 0.7f, 0.0f, 0.0f,
-                         0.7f, 0.0f, 0.0f, 0.7f, 0.0f, 0.0f,
-                         0.7f, 0.0f, 0.0f, 0.7f, 0.0f, 0.0f};
+  GLfloat colors [] =   {r, g, b, r, g, b,
+                         r, g, b, r, g, b,
+                         r, g, b, r, g, b,
+                         r, g, b, r, g, b};
   GLuint indices[] = { 0,1, 2,3, 4,5, 6,7,    // x
                        0,2, 1,3, 4,6, 5,7,    // z
                        0,4, 1,5, 2,6, 3,7 };  // z
@@ -108,5 +109,97 @@ void BoundingBoxMesh::Render() const
 {
   mMeshGroup->Render();
 }
+
+// ============================================================================================= //
+
+GridMesh::GridMesh(GLint positionAttribLoc, GLint colorAttribLoc, int width, int height, 
+                   GLfloat tileSize, GLfloat r, GLfloat g, GLfloat b)
+{
+  const int w = std::max(width,  2);
+  const int h = std::max(height, 2);
+
+  const int numVertices = w * h;
+  const int numElements = 2 * w * h;
+  const GLenum drawMode = GL_LINE_STRIP;
+
+  std::vector<GLfloat> vertices;
+  std::vector<GLuint> indices;
+
+  vertices.reserve(numVertices * 6);
+
+  float xc = (w-1)*tileSize/2.0f;
+  float yc = 0.0f;
+  float zc = (h-1)*tileSize/2.0f;
+
+  // Initialize vertices.
+  for (int z = 0; z < h; z++)
+  {
+    for (int x = 0; x < w; x++)
+    {
+      // Positions x, y, z.
+      vertices.push_back(x*tileSize - xc);
+      vertices.push_back(0.0f);
+      vertices.push_back(z*tileSize - zc);
+
+      // Colors.
+      vertices.push_back(r);
+      vertices.push_back(g);
+      vertices.push_back(b);
+    }
+  }
+
+  indices.reserve(numElements);
+
+  // Wire frame Element array - indices are written in a zig-zag pattern,
+  // first horizontally and then vertically. It uses GL_LINE_STRIP. 
+  int index = 0;
+  int x = 0, y = 0;
+  int dx = 1, dy = -1;
+
+  for (y = 0; y < h; y++)  // Horizontally.
+  {
+    x = ((dx == 1) ? 0 : w-1);
+    for (int k = 0; k < w; k++, x += dx)
+      indices.push_back(w*x + y);
+    dx *= -1;
+  }
+
+  // Start from the last point to allow continuity in GL_LINE_STRIP.
+  x = ((dx == 1) ? 0 : w-1);
+  y = h-1;  
+  dy = -1;
+  for (int i = 0; i < w; i++, x += dx)  // Vertically.
+  {
+    y = ((dy == 1) ? 0 : h-1);
+    for (int j = 0; j < h; j++, y += dy)
+      indices.push_back(w*x + y);
+    dy *= -1;
+  }
+
+  // Allocate mesh.
+  mMeshGroup = new MeshGroup<Interleave>(numVertices, numElements, drawMode);
+
+  // Specify its attributes.
+  mMeshGroup->SetVertexAttribList({3, 3});
+
+  // Add rendering pass.
+  mMeshGroup->AddRenderingPass({{positionAttribLoc, true}, {colorAttribLoc, true}});
+
+  // Load data.
+  // mMeshGroup->Load({positions.data(), colors.data()}, indices.data());
+  mMeshGroup->Load(vertices.data(), indices.data());
+}
+
+GridMesh::~GridMesh()
+{
+  delete mMeshGroup;
+}
+
+void GridMesh::Render() const
+{
+  mMeshGroup->Render();
+}
+
+
 
 }  // namespace gloo.

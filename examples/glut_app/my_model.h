@@ -37,6 +37,7 @@ private:
   MeshGroup<Interleave>* mMeshGroup2 { nullptr };
 
   AxisMesh* mAxis;
+  GridMesh* mGrid;
   BoundingBoxMesh* mBoundingBox;
 
 };

@@ -58,6 +58,8 @@ MyModel::~MyModel()
   delete mMeshGroup2;
 
   delete mAxis;
+  delete mGrid;
+  delete mBoundingBox;
 }
 
 bool MyModel::Init()
@@ -91,22 +93,23 @@ bool MyModel::Init()
   GLint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
 
   mAxis = new AxisMesh(posAttribLoc, colAttribLoc);
+  mGrid = new GridMesh(posAttribLoc, colAttribLoc, 9, 9, 0.15f, 0.4f, 0.4f, 0.4f);
   mBoundingBox = new BoundingBoxMesh(posAttribLoc, colAttribLoc);
 
   mMeshGroup = new MeshGroup<Batch>(4, 4);
   mMeshGroup2 = new MeshGroup<Interleave>(4, 4);
   
-  mMeshGroup->SetVertexAttribList({3, 3, 3, 2});
+  mMeshGroup->SetVertexAttribList({3, 3});
 
-  mMeshGroup->AddRenderingPass({gloo::kNoAttrib, {posAttribLoc, true}, {colAttribLoc, true}, {uvAttribLoc, false}});
+  mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
 
   // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
   // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
 
   // TODO: correct disabled attributes.
 
-  mMeshGroup->Load( {nullptr, squareVertices, squareColors, nullptr}, nullptr);
-  // mMeshGroup->Load(squareBuffer, indices);
+  // mMeshGroup->Load( {nullptr, squareVertices, squareColors, nullptr}, nullptr);
+  mMeshGroup->Load(squareBuffer, nullptr);
 
 
   mMeshGroup2->SetVertexAttribList({3, 3});
@@ -156,6 +159,8 @@ void MyModel::Display()
   // M.Rotate(blah_angle, -1, 0, 0);
   M.SetUniform(uniformLoc);
 
+  mGrid->Render();
+
   // squareVertices[5] *= 0.999;
 
   // mMeshGroup2->Update({squareVertices, squareColors, nullptr});
@@ -163,7 +168,7 @@ void MyModel::Display()
   // mAxis->Update(5*cos(blah_angle), 2*sin(3.1*blah_angle), 0.3*cos(blah_angle));
   mAxis->Render();
 
-  // mMeshGroup->Render();
+  mMeshGroup->Render();
 
   glutSwapBuffers();
 }

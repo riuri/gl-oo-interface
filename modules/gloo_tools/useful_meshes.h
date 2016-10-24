@@ -36,7 +36,8 @@ private:
 struct BoundingBoxMesh
 {
 public:
-  BoundingBoxMesh(GLint positionAttribLoc, GLint colorAttribLoc);
+  BoundingBoxMesh(GLint positionAttribLoc, GLint colorAttribLoc,
+                  GLfloat r = 0.8f, GLfloat g = 0.8f, GLfloat b = 0.8f);
   ~BoundingBoxMesh();
 
   void Render() const;
@@ -44,6 +45,19 @@ public:
 
 private:
   MeshGroup<Batch>* mMeshGroup;
+};
+
+struct GridMesh
+{
+  public:
+  GridMesh(GLint positionAttribLoc, GLint colorAttribLoc, int width, int height, GLfloat tileSize = 1.0f,
+           GLfloat r = 0.8f, GLfloat g = 0.8f, GLfloat b = 0.8f);
+  ~GridMesh();
+
+  void Render() const;
+
+private:
+  MeshGroup<Interleave>* mMeshGroup;
 };
 
 
