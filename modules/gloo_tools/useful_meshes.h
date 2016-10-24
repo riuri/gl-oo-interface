@@ -19,17 +19,32 @@
 namespace gloo
 {
 
-class DebugMesh
+
+struct AxisMesh
 {
 public:
+  AxisMesh(GLint positionAttribLoc, GLint colorAttribLoc);
+  ~AxisMesh();
 
+  void Render() const;
+  void Update(GLfloat x, GLfloat y, GLfloat z);
 
 private:
-  // StaticGroup<Batch>*
-  Transform mModel;  // Model transform
-
+  MeshGroup<Batch>* mMeshGroup;
 };
 
+struct BoundingBoxMesh
+{
+public:
+  BoundingBoxMesh(GLint positionAttribLoc, GLint colorAttribLoc);
+  ~BoundingBoxMesh();
+
+  void Render() const;
+  void Update(GLfloat xmin, GLfloat xmax, GLfloat ymin, GLfloat ymax, GLfloat zmin, GLfloat zmax);
+
+private:
+  MeshGroup<Batch>* mMeshGroup;
+};
 
 
 }  // namespace gloo.

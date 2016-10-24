@@ -56,6 +56,8 @@ MyModel::~MyModel()
   delete mShaderProgram;
   delete mMeshGroup;
   delete mMeshGroup2;
+
+  delete mAxis;
 }
 
 bool MyModel::Init()
@@ -87,6 +89,9 @@ bool MyModel::Init()
   GLint colAttribLoc = glGetAttribLocation(program, "in_color");
   GLint normAttribLoc = glGetAttribLocation(program, "in_normal");
   GLint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
+
+  mAxis = new AxisMesh(posAttribLoc, colAttribLoc);
+  mBoundingBox = new BoundingBoxMesh(posAttribLoc, colAttribLoc);
 
   mMeshGroup = new MeshGroup<Batch>(4, 4);
   mMeshGroup2 = new MeshGroup<Interleave>(4, 4);
@@ -143,6 +148,8 @@ void MyModel::Display()
 
   M.SetUniform(uniformLoc);
 
+  mBoundingBox->Render();
+
   mMeshGroup2->Render();
   
   M.LoadIdentity();
@@ -153,7 +160,10 @@ void MyModel::Display()
 
   // mMeshGroup2->Update({squareVertices, squareColors, nullptr});
 
-  mMeshGroup->Render();
+  // mAxis->Update(5*cos(blah_angle), 2*sin(3.1*blah_angle), 0.3*cos(blah_angle));
+  mAxis->Render();
+
+  // mMeshGroup->Render();
 
   glutSwapBuffers();
 }

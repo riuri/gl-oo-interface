@@ -1,6 +1,7 @@
 #include <gloo/group.h>
 #include <gloo/camera.h>
 #include <gloo/model_base.h>
+#include <gloo/useful_meshes.h>
 #include <gloo/shader_program.h>
 
 using namespace gloo;
@@ -34,5 +35,8 @@ private:
   // XXX - Test.
   MeshGroup<Batch>* mMeshGroup { nullptr };
   MeshGroup<Interleave>* mMeshGroup2 { nullptr };
+
+  AxisMesh* mAxis;
+  BoundingBoxMesh* mBoundingBox;
 
 };
