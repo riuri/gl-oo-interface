@@ -1,4 +1,5 @@
 #include "group.h"
+#include <cassert>
 
 namespace gloo
 {
@@ -6,6 +7,8 @@ namespace gloo
 template <>
 bool MeshGroup<Interleave>::Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices)
 {
+  assert(bufferList.size() == mNumAttributes);
+
   // Create temporary buffers to transfer geometry and elements to GPU.
   std::vector<GLfloat> vertexBuffer;
   vertexBuffer.reserve(mNumVertices * mVertexSize);
@@ -47,7 +50,7 @@ bool MeshGroup<Interleave>::Load(const std::vector<GLfloat*> & bufferList, const
 }
 
 template <>
-void MeshGroup<Interleave>::BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList)
+void MeshGroup<Interleave>::BuildVAO(const std::vector<std::pair<GLint, bool>> & attribList)
 {
   // Specify VAO.
   int offset = 0;
@@ -55,8 +58,8 @@ void MeshGroup<Interleave>::BuildVAO(const std::vector<std::pair<GLint, bool>> &
   for (int j = 0; j < mNumAttributes; j++)
   {
     const int size    = mVertexAttributeList[j];
-    const GLint loc   = activeAttribList[j].first;
-    const bool active = activeAttribList[j].second;
+    const GLint loc   = attribList[j].first;
+    const bool active = attribList[j].second;
 
     if ((size > 0) && active)
     {
@@ -72,6 +75,8 @@ void MeshGroup<Interleave>::BuildVAO(const std::vector<std::pair<GLint, bool>> &
 template <>
 bool MeshGroup<Interleave>::Update(const std::vector<GLfloat*> & bufferList)
 {
+  assert(bufferList.size() == mNumAttributes);
+
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
 
   // Upload subdata of geometry to GPU.
@@ -100,6 +105,8 @@ bool MeshGroup<Interleave>::Update(const std::vector<GLfloat*> & bufferList)
 template <>
 bool MeshGroup<Batch>::Load(const std::vector<GLfloat*> & bufferList, const GLuint* indices)
 {
+  assert(bufferList.size() == mNumAttributes);
+
   // Reserve vertex buffer and initialize element array (indices array).
   if (indices)  // Element array provided.
   {
@@ -121,6 +128,8 @@ bool MeshGroup<Batch>::Load(const std::vector<GLfloat*> & bufferList, const GLui
 template <>
 bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList)
 {
+  assert(bufferList.size() == mNumAttributes);
+
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
 
   // Upload subdata of geometry to GPU.
@@ -140,15 +149,15 @@ bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList)
 }
 
 template <>
-void MeshGroup<Batch>::BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList)
+void MeshGroup<Batch>::BuildVAO(const std::vector<std::pair<GLint, bool>> & attribList)
 {
   // Specify VAO.
   int offset = 0;
   for (int j = 0; j < mNumAttributes; j++)
   {
     const int size    = mVertexAttributeList[j];
-    const GLint loc   = activeAttribList[j].first;
-    const bool active = activeAttribList[j].second;
+    const GLint loc   = attribList[j].first;
+    const bool active = attribList[j].second;
 
     if ((size > 0) && active)
     {

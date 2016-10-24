@@ -29,13 +29,14 @@
 // For example, the list {3, 3, 2} defines three attributes: the first contains three floats,
 // the second contains 3 floats and the last one has 2 floats (typically 3d coordinates, 
 // normal vector and uv texture coordinates).
-
 // Vertex attribute data is specified by calling SetVertexAttribList().
 
 // [Rendering Pass]
-// TODO: document.
-// The location in shaders must be coeherent to attributes you've written on your shader.  
-// 
+// A single mesh group can be rendered in different ways and in multiple passes.
+// In this way, MeshGroup provides a method to create a rendering pass by specifying
+// which attributes will be enabled or not and what are their locations in the shader.
+//
+// The location in shaders must be coeherent to attributes you've written on your shader.   
 
 // [Loading/updating data]
 // 
@@ -45,6 +46,10 @@
 // You can do it using the two overloaded versions of Load().
 // If you don't want to provide elements, just pass nullptr to 'indices' parameter and Load()
 // will automatically build the element array for you (following the default order).
+//
+// You can either load/update the geometry from a single buffer containing all vertex data or load from a
+// list of buffers, each one corresponding to an attribute. 
+// When updating, you can optionally pass nullptr for attributes you don't want to update.
 
 // [USAGE]
 /*
@@ -80,9 +85,7 @@
 #include "gl_header.h"
 #include <vector>
 #include <initializer_list>
-
-// XXX
-#include <iostream>
+#include <cassert>
 
 namespace gloo
 {
@@ -113,7 +116,7 @@ public:
   // Adds a different way of rendering the object - each one might use different 
   // attributes of the vertex. The active attribute list specifies which attributes 
   // are enabled and their corresponding shader locations.
-  int AddRenderingPass(const std::vector<std::pair<GLint, bool>> & activeAttribList);
+  int AddRenderingPass(const std::vector<std::pair<GLint, bool>> & attribList);
 
   // Should be called on display function (it calls glDrawElements).
   void Render(unsigned renderingPass = 0) const;
@@ -145,7 +148,7 @@ public:
 private:
   // Specifies vertex attribute object (how attributes are spatially stored into VBO and
   // mapped to attribute locations on shader).
-  void BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList);
+  void BuildVAO(const std::vector<std::pair<GLint, bool>> & attribList);
 
   /* Attributes */
 
@@ -194,6 +197,8 @@ MeshGroup<F>::~MeshGroup()
 template <StorageFormat F>
 void MeshGroup<F>::Render(unsigned renderingPass) const
 {
+  assert((renderingPass >= 0) && (renderingPass < mVaoList.size()));
+
   const int option = renderingPass;
   
   glBindVertexArray(mVaoList[option]);
@@ -226,22 +231,23 @@ void MeshGroup<F>::SetVertexAttribList(std::initializer_list<GLuint> vertexAttri
 }
 
 template <StorageFormat F>
-int MeshGroup<F>::AddRenderingPass(const std::vector<std::pair<GLint, bool>> & activeAttribList)
+int MeshGroup<F>::AddRenderingPass(const std::vector<std::pair<GLint, bool>> & attribList)
 {
-  GLuint vao = 0;
+  assert(attribList.size() == mNumAttributes);
 
+  GLuint vao = 0;
   glGenVertexArrays(1, &vao);
 
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
   
-  MeshGroup<F>::BuildVAO(activeAttribList);
+  MeshGroup<F>::BuildVAO(attribList);
 
   for (int i = 0; i < mNumAttributes; i++)
   {
-    const GLuint attribLoc = activeAttribList[i].first;
-    const bool active = activeAttribList[i].second;
+    const GLuint attribLoc = attribList[i].first;
+    const bool active = attribList[i].second;
 
     // If the attribute is active...
     if (active)
@@ -322,7 +328,7 @@ bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList);
 
 
 template <>
-void MeshGroup<Batch>::BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList);
+void MeshGroup<Batch>::BuildVAO(const std::vector<std::pair<GLint, bool>> & attribList);
 
 // ================ Interleaved Storage ==================== //
 
@@ -334,7 +340,7 @@ bool MeshGroup<Interleave>::Update(const std::vector<GLfloat*> & bufferList);
 
 
 template <>
-void MeshGroup<Interleave>::BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList);
+void MeshGroup<Interleave>::BuildVAO(const std::vector<std::pair<GLint, bool>> & attribList);
 
 
 }  // namespace gloo.
