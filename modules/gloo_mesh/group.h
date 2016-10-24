@@ -22,16 +22,20 @@
 
 // [Vertex Attribute Data]
 //
+// Vertex attribute list (or data) basically defines which properties a vertex contains.
 // A vertex attribute list must be specified to a group so all data can be successfully passed
 // to the shader during rendering or updating methods.
-// Vertex attribute list (or data) basically defines which properties a vertex contains.
 //
-// For example, the list {{3, position_loc}, {3, color_loc}} defines two attributes:
-// 1. {3, position_loc} : dimensionality 3 (3 floating points) and shader location position_loc;
-// 2. {3, color_loc}    : dimensionality 3 (3 floating points) and shader location color_loc;
-// The location in shaders must be coeherent to attributes you've written on your shader.
-//
-// Vertex attribute data is specified through method SetVertexAttribList().
+// For example, the list {3, 3, 2} defines three attributes: the first contains three floats,
+// the second contains 3 floats and the last one has 2 floats (typically 3d coordinates, 
+// normal vector and uv texture coordinates).
+
+// Vertex attribute data is specified by calling SetVertexAttribList().
+
+// [Rendering Pass]
+// TODO: document.
+// The location in shaders must be coeherent to attributes you've written on your shader.  
+// 
 
 // [Loading/updating data]
 // 
@@ -48,7 +52,11 @@
     MeshGroup<Batch>* group = new MeshGroup<Batch>(numVertices, numElements, GL_TRIANGLES);
  
     // Specify vertex attribute data.
-    group->SetVertexAttribList({{3, position_loc}, {3, normal_loc}, {2, uv_loc}});
+    // 3 attributes: the first has 3 floats, the second has 3 floats and the third has 2 floats.
+    group->SetVertexAttribList({3, 3, 2});  
+
+    // Create a rendering pass.
+    group->AddRenderingPass({posAttribLoc, true}, {normalAttribLoc, true}, {uvAttribLoc, true});
 
     // Load data into GPU (from separate buffers).
     group->Load({positions.data(), normals.data(), uv.data()}, indices.data());
@@ -86,19 +94,7 @@ enum StorageFormat
   Batch,       // (Sub-Buffered):   (P P ... P) (N N ... N) (T T ... T)
 };
 
-// VertexAttribute specifies properties of a per-vertex data such as position or normal.
-// struct VertexAttribute
-// {
-//   GLuint mSize;      // Dimensionality of data (position = 3d, uv = 2d, normal = 3d).
-//   GLuint mLoc;       // GL Attribute Location (usually provided by gloo::Renderer).
-// };
-
-struct RenderingPassDescriptor
-{
-  GLuint mVao;                         // Corresponding vertex array object.
-  std::vector<bool>  mStateList;       // Specifies which attributes are enabled/disabled.
-  std::vector<GLuint> mAttribLocList;  // Links each attribute to a shader location.
-};
+const std::pair<GLint, bool> kNoAttrib = {-1, false};
 
 template <StorageFormat F>
 class MeshGroup
@@ -117,7 +113,7 @@ public:
   // Adds a different way of rendering the object - each one might use different 
   // attributes of the vertex. The active attribute list specifies which attributes 
   // are enabled and their corresponding shader locations.
-  int AddRenderingPass(std::initializer_list<std::pair<GLuint, GLuint>> activeAttribList);
+  int AddRenderingPass(const std::vector<std::pair<GLint, bool>> & activeAttribList);
 
   // Should be called on display function (it calls glDrawElements).
   void Render(unsigned renderingPass = 0) const;
@@ -149,13 +145,14 @@ public:
 private:
   // Specifies vertex attribute object (how attributes are spatially stored into VBO and
   // mapped to attribute locations on shader).
-  void BuildVAO(const RenderingPassDescriptor & descriptor);
+  void BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList);
 
   /* Attributes */
 
   // OpenGL buffer IDs.
   GLuint mEab { 0 };  // Element array buffer.
   GLuint mVbo { 0 };  // Vertex buffer object.
+  std::vector<GLuint> mVaoList;  // Verter array object list.
 
   // Mesh attributes.
   GLenum mDrawMode;     // How mesh is rendered (drawing mode).
@@ -170,7 +167,6 @@ private:
   // Vertex attributes descriptor -> specifies which attributes a vertex contain and also
   // their dimensionality and order. This is constant within the lifetime of a MeshGroup.
   std::vector<GLuint> mVertexAttributeList;
-  std::vector<RenderingPassDescriptor> mRenderingPassList;
 };
 
 // ============================================================================================ //
@@ -199,9 +195,8 @@ template <StorageFormat F>
 void MeshGroup<F>::Render(unsigned renderingPass) const
 {
   const int option = renderingPass;
-  const RenderingPassDescriptor & passDescriptor = mRenderingPassList[option];
   
-  glBindVertexArray(passDescriptor.mVao);
+  glBindVertexArray(mVaoList[option]);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
 
   glDrawElements(
@@ -231,38 +226,37 @@ void MeshGroup<F>::SetVertexAttribList(std::initializer_list<GLuint> vertexAttri
 }
 
 template <StorageFormat F>
-int MeshGroup<F>::AddRenderingPass(std::initializer_list<std::pair<GLuint, GLuint>> activeAttribList)
+int MeshGroup<F>::AddRenderingPass(const std::vector<std::pair<GLint, bool>> & activeAttribList)
 {
-  RenderingPassDescriptor descriptor;
+  GLuint vao = 0;
 
-  glGenVertexArrays(1, &descriptor.mVao);
-  descriptor.mStateList.resize(mNumAttributes, false);
-  descriptor.mAttribLocList.resize(mNumAttributes, 0);
+  glGenVertexArrays(1, &vao);
 
-  for (auto & vertexPair : activeAttribList)
-  {
-    unsigned index = vertexPair.first;
-    descriptor.mStateList[index]     = true;
-    descriptor.mAttribLocList[index] = vertexPair.second;
-  }
-
-  mRenderingPassList.push_back(descriptor);
-
-  // Create vertex array object.
+  glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, mVbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEab);
-  MeshGroup<F>::BuildVAO(descriptor);
+  
+  MeshGroup<F>::BuildVAO(activeAttribList);
 
-  // Enable/Disable attributes.
   for (int i = 0; i < mNumAttributes; i++)
   {
-    if (descriptor.mStateList[i])
-      glEnableVertexAttribArray(descriptor.mAttribLocList[i]);
-    else
-      glDisableVertexAttribArray(descriptor.mAttribLocList[i]);
+    const GLuint attribLoc = activeAttribList[i].first;
+    const bool active = activeAttribList[i].second;
+
+    // If the attribute is active...
+    if (active)
+    {
+      glEnableVertexAttribArray(attribLoc);
+    }
+    else if (attribLoc != -1)
+    {
+      glDisableVertexAttribArray(attribLoc);
+    }
   }
 
-  return mRenderingPassList.size();
+  mVaoList.push_back(vao);
+
+  return mVaoList.size()-1;
 }
 
 /* Generate buffers */
@@ -286,11 +280,7 @@ void MeshGroup<F>::ClearBuffers()
 {
   glDeleteBuffers(1, &mVbo);
   glDeleteBuffers(1, &mEab);
-
-  for (auto & passDescriptor : mRenderingPassList)
-  {
-    glDeleteVertexArrays(1, &passDescriptor.mVao);
-  }
+  glDeleteVertexArrays(mVaoList.size(), mVaoList.data());
 }
 
 template <StorageFormat F>
@@ -332,7 +322,7 @@ bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList);
 
 
 template <>
-void MeshGroup<Batch>::BuildVAO(const RenderingPassDescriptor & descriptor);
+void MeshGroup<Batch>::BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList);
 
 // ================ Interleaved Storage ==================== //
 
@@ -344,7 +334,7 @@ bool MeshGroup<Interleave>::Update(const std::vector<GLfloat*> & bufferList);
 
 
 template <>
-void MeshGroup<Interleave>::BuildVAO(const RenderingPassDescriptor & descriptor);
+void MeshGroup<Interleave>::BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList);
 
 
 }  // namespace gloo.

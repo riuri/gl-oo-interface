@@ -83,24 +83,30 @@ bool MyModel::Init()
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
 
-  GLuint posAttribLoc = glGetAttribLocation(program, "in_position");
-  GLuint colAttribLoc = glGetAttribLocation(program, "in_color");
-  GLuint normAttribLoc = glGetAttribLocation(program, "in_normal");
-  GLuint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
+  GLint posAttribLoc = glGetAttribLocation(program, "in_position");
+  GLint colAttribLoc = glGetAttribLocation(program, "in_color");
+  GLint normAttribLoc = glGetAttribLocation(program, "in_normal");
+  GLint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
 
   mMeshGroup = new MeshGroup<Batch>(4, 4);
   mMeshGroup2 = new MeshGroup<Interleave>(4, 4);
   
-  mMeshGroup->SetVertexAttribList({3, 3, 3});
-  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}, {1, normAttribLoc}});
-  mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}, {1, normAttribLoc}});
+  mMeshGroup->SetVertexAttribList({3, 3, 3, 2});
 
-  mMeshGroup->Load( {squareVertices, nullptr, squareColors}, nullptr);
+  mMeshGroup->AddRenderingPass({gloo::kNoAttrib, {posAttribLoc, true}, {colAttribLoc, true}, {uvAttribLoc, false}});
+
+  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
+  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
+
+  // TODO: correct disabled attributes.
+
+  mMeshGroup->Load( {nullptr, squareVertices, squareColors, nullptr}, nullptr);
   // mMeshGroup->Load(squareBuffer, indices);
 
 
   mMeshGroup2->SetVertexAttribList({3, 3});
-  mMeshGroup2->AddRenderingPass({{0, posAttribLoc}, {1, colAttribLoc}});
+  mMeshGroup2->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
+  // mMeshGroup2->AddRenderingPass({{0, posAttribLoc}, {1, colAttribLoc}});
   mMeshGroup2->Load( {squareVertices, squareColors}, nullptr);
   
   // mMeshGroup2->Load(squareBufferInterleaved, indices);

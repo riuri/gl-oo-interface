@@ -47,17 +47,16 @@ bool MeshGroup<Interleave>::Load(const std::vector<GLfloat*> & bufferList, const
 }
 
 template <>
-void MeshGroup<Interleave>::BuildVAO(const RenderingPassDescriptor & descriptor)
+void MeshGroup<Interleave>::BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList)
 {
   // Specify VAO.
-  glBindVertexArray(descriptor.mVao);
   int offset = 0;
   GLfloat stride = sizeof(GLfloat) * mVertexSize;
   for (int j = 0; j < mNumAttributes; j++)
   {
     const int size    = mVertexAttributeList[j];
-    const GLuint loc  = descriptor.mAttribLocList[j];
-    const bool active = descriptor.mStateList[j];
+    const GLint loc   = activeAttribList[j].first;
+    const bool active = activeAttribList[j].second;
 
     if ((size > 0) && active)
     {
@@ -141,16 +140,15 @@ bool MeshGroup<Batch>::Update(const std::vector<GLfloat*> & bufferList)
 }
 
 template <>
-void MeshGroup<Batch>::BuildVAO(const RenderingPassDescriptor & descriptor)
+void MeshGroup<Batch>::BuildVAO(const std::vector<std::pair<GLint, bool>> & activeAttribList)
 {
   // Specify VAO.
-  glBindVertexArray(descriptor.mVao);
   int offset = 0;
   for (int j = 0; j < mNumAttributes; j++)
   {
     const int size    = mVertexAttributeList[j];
-    const GLuint loc  = descriptor.mAttribLocList[j];
-    const bool active = descriptor.mStateList[j];
+    const GLint loc   = activeAttribList[j].first;
+    const bool active = activeAttribList[j].second;
 
     if ((size > 0) && active)
     {
