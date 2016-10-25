@@ -9,13 +9,13 @@ include ../../build/makefile-header
 R ?= ../..
 
 # the object files to be compiled for this library
-GLOO_MESH_OBJECTS=group.o
+GLOO_MESH_OBJECTS=group.o texture.o
 
 # the libraries this library depends on
 GLOO_MESH_LIBS=
 
 # the headers in this library
-GLOO_MESH_HEADERS=group.h
+GLOO_MESH_HEADERS=group.h texture.h
 
 GLOO_MESH_LINK=$(addprefix -l, $(GLOO_MESH_LIBS)) $(IMAGE_LIBS) $(STANDARD_LIBS)
 
@@ -32,7 +32,7 @@ $(L)/gloo_mesh/libgloo_mesh.a: $(GLOO_MESH_OBJECTS_FILENAMES)
 	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/gloo_mesh/*.h $(L)/include/gloo
 
 $(GLOO_MESH_OBJECTS_FILENAMES): %.o: %.cpp $(GLOO_MESH_FILENAMES) $(GLOO_MESH_HEADER_FILENAMES)
-	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $< -o $@
+	$(CXX) $(CXXFLAGS) -c $(INCLUDE) -I../../dependencies/imageIO -I../../dependencies/jpeg-9a-mac/include $< -o $@
 
 ifeq ($(CLEANFOLDER), GLOO_MESH)
 cleanGLOO_MESH: cleanGLOO_MESH
