@@ -87,10 +87,10 @@ bool MyModel::Init()
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
 
-  GLint posAttribLoc = glGetAttribLocation(program, "in_position");
-  GLint colAttribLoc = glGetAttribLocation(program, "in_color");
-  GLint normAttribLoc = glGetAttribLocation(program, "in_normal");
-  GLint uvAttribLoc   = glGetAttribLocation(program, "in_uv");
+  GLint posAttribLoc  = mShaderProgram->GetAttribLocation("in_position");
+  GLint colAttribLoc  = mShaderProgram->GetAttribLocation("in_color");
+  GLint normAttribLoc = mShaderProgram->GetAttribLocation("in_normal");
+  GLint uvAttribLoc   = mShaderProgram->GetAttribLocation("in_uv");
 
   mAxis = new AxisMesh(posAttribLoc, colAttribLoc);
   mGrid = new GridMesh(posAttribLoc, colAttribLoc, 9, 9, 0.15f, 0.4f, 0.4f, 0.4f);
@@ -135,7 +135,7 @@ void MyModel::Display()
   blah_angle += 0.01;
 
   mCamera->SetOnRendering();
-  mCamera->SetUniformViewMatrix( mShaderProgram->GetVariableHandle("V") );
+  mCamera->SetUniformViewMatrix( mShaderProgram->GetUniformLocation("V") );
 
   gloo::Transform M;
   M.LoadIdentity();
@@ -177,7 +177,7 @@ void MyModel::Reshape(int w, int h)
 {
   glViewport(0, 0, w, h);
   mCamera->SetOnReshape(0, 0, w, h);
-  mCamera->SetUniformProjMatrix( mShaderProgram->GetVariableHandle("P") );
+  mCamera->SetUniformProjMatrix( mShaderProgram->GetUniformLocation("P") );
 }
 
 void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)

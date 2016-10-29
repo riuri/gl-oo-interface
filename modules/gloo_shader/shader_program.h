@@ -83,9 +83,12 @@ public:
   // Returns shader program handle.
   inline GLuint GetHandle() const { return mHandle; }
   
-  // Returns the handle for a variable stored in this shader program.
-  GLuint GetVariableHandle(const char * variableName) const;
-  GLuint GetVariableHandle(const std::string & variableName) const;
+  // Returns the location for a uniform stored in this shader program.
+  GLint GetUniformLocation(const char * variableName) const;
+  GLint GetUniformLocation(const std::string & variableName) const;
+
+  GLint GetAttribLocation(const char * variableName) const;
+  GLint GetAttribLocation(const std::string & variableName) const;
 
   // Returns the vector of compilation messages (as a copy).
   std::vector<std::string> GetCompilationLog() const { return mCompilationLog; }

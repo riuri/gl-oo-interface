@@ -15,7 +15,7 @@ bool Texture2d::Load(ImageIO* source)
 
 bool Texture2d::Load(int width, int height)
 {
-  // TODO.
+  // glGenTexture(1, &mBuffer);
 }
 
 bool Texture2d::Load(const std::string & filename)

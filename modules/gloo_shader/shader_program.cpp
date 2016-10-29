@@ -259,24 +259,45 @@ int ShaderProgram::LoadShader(const char * filename, char * code, int len)
   return 0;
 }
 
-GLuint ShaderProgram::GetVariableHandle(const char * variableName) const
+GLint ShaderProgram::GetUniformLocation(const char * variableName) const
 { 
-   GLint vHandle = glGetUniformLocation(mHandle, variableName);
+  GLint vHandle = glGetUniformLocation(mHandle, variableName);
 
 #if LOG_OUTPUT_ON == 1
   if (vHandle == -1)
   {
-    std::cout << "Variable not found \'" << variableName << '\'' << std::endl;
+    std::cout << "Uniform not found \'" << variableName << '\'' << std::endl;
   }
 #endif
     
   return vHandle;
 }
 
-GLuint ShaderProgram::GetVariableHandle(const std::string & variableName) const
+GLint ShaderProgram::GetUniformLocation(const std::string & variableName) const
 {
-  return GetVariableHandle(variableName.c_str());
+  return GetUniformLocation(variableName.c_str());
 }
+
+
+GLint ShaderProgram::GetAttribLocation(const char * variableName) const
+{ 
+  GLint vHandle = glGetAttribLocation(mHandle, variableName);
+
+#if LOG_OUTPUT_ON == 1
+  if (vHandle == -1)
+  {
+    std::cout << "Attribute not found \'" << variableName << '\'' << std::endl;
+  }
+#endif
+    
+  return vHandle;
+}
+
+GLint ShaderProgram::GetAttribLocation(const std::string & variableName) const
+{
+  return GetUniformLocation(variableName.c_str());
+}
+
 
 void ShaderProgram::PrintCompilationLog() const
 {
