@@ -1,9 +1,9 @@
 #version 330
 
-in vec4 v_color;
-out vec4 c;
+in vec4 f_color;
+out vec4 pixel_color;
 
 void main()
 {
-  c = v_color;
+  pixel_color = f_color;
 }

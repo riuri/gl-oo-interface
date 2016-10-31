@@ -69,8 +69,8 @@ bool MyModel::Init()
   glPointSize(2);
   
   mShaderProgram = new gloo::ShaderProgram();
-  mShaderProgram->BuildFromFiles("../../shaders/debug/vertex_shader.glsl", 
-                                 "../../shaders/debug/fragment_shader.glsl");
+  mShaderProgram->BuildFromFiles("../../shaders/phong/vertex_shader.glsl", 
+                                 "../../shaders/phong/fragment_shader.glsl");
   mShaderProgram->PrintCompilationLog();
   gloo::CompilationStatus status = mShaderProgram->GetCompilationStatus();
   // std::cout << "Compilation Status = " << status << std::endl;
@@ -87,10 +87,10 @@ bool MyModel::Init()
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
 
-  GLint posAttribLoc  = mShaderProgram->GetAttribLocation("in_position");
-  GLint colAttribLoc  = mShaderProgram->GetAttribLocation("in_color");
-  GLint normAttribLoc = mShaderProgram->GetAttribLocation("in_normal");
-  GLint uvAttribLoc   = mShaderProgram->GetAttribLocation("in_uv");
+  GLint posAttribLoc  = mShaderProgram->GetAttribLocation("v_position");
+  GLint colAttribLoc  = mShaderProgram->GetAttribLocation("v_color");
+  GLint normAttribLoc = mShaderProgram->GetAttribLocation("v_normal");
+  GLint uvAttribLoc   = mShaderProgram->GetAttribLocation("v_uv");
 
   mAxis = new AxisMesh(posAttribLoc, colAttribLoc);
   mGrid = new GridMesh(posAttribLoc, colAttribLoc, 9, 9, 0.15f, 0.4f, 0.4f, 0.4f);
@@ -254,10 +254,26 @@ void MyModel::MouseButtonChange(const MouseEvent & mouseEvent)
 
 void MyModel::KeyboardChange(unsigned char key, int x, int y)
 {
+  static bool fullScreen = false;
+
   switch (key)
   {
     case 27: // ESC key
       exit(0);
+    break;
+
+    case 'F':
+    case 'f':
+      if (fullScreen)
+      {
+        glutReshapeWindow(800, 600);
+        glutPositionWindow(0, 0);
+      }
+      else
+      {
+        glutFullScreen();
+      }
+      fullScreen = !fullScreen;
     break;
   }
 }

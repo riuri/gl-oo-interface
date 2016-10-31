@@ -71,7 +71,6 @@ public:
   // This method updates the internal matrices so they can be set as uniforms in the shader.
   void SetOnRendering();
 
-
   // The following methods set internal transforms as uniforms in shader.
   // Please call SetOnRendering() before setting uniforms.
   void SetUniformViewMatrix(unsigned uniformLoc);  // Just view matrix.
@@ -110,7 +109,6 @@ public:
   inline glm::vec3 GetPosition() const { return mPos; }
   inline glm::vec3 GetRotation() const { return mRot; }
   inline glm::vec3 GetScale() const  { return mScale; }
-  // TODO: support different ways of getting vectors.
 
   inline const Transform & ViewTransform() const { return mView; };
   inline const Transform & ProjTransform() const { return mProj; };
@@ -121,7 +119,7 @@ public:
   const ProjectionParameters & GetProjectionParameters() const { return mProjParameters; }
   ProjectionParameters & GetProjectionParameters() { return mProjParameters; }
 
-  // 4. Methods for selection and so on.
+  // 4. Methods for selection/intersection.
 
   // Computes the vector which goes from camera center to mouse coordinates on projection plane.
   glm::vec3 ComputeRayAt(float x_v, float y_v, float w, float h) const;
