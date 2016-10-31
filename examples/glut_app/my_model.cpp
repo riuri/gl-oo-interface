@@ -147,9 +147,8 @@ void MyModel::Display()
   mCamera->SetOnRendering();
   mCamera->SetUniformViewMatrix( mShaderProgram->GetUniformLocation("V") );
 
-
   // mLightSource->SetShininess(0.5f*cos(blah_angle) + 1.0f);
-  mLightSource->SetLight();
+  mLightSource->SetLightInCameraCoordinates(mCamera->ViewTransform());
 
   gloo::Transform M;
   M.LoadIdentity();
@@ -255,15 +254,15 @@ void MyModel::MouseButtonChange(const MouseEvent & mouseEvent)
 
   if (mouseEvent.mButton == MouseState::kLeft && mouseEvent.mButtonState == MouseState::kUp)
   {
-    std::cout << "Left button pressed.\n";
+    // std::cout << "Left button pressed.\n";
   }
   if (mouseEvent.mButton == MouseState::kRight && mouseEvent.mButtonState == MouseState::kUp)
   {
-    std::cout << "Right button pressed.\n";
+    // std::cout << "Right button pressed.\n";
   }
   if (mouseEvent.mButton == MouseState::kMiddle && mouseEvent.mButtonState == MouseState::kUp)
   {
-    std::cout << "Middle button pressed.\n";
+    // std::cout << "Middle button pressed.\n";
   }
 }
 

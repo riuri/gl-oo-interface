@@ -39,17 +39,20 @@ public:
 
   // Add a rendering option for this light source.
   // Each option specifies all uniform locations for a rendering pass.
-  int AddRenderingPass(const LightUniformPack & uniformPack);
+  virtual int AddRenderingPass(const LightUniformPack & uniformPack);
 
   // Sets light uniforms in shader according to renderingPass.
   // Must be called before rendering objects in each pass.
   // By default, the position is specified in world coordinates!
-  void SetLight(int renderingPass = 0) const;
+  virtual void SetLight(int renderingPass = 0) const;
 
-  void SetLightInCameraCoordinates(const Transform & transform, int renderingPass = 0) const;
+  // Sets light source uniforms in shader according to renderingPass.
+  // Must be called before rendering objects.
+  // The light will be set in camera coordinates (it will be multiplied by view-matrix).
+  virtual void SetLightInCameraCoordinates(const Transform & transform, int renderingPass = 0) const;
 
-  // TODO.
-  void ApplyTransformation(const Transform & transform);
+  // Transforms the light source position/direction.
+  virtual void ApplyTransformation(const Transform & transform);
 
   // Getters.
   inline glm::vec3 GetPosition()  const { return mPos; }
