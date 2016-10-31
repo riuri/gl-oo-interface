@@ -60,6 +60,8 @@ MyModel::~MyModel()
   delete mAxis;
   delete mGrid;
   delete mBoundingBox;
+
+  delete mLightSource;
 }
 
 bool MyModel::Init()
@@ -119,6 +121,14 @@ bool MyModel::Init()
   
   // mMeshGroup2->Load(squareBufferInterleaved, indices);
 
+
+  GLint posUniformLoc = mShaderProgram->GetUniformLocation("light.pos");
+  GLint dirUniformLoc = mShaderProgram->GetUniformLocation("light.dir");
+  GLint LaUniformLoc  = mShaderProgram->GetUniformLocation("light.La");
+
+  mLightSource = new LightSource();
+  mLightSource->AddRenderingPass({posUniformLoc, dirUniformLoc, LaUniformLoc, -1, -1, -1});
+
   return true;
 }
 
@@ -137,6 +147,10 @@ void MyModel::Display()
   mCamera->SetOnRendering();
   mCamera->SetUniformViewMatrix( mShaderProgram->GetUniformLocation("V") );
 
+
+  // mLightSource->SetShininess(0.5f*cos(blah_angle) + 1.0f);
+  mLightSource->SetLight();
+
   gloo::Transform M;
   M.LoadIdentity();
   M.Translate(1.2f, 0.0f, 0.0);
@@ -146,6 +160,7 @@ void MyModel::Display()
 
 
   M.LoadIdentity();
+  M.Rotate(-0.79*blah_angle, 0, 1, 0);
   M.Translate(-1.2f, 0.0f, 0.0f);
   M.Rotate(blah_angle, 0, 0, 1);
 

@@ -4,6 +4,8 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 
+//  TODO(Castiel): write documentation.
+
 #pragma once
 
 #include <vector>
@@ -32,8 +34,8 @@ class LightSource
 {
 public:
   // Constructor/Destructor.
-  LightSource();
-  virtual ~LightSource();
+  LightSource() {  }
+  virtual ~LightSource() {  }
 
   // Add a rendering option for this light source.
   // Each option specifies all uniform locations for a rendering pass.
@@ -65,6 +67,7 @@ public:
   inline void SetAmbientComponent( const glm::vec3 & La) { mLa = La; }
   inline void SetDiffuseComponent( const glm::vec3 & Ld) { mLd = Ld; }
   inline void SetSpecularComponent(const glm::vec3 & Ls) { mLs = Ls; }
+  inline void SetShininess(GLfloat alpha) { mAlpha = alpha; }
 
 protected:
   // Position and direction (in world coordinates).

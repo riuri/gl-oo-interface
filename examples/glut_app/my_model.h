@@ -1,3 +1,4 @@
+#include <gloo/light.h>
 #include <gloo/group.h>
 #include <gloo/camera.h>
 #include <gloo/model_base.h>
@@ -39,5 +40,7 @@ private:
   AxisMesh* mAxis;
   GridMesh* mGrid;
   BoundingBoxMesh* mBoundingBox;
+
+  LightSource* mLightSource;
 
 };
