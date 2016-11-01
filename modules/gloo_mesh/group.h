@@ -82,7 +82,7 @@
 
 #pragma once
 
-#include "gl_header.h"
+#include "gloo/gl_header.h"
 #include <vector>
 #include <initializer_list>
 #include <cassert>

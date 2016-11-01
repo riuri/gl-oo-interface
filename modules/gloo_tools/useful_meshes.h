@@ -4,7 +4,7 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 
-#include "gl_header.h"
+#include "gloo/gl_header.h"
 
 #include "gloo/group.h"
 #include "transform.h"
@@ -18,7 +18,6 @@
 
 namespace gloo
 {
-
 
 struct AxisMesh
 {

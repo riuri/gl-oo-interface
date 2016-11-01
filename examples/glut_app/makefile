@@ -12,7 +12,7 @@ R ?= ../..
 GLUT_APP_OBJECTS=main.o my_model.o
 
 # Add any libraries on which this example depends.
-GLUT_APP_LIBS=gloo_shader gloo_tools gloo_obj gloo_glut gloo_mesh
+GLUT_APP_LIBS=gloo_shader gloo_tools gloo_obj gloo_glut gloo_mesh gloo_rendering
 
 # Add header files for this example.
 GLUT_APP_HEADERS=my_model.h

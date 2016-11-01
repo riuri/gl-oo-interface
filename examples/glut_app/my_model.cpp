@@ -71,8 +71,8 @@ bool MyModel::Init()
   glPointSize(2);
   
   mShaderProgram = new gloo::ShaderProgram();
-  mShaderProgram->BuildFromFiles("../../shaders/phong/vertex_shader.glsl", 
-                                 "../../shaders/phong/fragment_shader.glsl");
+  mShaderProgram->BuildFromFiles("../../shaders/debug/vertex_shader.glsl", 
+                                 "../../shaders/debug/fragment_shader.glsl");
   mShaderProgram->PrintCompilationLog();
   gloo::CompilationStatus status = mShaderProgram->GetCompilationStatus();
   // std::cout << "Compilation Status = " << status << std::endl;

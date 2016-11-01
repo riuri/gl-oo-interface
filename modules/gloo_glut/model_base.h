@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "gl_header.h"
+#include "../include/gloo/gl_header.h"
 
 namespace gloo
 {

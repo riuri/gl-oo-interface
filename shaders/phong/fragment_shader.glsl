@@ -17,9 +17,9 @@ struct Light
 // === I/O === //
 
 // Per-fragment data:
-
 in vec4 f_position;
-in vec4 f_color;
+in vec4 f_normal;
+in vec4 f_uv;
 
 out vec4 pixel_color;
 
@@ -32,5 +32,6 @@ uniform Light light;
 
 void main()
 {
-  pixel_color = f_color;
+  // TODO: implement phong shading model.
+  pixel_color = vec4(1, 0, 0, 0);
 }

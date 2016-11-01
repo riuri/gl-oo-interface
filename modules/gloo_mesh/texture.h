@@ -8,7 +8,7 @@
 
 #include <string>
 #include "imageIO.h"
-#include "gl_header.h"
+#include "gloo/gl_header.h"
 
 namespace gloo
 {

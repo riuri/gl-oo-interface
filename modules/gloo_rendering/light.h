@@ -12,8 +12,8 @@
 #include <initializer_list>
 
 #define GLM_SWIZZLE
-#include "gl_header.h"
-#include "transform.h"
+#include "gloo/gl_header.h"
+#include "gloo/transform.h"
 
 namespace gloo
 {

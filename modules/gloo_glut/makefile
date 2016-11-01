@@ -32,7 +32,7 @@ $(L)/gloo_glut/libgloo_glut.a: $(GLOO_GLUT_OBJECTS_FILENAMES)
 	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/gloo_glut/*.h $(L)/include/gloo
 
 $(GLOO_GLUT_FILENAMES): %.o: %.cpp $(GLOO_GLUT_FILENAMES) $(GLOO_GLUT_HEADER_FILENAMES)
-	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $< -o $@
+	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $< -o $@ 
 
 # ifeq ($(CLEANFOLDER), GLOO_GLUT)
 # cleanGLOO_GLUT: cleanGLOO_GLUT
