@@ -266,7 +266,7 @@ GLint ShaderProgram::GetUniformLocation(const char * variableName) const
 #if LOG_OUTPUT_ON == 1
   if (vHandle == -1)
   {
-    std::cout << "Uniform not found \'" << variableName << '\'' << std::endl;
+    std::cout << "WARNING Uniform not found \'" << variableName << '\'' << std::endl;
   }
 #endif
     
@@ -286,7 +286,7 @@ GLint ShaderProgram::GetAttribLocation(const char * variableName) const
 #if LOG_OUTPUT_ON == 1
   if (vHandle == -1)
   {
-    std::cout << "Attribute not found \'" << variableName << '\'' << std::endl;
+    std::cout << "WARNING Attribute not found \'" << variableName << '\'' << std::endl;
   }
 #endif
     
@@ -295,7 +295,7 @@ GLint ShaderProgram::GetAttribLocation(const char * variableName) const
 
 GLint ShaderProgram::GetAttribLocation(const std::string & variableName) const
 {
-  return GetUniformLocation(variableName.c_str());
+  return GetAttribLocation(variableName.c_str());
 }
 
 

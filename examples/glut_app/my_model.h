@@ -1,6 +1,7 @@
 #include <gloo/light.h>
 #include <gloo/group.h>
 #include <gloo/camera.h>
+#include <gloo/renderer.h>
 #include <gloo/model_base.h>
 #include <gloo/useful_meshes.h>
 #include <gloo/shader_program.h>
@@ -42,5 +43,7 @@ private:
   BoundingBoxMesh* mBoundingBox;
 
   LightSource* mLightSource;
+
+  RenderingPass* mDebugPass;
 
 };

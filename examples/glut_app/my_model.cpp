@@ -69,7 +69,7 @@ bool MyModel::Init()
   glEnable(GL_DEPTH_TEST);
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   glPointSize(2);
-  
+
   mShaderProgram = new gloo::ShaderProgram();
   mShaderProgram->BuildFromFiles("../../shaders/debug/vertex_shader.glsl", 
                                  "../../shaders/debug/fragment_shader.glsl");
@@ -85,6 +85,22 @@ bool MyModel::Init()
 
   program = mShaderProgram->GetHandle();
   mShaderProgram->Bind();
+
+  // XXX.
+  mDebugPass = new RenderingPass();
+  // mDebugPass->SetShaderProgram(mShaderProgram);
+  mDebugPass->AddUniform("V");
+  mDebugPass->AddUniform("M");
+  mDebugPass->AddUniform("P");
+
+  mDebugPass->AddAttribute("v_position");
+  mDebugPass->AddAttribute("v_color");
+
+  mDebugPass->ListUniforms();
+  mDebugPass->ListAttributes();
+
+  delete mDebugPass;
+  // XXX.
 
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);

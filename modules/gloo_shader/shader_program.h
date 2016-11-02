@@ -84,9 +84,12 @@ public:
   inline GLuint GetHandle() const { return mHandle; }
   
   // Returns the location for a uniform stored in this shader program.
+  // If the uniform couldn't be found, the return value is -1.
   GLint GetUniformLocation(const char * variableName) const;
   GLint GetUniformLocation(const std::string & variableName) const;
 
+  // Returns the location for a vertex attribute in this shader program.
+  // If the uniform couldn't be found, the return value is -1.
   GLint GetAttribLocation(const char * variableName) const;
   GLint GetAttribLocation(const std::string & variableName) const;
 
