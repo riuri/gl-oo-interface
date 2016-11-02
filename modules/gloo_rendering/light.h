@@ -1,6 +1,6 @@
 // + ======================================== +
 // |         gl-oo-interface library          |
-// |            Module: GLOO Tool.            |
+// |         Module: GLOO Rendering.          |
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 
