@@ -1,5 +1,5 @@
 #include "transform.h"
-#include "gl_header.h"
+#include "gloo/gl_header.h"
 
 #include <iomanip>
 #include <sstream>
@@ -122,6 +122,16 @@ void Transform::MultMatrix(const float* m)
   Transform::MultMatrix(glm::make_mat4(m));
 }
 
+void Transform::LeftMultMatrix(const glm::mat4 & m)
+{
+  mCurrent = m * mCurrent;
+}
+
+void Transform::LeftMultMatrix(const float* m)  // Column-major.
+{
+  Transform::LeftMultMatrix(glm::make_mat4(m));
+}
+
 // ------------------------------------------------------------------------------------------------
 // -> Methods for setting the current matrix as projective transformation.
 
@@ -213,6 +223,11 @@ void Transform::LoadMatrix(const float* m)
 void Transform::Combine(const Transform & other)
 {
   Transform::MultMatrix(other.GetMatrix());
+}
+
+void Transform::LeftCombine(const Transform & other)
+{
+  Transform::LeftMultMatrix(other.GetMatrix());
 }
 
 // -- 12

@@ -14,7 +14,7 @@
 // 1. Create a camera:  gloo::Camera* camera = new Camera( );
 //     [Optionally pass ProjectiveParameters as arguments ^ ]
 // 2. On window resize/reshape, call OnWindowResize().
-// 3. On rendering function call OnRendering() before objects.
+// 3. On rendering function call SetOnRendering() before rendering objects.
 // 
 // ...
 //
@@ -26,23 +26,25 @@
 // to it and all the main work will be done by the renderer.
 //
 // NOTE2: by calling getter methods for Transforms, you'll get
-// the transform set from the last rendering.
+// the transform set from the last frame.
 
 #pragma once
 
 #include <glm/glm.hpp>
 
-#include "gl_header.h"
+#include "gloo/gl_header.h"
 #include "transform.h"
 
 namespace gloo
 {
 
+// This structure stores the perspective projection attributes
+// of this camera.
 struct ProjectionParameters
 {
-  float mFovy   { M_PI/3.0 } ;  // Field of view of Y [angle in radians].
-  float mFarZ   {  0.1  };      // Maximum rendering distance.
-  float mNearZ  { 100.0 };      // Minimum rendering distance.
+  float mFovy   { M_PI/3.0 } ;  // Field of view in Y [angle in radians].
+  float mFarZ   { 100.0 };      // Maximum rendering distance.
+  float mNearZ  {   0.1 };      // Minimum rendering distance.
   float mAspect { 4.0/3.0 } ;   // Ratio a = W / H  [width/height].
 };
 
@@ -56,23 +58,37 @@ public:
   Camera(const ProjectionParameters & projParameters)
   : mProjParameters(projParameters) { }
 
-  ~Camera();
+  ~Camera() { }
 
   // 1. Main methods -> must be called when rendering.
   //                 -> should be used to move/animate camera.
+  //                 -> they provide a pretty interface to set uniform matrices.
 
   // Must be called when the viewport changes (changes internal projection parameters).
-  void OnWindowResize(int xo, int yo, int w, int h);
+  void SetOnReshape(int xo, int yo, int w, int h);
 
   // Must be called before rendering objects (if you want to use this camera as the active one).
-  void OnRendering();
+  // This method updates the internal matrices so they can be set as uniforms in the shader.
+  void SetOnRendering();
 
-  // TODO: methods for setting uniforms. Available options should be:
-  // 1. ViewMatrix only;
-  // 2. ProjMatrix only;
-  // 3. ModelViewMatrix (must specify an argument to combine with). ??? 
+  // The following methods set internal transforms as uniforms in shader.
+  // Please call SetOnRendering() before setting uniforms.
+  void SetUniformViewMatrix(unsigned uniformLoc);  // Just view matrix.
+  void SetUniformProjMatrix(unsigned uniformLoc);  // Just projection matrix.
+  void SetUniformViewProj(unsigned uniformLoc);    // Proj * View.
+  void SetUniformModelView(unsigned uniformLoc, const Transform & model);      // View * Model.
+  void SetUniformModelViewProj(unsigned uniformLoc, const Transform & model);  // Proj * View * Model.
 
-  // TODO: methods for animation (Translate, Rotate, ...)
+
+  // Animate camera center, orientation and scale -> glm::vec3.
+  void Translate(const glm::vec3 & dPos);
+  void Rotate(const glm::vec3 & dRot);
+  void Scale(const glm::vec3 & dScale);
+
+  // Animate camera center, orientation and scale -> 3 floats.
+  void Translate(float dx, float dy, float dz);
+  void Rotate(   float dx, float dy, float dz);
+  void Scale(    float dx, float dy, float dz);
 
   // 2. Setter methods -> change the internal parameters.
 
@@ -93,7 +109,6 @@ public:
   inline glm::vec3 GetPosition() const { return mPos; }
   inline glm::vec3 GetRotation() const { return mRot; }
   inline glm::vec3 GetScale() const  { return mScale; }
-  // TODO: support different ways of getting vectors.
 
   inline const Transform & ViewTransform() const { return mView; };
   inline const Transform & ProjTransform() const { return mProj; };
@@ -104,7 +119,7 @@ public:
   const ProjectionParameters & GetProjectionParameters() const { return mProjParameters; }
   ProjectionParameters & GetProjectionParameters() { return mProjParameters; }
 
-  // 4. Methods for selection and so on.
+  // 4. Methods for selection/intersection.
 
   // Computes the vector which goes from camera center to mouse coordinates on projection plane.
   glm::vec3 ComputeRayAt(float x_v, float y_v, float w, float h) const;
@@ -117,10 +132,58 @@ protected:
   // Transform stacks.
   Transform mView;  // Specifies camera position, orientation and so on [a stack].
   Transform mProj;  // Specifies projective transform.
-  ProjectionParameters mProjParameters;  // Specifies the type of projection.
+  ProjectionParameters mProjParameters;  // Specifies parameters of projection.
 };
 
-// =========== IMPLEMENTATION OF INLINE METHODS ===============
+// =========== IMPLEMENTATION OF INLINE METHODS ===================================================
+
+inline
+void Camera::Translate(const glm::vec3 & dPos)
+{
+  mPos += dPos;
+}
+
+inline
+void Camera::Rotate(const glm::vec3 & dRot)
+{
+  mRot += dRot;
+}
+
+inline
+void Camera::Scale(const glm::vec3 & dScale)
+{
+  mScale[0] *= (1.0f + dScale[0]);
+  mScale[1] *= (1.0f + dScale[1]);
+  mScale[2] *= (1.0f + dScale[2]);
+}
+
+/// ===============================================================================================
+
+inline
+void Camera::Translate(float dx, float dy, float dz)
+{
+  mPos[0] += dx;
+  mPos[1] += dy;
+  mPos[2] += dz;
+}
+
+inline
+void Camera::Rotate(float dx, float dy, float dz)
+{
+  mRot[0] += dx;
+  mRot[1] += dy;
+  mRot[2] += dz;
+}
+
+inline
+void Camera::Scale(float dx, float dy, float dz)
+{
+  mScale[0] *= (1.0f + dx);
+  mScale[1] *= (1.0f + dy);
+  mScale[2] *= (1.0f + dz);
+}
+
+/// ===============================================================================================
 
 inline
 void Camera::SetPosition(float xc, float yc, float zc)
@@ -146,10 +209,24 @@ void Camera::SetScale(float sx, float sy, float sz)
   mScale[2] = sz;
 }
 
+/// ===============================================================================================
+
 inline
 void Camera::SetProjectionParameters(const ProjectionParameters & projParameters)
 {
   mProjParameters = projParameters;
+}
+
+inline
+void Camera::SetUniformViewMatrix(unsigned uniformLoc)
+{
+  mView.SetUniform(uniformLoc);
+}
+
+inline
+void Camera::SetUniformProjMatrix(unsigned uniformLoc)
+{
+  mProj.SetUniform(uniformLoc);
 }
 
 }  // namespace gloo.

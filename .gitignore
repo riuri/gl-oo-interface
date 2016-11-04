@@ -1,7 +1,7 @@
+*.a
+*.o
+
 dependencies
 dependencies.zip
-*.a
-modules/lib/libgloo_shader.a
-*.o
 
 examples/glut_app/glut_app

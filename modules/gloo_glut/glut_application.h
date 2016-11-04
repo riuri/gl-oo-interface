@@ -25,7 +25,7 @@
 namespace gloo
 {
 
-const unsigned int _kDefaultDisplayMode = (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL);
+const unsigned int _kDefaultDisplayMode = (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL | GLUT_MULTISAMPLE);
 
 class GlutApplication
 {

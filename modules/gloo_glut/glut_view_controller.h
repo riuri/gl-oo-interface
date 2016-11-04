@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "gl_header.h"
+#include "../include/gloo/gl_header.h"
 #include "mouse_event.h"
 
 namespace gloo 

@@ -34,8 +34,8 @@
 //  model.SetUniform(shaderProgram->GetHandle(), "modelMatrix");
 //
 //  2. In order to use in a hierarchical rendering, the methods
-//  PushMatrix and PopMatrix must be called, so that the curent
-//  transform is saved in the matrices stack. 
+//  PushMatrix and PopMatrix must be called, so that the current
+//  transform is saved into the matrices stack. 
 //
 //  3. GetMatrix() returns the current transform, either as glm::mat4
 //  or a double column-major array. GetInverseMatrix() does the same
@@ -116,6 +116,10 @@ public:
   void MultMatrix(const glm::mat4 & m);
   void MultMatrix(const float* m);  // Column-major.
 
+  // Left multiplication of current matrix by m.
+  void LeftMultMatrix(const glm::mat4 & m);
+  void LeftMultMatrix(const float* m);  // Column-major.
+
   // -> Methods for setting the current matrix as projective transformation.
   // Specify the projection type and the corresponding parameters (limits or aspect).
   void Ortho(      float left, float right, float bottom, float top, float zNear, float zFar);
@@ -123,8 +127,8 @@ public:
   void Perspective(float fovY, float aspect, float zNear, float zFar);
 
   // -> Hierachy/Chain manipulation methods.
-  void PushMatrix();
-  void PopMatrix();
+  void PushMatrix();  // Saves the current matrix on the top of the stack.
+  void PopMatrix();   // Restores the top of the stack into current matrix.
 
   void PushAndLoadIdentity();
 
@@ -144,6 +148,7 @@ public:
   // Combines current transform with a second transform.
   // The resulting combination is stored in the first transform.
   void Combine(const Transform & other);
+  void LeftCombine(const Transform & other);  // TODO: description.
 
   // Prints current matrix.
   friend std::ostream& operator<<(std::ostream& os, const Transform& transform);

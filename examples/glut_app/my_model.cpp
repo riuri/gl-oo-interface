@@ -2,33 +2,66 @@
 
 #include <gloo/transform.h>
 #include <gloo/mouse_event.h>
-#include <gloo/shader_program.h>
+#include <gloo/group.h>
 
 #include <cstdio>
 #include <iostream>
 
-GLfloat triangleVertices[4][3] = {{-0.5f,  0.5f, 0.0f},
-                                  { 0.5f,  0.5f, 0.0f},
-                                  {-0.5f, -0.5f, 0.0f},
-                                  { 0.5f, -0.5f, 0.0f}};
 
-GLfloat triangleColors[] = {1.0f, 0.0f, 0.0f, 
-                            0.0f, 1.0f, 0.0f,
-                            0.0f, 0.0f, 1.0f,
-                            0.4f, 0.4f, 0.4f};
+GLfloat squareVertices[] = {-0.5f, 0.0f,  0.5f,
+                             0.5f, 0.0f,  0.5f,
+                            -0.5f, 0.0f, -0.5f,
+                             0.5f, 0.0f, -0.5f};
+
+GLfloat squareColors[] = {1.0f, 0.0f, 0.0f, 
+                          0.0f, 1.0f, 0.0f,
+                          0.0f, 0.0f, 1.0f,
+                          0.4f, 0.4f, 0.4f};
+
+GLfloat squareNormals[] = {1.0f, 0.0f, 0.0f, 
+                           0.0f, 1.0f, 0.0f,
+                           0.0f, 0.0f, 1.0f,
+                           0.4f, 0.4f, 0.4f};
+
+
+GLfloat squareBuffer[] = {-0.5f, 0.0f,  0.5f,
+                           0.5f, 0.0f,  0.5f,
+                          -0.5f, 0.0f, -0.5f,
+                           0.5f, 0.0f, -0.5f,
+
+                          1.0f, 0.0f, 0.0f,
+                          0.0f, 1.0f, 0.0f,
+                          0.0f, 0.0f, 1.0f,
+                          0.4f, 0.4f, 0.4f
+                           };
+
+
+GLfloat squareBufferInterleaved[] =  {-0.5f, 0.0f,  0.5f,   1.0f, 0.0f, 0.0f,
+                                       0.5f, 0.0f,  0.5f,   0.0f, 1.0f, 0.0f,
+                                      -0.5f, 0.0f, -0.5f,   0.0f, 0.0f, 1.0f,
+                                       0.5f, 0.0f, -0.5f,   0.4f, 0.4f, 0.4f};
 
 GLuint indices[] = {0, 2, 1, 3};
 
-GLuint vbo = 0;  // Vertex buffer object.
-GLuint vao = 0;  // Vertex array object.
-GLuint eab = 0;  // Element array buffer.
-
-gloo::ShaderProgram *shaderProgram;
 GLuint program; 
 
 MyModel::MyModel()
 {
-  
+
+}
+
+MyModel::~MyModel()
+{
+  delete mCamera;
+  delete mShaderProgram;
+  delete mMeshGroup;
+  delete mMeshGroup2;
+
+  delete mAxis;
+  delete mGrid;
+  delete mBoundingBox;
+
+  delete mLightSource;
 }
 
 bool MyModel::Init()
@@ -37,43 +70,64 @@ bool MyModel::Init()
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   glPointSize(2);
   
-  shaderProgram = new gloo::ShaderProgram();
-  shaderProgram->BuildFromFiles("phong_no_shadow/vertex_shader.glsl", "phong_no_shadow/fragment_shader.glsl");
-  shaderProgram->PrintCompilationLog();
-  gloo::CompilationStatus status = shaderProgram->GetCompilationStatus();
+  mShaderProgram = new gloo::ShaderProgram();
+  mShaderProgram->BuildFromFiles("../../shaders/debug/vertex_shader.glsl", 
+                                 "../../shaders/debug/fragment_shader.glsl");
+  mShaderProgram->PrintCompilationLog();
+  gloo::CompilationStatus status = mShaderProgram->GetCompilationStatus();
   // std::cout << "Compilation Status = " << status << std::endl;
 
   if (status != gloo::CompilationStatus::kSuccess) 
   {
-    delete shaderProgram;
+    delete mShaderProgram;
     return false;
   }
 
-  program = shaderProgram->GetHandle();
-  shaderProgram->Bind();
+  program = mShaderProgram->GetHandle();
+  mShaderProgram->Bind();
 
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
+  mCamera = new Camera();
+  mCamera->SetPosition(0, 0, 3.0f);
 
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices) + sizeof(triangleColors), NULL, GL_STATIC_DRAW);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(triangleVertices), triangleVertices);
-  glBufferSubData(GL_ARRAY_BUFFER, sizeof(triangleVertices), sizeof(triangleColors), triangleColors);
+  GLint posAttribLoc  = mShaderProgram->GetAttribLocation("v_position");
+  GLint colAttribLoc  = mShaderProgram->GetAttribLocation("v_color");
+  GLint normAttribLoc = mShaderProgram->GetAttribLocation("v_normal");
+  GLint uvAttribLoc   = mShaderProgram->GetAttribLocation("v_uv");
 
-  glGenBuffers(1, &eab);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  mAxis = new AxisMesh(posAttribLoc, colAttribLoc);
+  mGrid = new GridMesh(posAttribLoc, colAttribLoc, 9, 9, 0.15f, 0.4f, 0.4f, 0.4f);
+  mBoundingBox = new BoundingBoxMesh(posAttribLoc, colAttribLoc);
 
-  // get location index of the “position” shader variable
-  GLuint locPositionAttrib = glGetAttribLocation(program, "in_position"); 
-  GLuint locColorAttrib    = glGetAttribLocation(program, "in_color");
+  mMeshGroup = new MeshGroup<Batch>(4, 4);
+  mMeshGroup2 = new MeshGroup<Interleave>(4, 4);
+  
+  mMeshGroup->SetVertexAttribList({3, 3});
 
-  glEnableVertexAttribArray(locPositionAttrib);
-  glEnableVertexAttribArray(locColorAttrib);
+  mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
 
-  glVertexAttribPointer(locPositionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glVertexAttribPointer(locColorAttrib, 3, GL_FLOAT, GL_FALSE, 0, (void*)sizeof(triangleColors));
+  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
+  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
+
+  // TODO: correct disabled attributes.
+
+  // mMeshGroup->Load( {nullptr, squareVertices, squareColors, nullptr}, nullptr);
+  mMeshGroup->Load(squareBuffer, nullptr);
+
+
+  mMeshGroup2->SetVertexAttribList({3, 3});
+  mMeshGroup2->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
+  // mMeshGroup2->AddRenderingPass({{0, posAttribLoc}, {1, colAttribLoc}});
+  mMeshGroup2->Load( {squareVertices, squareColors}, nullptr);
+  
+  // mMeshGroup2->Load(squareBufferInterleaved, indices);
+
+
+  GLint posUniformLoc = mShaderProgram->GetUniformLocation("light.pos");
+  GLint dirUniformLoc = mShaderProgram->GetUniformLocation("light.dir");
+  GLint LaUniformLoc  = mShaderProgram->GetUniformLocation("light.La");
+
+  mLightSource = new LightSource();
+  mLightSource->AddRenderingPass({posUniformLoc, dirUniformLoc, LaUniformLoc, -1, -1, -1});
 
   return true;
 }
@@ -86,74 +140,95 @@ void MyModel::Idle()
 void MyModel::Display()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glBindVertexArray(vao); // bind the VAO
 
   static float blah_angle = 0.0;
   blah_angle += 0.01;
-  // GLfloat m[16];
 
-  gloo::Transform MV;
-  MV.Translate(+0.0f, 0.0f, -0.25f);
-  MV.SetUniform(shaderProgram->GetHandle(), "V");
-  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "V"), 1, GL_FALSE, m);
+  mCamera->SetOnRendering();
+  mCamera->SetUniformViewMatrix( mShaderProgram->GetUniformLocation("V") );
 
-  MV.LoadIdentity();
-  MV.PushMatrix();
-  MV.Translate(-0.75f, 0.0f, 0.0f);
-  MV.PushMatrix();
-  MV.Rotate(blah_angle, 0, 0, 1);
+  // mLightSource->SetShininess(0.5f*cos(blah_angle) + 1.0f);
+  mLightSource->SetLightInCameraCoordinates(mCamera->ViewTransform());
 
-  gloo::Transform copyMV = MV;
+  gloo::Transform M;
+  M.LoadIdentity();
+  M.Translate(1.2f, 0.0f, 0.0);
 
-  // MV.PrintStack();
+  GLuint uniformLoc = glGetUniformLocation(mShaderProgram->GetHandle(), "M");
+  M.SetUniform(uniformLoc);
 
-  // MV.Invert();
-  // MV.Scale(0.5, 0.75, 1.0);
 
-  // std::cout << copyMV << std::endl;
+  M.LoadIdentity();
+  M.Rotate(-0.79*blah_angle, 0, 1, 0);
+  M.Translate(-1.2f, 0.0f, 0.0f);
+  M.Rotate(blah_angle, 0, 0, 1);
 
-  GLuint uniformLoc = glGetUniformLocation(shaderProgram->GetHandle(), "M");
-  copyMV.SetUniform(uniformLoc);
-  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
+  M.SetUniform(uniformLoc);
+
+  mBoundingBox->Render();
+
+  mMeshGroup2->Render();
   
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
-  glDrawElements(
-      GL_TRIANGLE_STRIP, // mode
-      4,                 // count
-      GL_UNSIGNED_INT,   // type
-      (void*)0           // element array buffer offset
-  );
+  M.LoadIdentity();
+  // M.Rotate(blah_angle, -1, 0, 0);
+  M.SetUniform(uniformLoc);
 
-  MV.LoadIdentity();
-  //MV.Translate(+0.75f, 0.0f, 0.0f);
-  // MV.PushAndLoadIdentity();
-  MV.Rotate(blah_angle, 0, 0, 1);
-  //MV.GetInverseMatrix(m);
-  MV.SetInverseUniform(shaderProgram->GetHandle(), "M");
-  // glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "M"), 1, GL_FALSE, m);
-  
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  
+  mGrid->Render();
+
+  // squareVertices[5] *= 0.999;
+
+  // mMeshGroup2->Update({squareVertices, squareColors, nullptr});
+
+  // mAxis->Update(5*cos(blah_angle), 2*sin(3.1*blah_angle), 0.3*cos(blah_angle));
+  mAxis->Render();
+
+  mMeshGroup->Render();
+
   glutSwapBuffers();
 }
 
 void MyModel::Reshape(int w, int h)
 {
   glViewport(0, 0, w, h);
-
-  gloo::Transform P;
-
-  GLfloat m[16];
-  P.Ortho(-2.0f, +2.0f, -1.5f, +1.5f, 0.05f, 10.0f);
-  // P.Perspective(60.0f, 4.0f/3.0f, 0.05f, 10.0f);
-  // projectionMatrix.GetMatrix(m);
-  P.GetMatrix(m);
-  glUniformMatrix4fv( glGetUniformLocation(shaderProgram->GetHandle(), "P"), 1, GL_FALSE, m);
+  mCamera->SetOnReshape(0, 0, w, h);
+  mCamera->SetUniformProjMatrix( mShaderProgram->GetUniformLocation("P") );
 }
 
 void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)
 {
+  switch (mouseEvent.mMouseState.mModifier)
+  {
+    case MouseState::kCTRL:
+
+    break;
+
+    case MouseState::kSHIFT:
+
+    break;
+
+    case MouseState::kALT:
+
+    break;
+  
+    default:
+      if (mouseEvent.mMouseState.mLftButton == MouseState::kDown)
+      {
+        // std::cout << "Left button dragged.\n";
+      }
+      if (mouseEvent.mMouseState.mRgtButton == MouseState::kDown)
+      {
+        mCamera->Rotate(mouseEvent.mMouseState.mVelY/100.0f, 
+                        mouseEvent.mMouseState.mVelX/100.0f,
+                        0.0f);
+        // std::cout << "Right button dragged.\n";
+      }
+      if (mouseEvent.mMouseState.mMidButton == MouseState::kDown)
+      {
+        // std::cout << "dy = " << mouseEvent.mMouseState.mVelY * 1e-2 << std::endl;
+        mCamera->Translate(0.0f, 0.0f, -mouseEvent.mMouseState.mVelY * 1e-2);
+        // std::cout << "Middle button dragged.\n";
+      }
+  }  // end switch.
 
 }
 
@@ -179,24 +254,40 @@ void MyModel::MouseButtonChange(const MouseEvent & mouseEvent)
 
   if (mouseEvent.mButton == MouseState::kLeft && mouseEvent.mButtonState == MouseState::kUp)
   {
-    std::cout << "Left button pressed.\n";
+    // std::cout << "Left button pressed.\n";
   }
   if (mouseEvent.mButton == MouseState::kRight && mouseEvent.mButtonState == MouseState::kUp)
   {
-    std::cout << "Right button pressed.\n";
+    // std::cout << "Right button pressed.\n";
   }
   if (mouseEvent.mButton == MouseState::kMiddle && mouseEvent.mButtonState == MouseState::kUp)
   {
-    std::cout << "Middle button pressed.\n";
+    // std::cout << "Middle button pressed.\n";
   }
 }
 
 void MyModel::KeyboardChange(unsigned char key, int x, int y)
 {
+  static bool fullScreen = false;
+
   switch (key)
   {
     case 27: // ESC key
       exit(0);
+    break;
+
+    case 'F':
+    case 'f':
+      if (fullScreen)
+      {
+        glutReshapeWindow(800, 600);
+        glutPositionWindow(0, 0);
+      }
+      else
+      {
+        glutFullScreen();
+      }
+      fullScreen = !fullScreen;
     break;
   }
 }

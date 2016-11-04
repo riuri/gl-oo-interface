@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "gl_header.h"
+#include "../include/gloo/gl_header.h"
 
 #include <vector>
 #include <string>
@@ -83,9 +83,12 @@ public:
   // Returns shader program handle.
   inline GLuint GetHandle() const { return mHandle; }
   
-  // Returns the handle for a variable stored into this shader program.
-  GLuint GetVariableHandle(const char * variableName) const;
-  GLuint GetVariableHandle(const std::string & variableName) const;
+  // Returns the location for a uniform stored in this shader program.
+  GLint GetUniformLocation(const char * variableName) const;
+  GLint GetUniformLocation(const std::string & variableName) const;
+
+  GLint GetAttribLocation(const char * variableName) const;
+  GLint GetAttribLocation(const std::string & variableName) const;
 
   // Returns the vector of compilation messages (as a copy).
   std::vector<std::string> GetCompilationLog() const { return mCompilationLog; }
@@ -98,7 +101,7 @@ public:
   void PrintCompilationLog() const;
 
   // Compiles shader code stored in buffer shaderCode.
-  //   shaderCode: the shader code.
+  //   shaderCode: the shader source code.
   //   shaderType: GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, 
   //               GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER.
   // Output:

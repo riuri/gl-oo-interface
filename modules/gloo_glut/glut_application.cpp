@@ -93,11 +93,13 @@ int GlutApplication::Run(int argc, char* argv[], ModelBase* model,
   glutInitWindowSize(windowWidth, windowHeight);
   glutCreateWindow(windowTitle.c_str());
 
-  std::cout << "------------------------------------------------------------------" << std::endl;
-  std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-  std::cout << "OpenGL Renderer: " << glGetString(GL_RENDERER) << std::endl;
-  std::cout << "Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-  std::cout << "------------------------------------------------------------------" << std::endl;
+#if LOG_OUTPUT_ON
+    std::cout << "------------------------------------------------------------------" << std::endl;
+    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "OpenGL Renderer: " << glGetString(GL_RENDERER) << std::endl;
+    std::cout << "Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+    std::cout << "------------------------------------------------------------------" << std::endl;
+#endif
 
   sViewController = new GlutViewController();
 
@@ -117,6 +119,10 @@ int GlutApplication::Run(int argc, char* argv[], ModelBase* model,
 #endif
     return 1;
   }  
+
+#if LOG_OUTPUT_ON == 1
+  std::cout << "Initialization Complete." << std::endl;
+#endif
 
   sViewController->SetModel(model, true);
 
