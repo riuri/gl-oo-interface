@@ -15,11 +15,20 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include "gloo/shader_program.h"
 
 namespace gloo
 {
+
+// TODO(Castiel): create a base structure to specify all elements to be rendered.
+// struct RenderingElements
+// {
+//   Camera* mCamera;
+//   std::vector<LightSource*> mLightSourceList;
+//   std::vector<ObjectList*>  mObjectList;
+// };
 
 class Renderer
 {
@@ -29,6 +38,9 @@ public:
 
   // Destructor.
   virtual ~Renderer() { }
+
+  // Does setup of attributes.
+  virtual bool Load() = 0;
 
   // Renders a scene containing a list of light sources and objects through the point of view
   // of camera.
@@ -43,5 +55,8 @@ public:
   virtual GLint GetUniformLocation(const std::string & name, int renderingPass = 0) const = 0;
 };
 
-
 }  // namespace gloo.
+
+
+
+

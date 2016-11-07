@@ -5,15 +5,13 @@ layout (location = 1) in vec3 v_color;
 
 out vec4 f_color;
 
-uniform mat4 M;
-uniform mat4 V;
-uniform mat4 P;
+uniform mat4 MVP;
 
 void main()
 {
-  // compute the transformed and projected vertex position (into gl_Position)
-  gl_Position = P * (V * (M * vec4(v_position, 1.0f)));    // uses P, V, M.
+  // Transform and project input vertex using model-view-projection matrix.
+  gl_Position = MVP * vec4(v_position, 1.0f);  // P*V*M * vpos.
 
-  // compute the vertex color (into col)
+  // Compute the vertex color (into f_color) to be interpolated.
   f_color = vec4(v_color, 1.0);
 }

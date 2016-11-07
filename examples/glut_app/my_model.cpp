@@ -145,7 +145,7 @@ void MyModel::Display()
   blah_angle += 0.01;
 
   mCamera->SetOnRendering();
-  mCamera->SetUniformViewMatrix( mShaderProgram->GetUniformLocation("V") );
+  // mCamera->SetUniformViewMatrix( mShaderProgram->GetUniformLocation("V") );
 
   // mLightSource->SetShininess(0.5f*cos(blah_angle) + 1.0f);
   mLightSource->SetLightInCameraCoordinates(mCamera->ViewTransform());
@@ -154,8 +154,9 @@ void MyModel::Display()
   M.LoadIdentity();
   M.Translate(1.2f, 0.0f, 0.0);
 
-  GLuint uniformLoc = glGetUniformLocation(mShaderProgram->GetHandle(), "M");
-  M.SetUniform(uniformLoc);
+  GLuint uniformLoc = glGetUniformLocation(mShaderProgram->GetHandle(), "MVP");
+  // M.SetUniform(uniformLoc);
+  mCamera->SetUniformModelViewProj(uniformLoc, M);  // Proj * View * Model.
 
 
   M.LoadIdentity();
@@ -163,23 +164,18 @@ void MyModel::Display()
   M.Translate(-1.2f, 0.0f, 0.0f);
   M.Rotate(blah_angle, 0, 0, 1);
 
-  M.SetUniform(uniformLoc);
+  // M.SetUniform(uniformLoc);
+  mCamera->SetUniformModelViewProj(uniformLoc, M);  // Proj * View * Model.
 
   mBoundingBox->Render();
 
   mMeshGroup2->Render();
   
   M.LoadIdentity();
-  // M.Rotate(blah_angle, -1, 0, 0);
-  M.SetUniform(uniformLoc);
+
+  mCamera->SetUniformModelViewProj(uniformLoc, M);  // Proj * View * Model.
 
   mGrid->Render();
-
-  // squareVertices[5] *= 0.999;
-
-  // mMeshGroup2->Update({squareVertices, squareColors, nullptr});
-
-  // mAxis->Update(5*cos(blah_angle), 2*sin(3.1*blah_angle), 0.3*cos(blah_angle));
   mAxis->Render();
 
   mMeshGroup->Render();
@@ -191,7 +187,7 @@ void MyModel::Reshape(int w, int h)
 {
   glViewport(0, 0, w, h);
   mCamera->SetOnReshape(0, 0, w, h);
-  mCamera->SetUniformProjMatrix( mShaderProgram->GetUniformLocation("P") );
+  // mCamera->SetUniformProjMatrix( mShaderProgram->GetUniformLocation("P") );
 }
 
 void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)
