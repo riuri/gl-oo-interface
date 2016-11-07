@@ -86,22 +86,6 @@ bool MyModel::Init()
   program = mShaderProgram->GetHandle();
   mShaderProgram->Bind();
 
-  // XXX.
-  mDebugPass = new RenderingPass();
-  // mDebugPass->SetShaderProgram(mShaderProgram);
-  mDebugPass->AddUniform("V");
-  mDebugPass->AddUniform("M");
-  mDebugPass->AddUniform("P");
-
-  mDebugPass->AddAttribute("v_position");
-  mDebugPass->AddAttribute("v_color");
-
-  mDebugPass->ListUniforms();
-  mDebugPass->ListAttributes();
-
-  delete mDebugPass;
-  // XXX.
-
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
 

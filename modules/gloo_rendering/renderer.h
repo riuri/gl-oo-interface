@@ -4,74 +4,44 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 
-//  TODO(Castiel): write documentation.
+//  Renderer is a base class for a general multi-pass rendering pipeline.
+//  It provides an interface for rendering general scenes with light sources and objects.
+//
+//  The derived class should implement all methods in a custom way, according to each rendering
+//  pass. For example, when you're implementing a shadow mapping with phong shading, you should
+//  add two ShaderPrograms to handle both passes as well as frame buffer objects. For more det-
+//  ails, please read gl-oo-interface derivations of gloo::Renderer.
 
 #pragma once
 
-#include "gloo/shader_program.h"
+#include <vector>
 
-#include <string>
-#include <unordered_map>
+#include "gloo/shader_program.h"
 
 namespace gloo
 {
 
-// ====== RenderingPass ====== //
-
-using StrIntMap  = std::unordered_map<std::string, int>;
-
-class RenderingPass
+class Renderer
 {
 public:
-  // Constructor/Destructors.
-  RenderingPass() { }
-  virtual ~RenderingPass() { }
+  // Constructor.
+  Renderer()  { }
 
-  // Getter/Setters.
-  ShaderProgram* GetShaderProgram() { return mShaderProgram; }
-  const ShaderProgram* GetShaderProgram() const { return mShaderProgram; }
+  // Destructor.
+  virtual ~Renderer() { }
 
-  void SetShaderProgram(ShaderProgram* shaderProgram) { mShaderProgram = shaderProgram; }
+  // Renders a scene containing a list of light sources and objects through the point of view
+  // of camera.
+  virtual void Render(/* TODO: light sources, objects, etc */) = 0;
 
-  // Query methods for uniform/attribute locations.
-  virtual GLint Uniform(  const std::string & alias) { return mUniformMap[alias];   }
-  virtual GLint Attribute(const std::string & alias) { return mAttributeMap[alias]; }
+  // Pure virtual getter and setter methods.
+  virtual unsigned GetNumRenderingPasses() const = 0;
+  virtual const ShaderProgram* GetShaderProgram(int renderingPass = 0) const = 0;
 
-  // Prints all uniforms/attributes.
-  void ListUniforms() const;
-  void ListAttributes() const;
-
-  // Adds a new uniform/attribute (to make easier getting locations).
-  // You can later on call Attribute() or Uniform() to get its location.
-  // It automatically searches for its location in GPU and stores into the corresponding map.
-  bool AddUniform(  const std::string & name);
-  bool AddAttribute(const std::string & name);
-
-  // Adds the uniform/attribute defined by 'name' to be referred by 'alias'.
-  // It automatically searches for its location in GPU and stores into the corresponding map.
-  bool AddUniform(  const std::string & alias, const std::string & name);
-  bool AddAttribute(const std::string & alias, const std::string & name);
-
-protected:
-  /* Properties */
-  ShaderProgram* mShaderProgram { nullptr };  // Pipeline shader program.
-
-  StrIntMap mUniformMap;     // Unordered map [name] -> [loc] of uniforms.
-  StrIntMap mAttributeMap;   // Unordered map [name] -> [loc] of attributes.
-  
+  // Get attribute/uniform for the corresponding rendering pass.
+  virtual GLint GetAttribLocation( const std::string & name, int renderingPass = 0) const = 0;
+  virtual GLint GetUniformLocation(const std::string & name, int renderingPass = 0) const = 0;
 };
-
-// ====== Renderer ====== // 
-
-// class Renderer
-// {
-// public:
-
-//   bool AddRenderingPass(RenderingPass* renderingPass);
-
-// protected:
-//   std::vector<RenderingPass*> mRenderingPassList;
-// };
 
 
 }  // namespace gloo.
