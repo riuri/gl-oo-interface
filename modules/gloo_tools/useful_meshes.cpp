@@ -200,6 +200,84 @@ void GridMesh::Render() const
   mMeshGroup->Render();
 }
 
+// ============================================================================================= //
 
+Polygon::Polygon(GLint positionAttribLoc, GLint colorAttribLoc, float sideLength, int numSides,
+                 float r, float g, float b)
+{
+  const int N = numSides;
+  const float L = sideLength;
+
+  const int numVertices = N+1;  // Center + N vertices.
+  const int numElements = 3*N;  // Specify N triangles.
+  const GLenum drawMode = GL_TRIANGLES;
+
+  std::vector<GLfloat> positions;
+  std::vector<GLfloat> colors;
+  std::vector<GLuint> indices;
+
+  positions.reserve(numVertices * 3);
+  colors.reserve(numVertices * 3);
+  indices.reserve(numElements);
+
+  // Add center:
+  positions.push_back(0.0f);
+  positions.push_back(0.0f);
+  positions.push_back(0.0f);
+
+  colors.push_back(r);
+  colors.push_back(g);
+  colors.push_back(b);
+
+  const float radius = (L/2.0f)/std::sin((M_PI*2)/N);
+
+  // Add all vertices:
+  for (int i = 0; i < N; i++) {
+    float theta = static_cast<float>(i)/(N) * M_PI * 2.0f;
+
+    positions.push_back(radius * std::cos(theta));
+    positions.push_back(radius * std::sin(theta));
+    positions.push_back(0.0f);
+
+    colors.push_back(r*0.5f);
+    colors.push_back(g*0.5f);
+    colors.push_back(b*0.5f);
+
+    indices.push_back(0);
+    indices.push_back(i+1);
+    if (i+2 > N) {
+      indices.push_back(1);
+    } else {
+      indices.push_back(i+2);
+    }
+  }
+
+  // Allocate mesh.
+  mMeshGroup = new MeshGroup<Batch>(numVertices, numElements, drawMode);
+
+  // Specify its attributes.
+  mMeshGroup->SetVertexAttribList({3, 3});
+
+  // Add rendering pass.
+  mMeshGroup->AddRenderingPass({{positionAttribLoc, true}, {colorAttribLoc, true}});
+
+  // Load data.
+  mMeshGroup->Load({positions.data(), colors.data()}, indices.data());
+}
+
+Polygon::~Polygon()
+{
+  delete mMeshGroup;
+}
+
+void Polygon::Update()
+{
+
+}
+
+void Polygon::Render() const
+{
+  mMeshGroup->Render();
+}
 
 }  // namespace gloo.

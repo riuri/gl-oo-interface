@@ -59,6 +59,7 @@ MyModel::~MyModel()
 
   delete mAxis;
   delete mGrid;
+  delete mPolygon;
   delete mBoundingBox;
 
   delete mLightSource;
@@ -71,7 +72,7 @@ bool MyModel::Init()
   glPointSize(2);
 
   mShaderProgram = new gloo::ShaderProgram();
-  mShaderProgram->BuildFromFiles("../../shaders/debug/vertex_shader.glsl", 
+  mShaderProgram->BuildFromFiles("../../shaders/debug/vertex_shader.glsl",
                                  "../../shaders/debug/fragment_shader.glsl");
   mShaderProgram->PrintCompilationLog();
   gloo::CompilationStatus status = mShaderProgram->GetCompilationStatus();
@@ -97,6 +98,7 @@ bool MyModel::Init()
   mAxis = new AxisMesh(posAttribLoc, colAttribLoc);
   mGrid = new GridMesh(posAttribLoc, colAttribLoc, 9, 9, 0.15f, 0.4f, 0.4f, 0.4f);
   mBoundingBox = new BoundingBoxMesh(posAttribLoc, colAttribLoc);
+  mPolygon = new Polygon(posAttribLoc, colAttribLoc, 1.0f, 10);
 
   mMeshGroup = new MeshGroup<Batch>(4, 4);
   mMeshGroup2 = new MeshGroup<Interleave>(4, 4);
@@ -174,6 +176,8 @@ void MyModel::Display()
   M.LoadIdentity();
 
   mCamera->SetUniformModelViewProj(uniformLoc, M);  // Proj * View * Model.
+
+  mPolygon->Render();
 
   mGrid->Render();
   mAxis->Render();

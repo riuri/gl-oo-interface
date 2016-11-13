@@ -38,6 +38,7 @@ private:
   MeshGroup<Batch>* mMeshGroup { nullptr };
   MeshGroup<Interleave>* mMeshGroup2 { nullptr };
 
+  Polygon* mPolygon;
   AxisMesh* mAxis;
   GridMesh* mGrid;
   BoundingBoxMesh* mBoundingBox;
