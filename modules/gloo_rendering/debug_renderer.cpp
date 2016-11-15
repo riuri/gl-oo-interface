@@ -10,6 +10,15 @@ DebugRenderer::~DebugRenderer()
   delete mDebugShader;
 }
 
+void DebugRenderer::Bind(int renderingPass) 
+{ 
+  if (mDebugShader)
+  {
+    mDebugShader->Bind();   
+  }
+  // ELSE: show an error?
+}
+
 bool DebugRenderer::Load()
 {
   // Allocate shader program.
@@ -28,7 +37,7 @@ bool DebugRenderer::Load()
     // Get main attribute/uniform locations in advance.
     mPositionAttribLoc = mDebugShader->GetAttribLocation("v_position");
     mColorAttribLoc    = mDebugShader->GetAttribLocation("v_color");
-    mModelViewProjMatrixLoc = mDebugShader->GetAttribLocation("MVP");
+    mModelViewProjMatrixLoc = mDebugShader->GetUniformLocation("MVP");
 
     return true;
   }
@@ -38,12 +47,7 @@ bool DebugRenderer::Load()
   }
 }
 
-void DebugRenderer::Render(/* TODO: light sources, objects, etc */)
-{
-  // TODO.
-}
-
-GLint DebugRenderer::GetAttribLocation( const std::string & name, int renderingPass) const
+GLint DebugRenderer::GetAttribLocation(const std::string & name, int renderingPass) const
 {
   if (name == "position" || name == "v_position")
   {
@@ -61,7 +65,7 @@ GLint DebugRenderer::GetAttribLocation( const std::string & name, int renderingP
 
 GLint DebugRenderer::GetUniformLocation(const std::string & name, int renderingPass) const
 {
-  if (name == "MVP" || name == "model-view-projection")
+  if (name == "MVP" || name == "model-view-projection" || name == "mvp")
   {
     return mModelViewProjMatrixLoc;
   }

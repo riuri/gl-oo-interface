@@ -30,6 +30,8 @@
 //
 // ============================================================================================= //
 
+#pragma once
+
 namespace gloo
 {
 
@@ -41,6 +43,8 @@ public:
 
   void Render() const;
   void Update(GLfloat x, GLfloat y, GLfloat z);
+
+  const MeshGroup<Batch>* GetMeshGroup() const { return mMeshGroup; }
 
 private:
   MeshGroup<Batch>* mMeshGroup;
@@ -56,6 +60,8 @@ public:
   void Render() const;
   void Update(GLfloat xmin, GLfloat xmax, GLfloat ymin, GLfloat ymax, GLfloat zmin, GLfloat zmax);
 
+  const MeshGroup<Batch>* GetMeshGroup() const { return mMeshGroup; }
+
 private:
   MeshGroup<Batch>* mMeshGroup;
 };
@@ -69,6 +75,8 @@ struct GridMesh
 
   void Render() const;
 
+  const MeshGroup<Interleave>* GetMeshGroup() const { return mMeshGroup; }
+
 private:
   MeshGroup<Interleave>* mMeshGroup;
 };
@@ -76,12 +84,14 @@ private:
 struct Polygon
 {
 public:
-    Polygon(GLint positionAttribLoc, GLint colorAttribLoc, float sideLength, int numSides = 4,
-            float r = 0.8f, float g = 0.8f, float b = 0.8f);
-    ~Polygon();
+  Polygon(GLint positionAttribLoc, GLint colorAttribLoc, float sideLength, int numSides = 4,
+          float r = 0.8f, float g = 0.8f, float b = 0.8f, float xc = 0.0f, float yc = 0.0f);
+  ~Polygon();
 
-    void Render() const;
-    void Update();
+  void Render() const;
+  void Update();
+
+  const MeshGroup<Batch>* GetMeshGroup() const { return mMeshGroup; }
 
 private:
   MeshGroup<Batch>* mMeshGroup;

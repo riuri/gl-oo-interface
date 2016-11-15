@@ -9,9 +9,20 @@
 #pragma once
 
 #include "renderer.h"
+#include "gloo/group.h"
+#include "gloo/camera.h"
+
+#include <utility>
 
 namespace gloo
 {
+
+struct DebugScene
+{
+  Camera* mCamera;
+  std::vector<std::pair<MeshGroup<Batch>*, Transform*>>      mBatchObjectList;
+  std::vector<std::pair<MeshGroup<Interleave>*, Transform*>> mInterleaveObjectList;
+};
 
 class DebugRenderer : public Renderer
 {
@@ -33,7 +44,15 @@ public:
   ~DebugRenderer();
 
   bool Load();
-  void Render(/* TODO: light sources, objects, etc */);
+
+  virtual void Bind(int renderingPass = 0);
+
+  // Renders the entire scene at once.
+  void Render(const DebugScene* scene) const;
+
+  // Renders a specific object through a point of view.
+  template <StorageFormat F>
+  void Render(const MeshGroup<F>* mesh, Transform & model, Camera* camera, int pass=0) const;
 
   inline unsigned GetNumRenderingPasses() const { return 1; }
 
@@ -61,5 +80,13 @@ protected:
   const std::string mFragmentShaderPath;
 };
 
+template <StorageFormat F>
+void DebugRenderer::Render(const MeshGroup<F>* mesh, Transform & model, Camera* camera, int pass) const
+{
+  camera->SetUniformModelViewProj(mModelViewProjMatrixLoc, model);  // Proj * View * Model.
+  mesh->Render(pass);
+}
 
 }  // namespace gloo.
+
+

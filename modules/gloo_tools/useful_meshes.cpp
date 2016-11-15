@@ -203,7 +203,7 @@ void GridMesh::Render() const
 // ============================================================================================= //
 
 Polygon::Polygon(GLint positionAttribLoc, GLint colorAttribLoc, float sideLength, int numSides,
-                 float r, float g, float b)
+                 float r, float g, float b, float xc, float yc)
 {
   const int N = numSides;
   const float L = sideLength;
@@ -221,22 +221,22 @@ Polygon::Polygon(GLint positionAttribLoc, GLint colorAttribLoc, float sideLength
   indices.reserve(numElements);
 
   // Add center:
-  positions.push_back(0.0f);
-  positions.push_back(0.0f);
+  positions.push_back(xc);
+  positions.push_back(yc);
   positions.push_back(0.0f);
 
   colors.push_back(r);
   colors.push_back(g);
   colors.push_back(b);
 
-  const float radius = (L/2.0f)/std::sin((M_PI*2)/N);
+  const float radius = (L/2.0f)/std::sin((M_PI)/N);
 
   // Add all vertices:
   for (int i = 0; i < N; i++) {
     float theta = static_cast<float>(i)/(N) * M_PI * 2.0f;
 
-    positions.push_back(radius * std::cos(theta));
-    positions.push_back(radius * std::sin(theta));
+    positions.push_back(xc + radius * std::cos(theta));
+    positions.push_back(yc + radius * std::sin(theta));
     positions.push_back(0.0f);
 
     colors.push_back(r*0.5f);

@@ -12,7 +12,7 @@ R ?= ../..
 GLOO_RENDERING_OBJECTS=light.o debug_renderer.o
 
 # the libraries this library depends on
-GLOO_RENDERING_LIBS=gloo_shader gloo_tools
+GLOO_RENDERING_LIBS=gloo_shader gloo_tools gloo_mesh
 
 # the headers in this library
 GLOO_RENDERING_HEADERS=renderer.h light.h debug_renderer.h

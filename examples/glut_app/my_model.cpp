@@ -53,9 +53,10 @@ MyModel::MyModel()
 MyModel::~MyModel()
 {
   delete mCamera;
-  delete mShaderProgram;
   delete mMeshGroup;
   delete mMeshGroup2;
+
+  delete mDebugRenderer;
 
   delete mAxis;
   delete mGrid;
@@ -71,29 +72,20 @@ bool MyModel::Init()
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   glPointSize(2);
 
-  mShaderProgram = new gloo::ShaderProgram();
-  mShaderProgram->BuildFromFiles("../../shaders/debug/vertex_shader.glsl",
-                                 "../../shaders/debug/fragment_shader.glsl");
-  mShaderProgram->PrintCompilationLog();
-  gloo::CompilationStatus status = mShaderProgram->GetCompilationStatus();
-  // std::cout << "Compilation Status = " << status << std::endl;
+  mDebugRenderer = new DebugRenderer();
 
-  if (status != gloo::CompilationStatus::kSuccess) 
+  if (!mDebugRenderer->Load())
   {
-    delete mShaderProgram;
+    std::cout << "Couldn't initialize 'MyModel::DebugRenderer*' ..." << std::endl;
+    delete mDebugRenderer;
     return false;
   }
-
-  program = mShaderProgram->GetHandle();
-  mShaderProgram->Bind();
 
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
 
-  GLint posAttribLoc  = mShaderProgram->GetAttribLocation("v_position");
-  GLint colAttribLoc  = mShaderProgram->GetAttribLocation("v_color");
-  GLint normAttribLoc = mShaderProgram->GetAttribLocation("v_normal");
-  GLint uvAttribLoc   = mShaderProgram->GetAttribLocation("v_uv");
+  GLint posAttribLoc  = mDebugRenderer->GetPositionAttribLoc();
+  GLint colAttribLoc  = mDebugRenderer->GetColorAttribLoc();
 
   mAxis = new AxisMesh(posAttribLoc, colAttribLoc);
   mGrid = new GridMesh(posAttribLoc, colAttribLoc, 9, 9, 0.15f, 0.4f, 0.4f, 0.4f);
@@ -106,30 +98,11 @@ bool MyModel::Init()
   mMeshGroup->SetVertexAttribList({3, 3});
 
   mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
-
-  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
-  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
-
-  // TODO: correct disabled attributes.
-
-  // mMeshGroup->Load( {nullptr, squareVertices, squareColors, nullptr}, nullptr);
   mMeshGroup->Load(squareBuffer, nullptr);
-
 
   mMeshGroup2->SetVertexAttribList({3, 3});
   mMeshGroup2->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
-  // mMeshGroup2->AddRenderingPass({{0, posAttribLoc}, {1, colAttribLoc}});
   mMeshGroup2->Load( {squareVertices, squareColors}, nullptr);
-  
-  // mMeshGroup2->Load(squareBufferInterleaved, indices);
-
-
-  GLint posUniformLoc = mShaderProgram->GetUniformLocation("light.pos");
-  GLint dirUniformLoc = mShaderProgram->GetUniformLocation("light.dir");
-  GLint LaUniformLoc  = mShaderProgram->GetUniformLocation("light.La");
-
-  mLightSource = new LightSource();
-  mLightSource->AddRenderingPass({posUniformLoc, dirUniformLoc, LaUniformLoc, -1, -1, -1});
 
   return true;
 }
@@ -147,42 +120,25 @@ void MyModel::Display()
   blah_angle += 0.01;
 
   mCamera->SetOnRendering();
-  // mCamera->SetUniformViewMatrix( mShaderProgram->GetUniformLocation("V") );
-
-  // mLightSource->SetShininess(0.5f*cos(blah_angle) + 1.0f);
-  mLightSource->SetLightInCameraCoordinates(mCamera->ViewTransform());
+  mDebugRenderer->Bind();
 
   gloo::Transform M;
   M.LoadIdentity();
   M.Translate(1.2f, 0.0f, 0.0);
-
-  GLuint uniformLoc = glGetUniformLocation(mShaderProgram->GetHandle(), "MVP");
-  // M.SetUniform(uniformLoc);
-  mCamera->SetUniformModelViewProj(uniformLoc, M);  // Proj * View * Model.
-
 
   M.LoadIdentity();
   M.Rotate(-0.79*blah_angle, 0, 1, 0);
   M.Translate(-1.2f, 0.0f, 0.0f);
   M.Rotate(blah_angle, 0, 0, 1);
 
-  // M.SetUniform(uniformLoc);
-  mCamera->SetUniformModelViewProj(uniformLoc, M);  // Proj * View * Model.
-
-  mBoundingBox->Render();
-
-  mMeshGroup2->Render();
+  mDebugRenderer->Render(mBoundingBox->GetMeshGroup(), M, mCamera);
+  mDebugRenderer->Render(mMeshGroup2, M, mCamera);
   
   M.LoadIdentity();
 
-  mCamera->SetUniformModelViewProj(uniformLoc, M);  // Proj * View * Model.
-
-  mPolygon->Render();
-
-  mGrid->Render();
-  mAxis->Render();
-
-  mMeshGroup->Render();
+  mDebugRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
+  mDebugRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
+  mDebugRenderer->Render(mMeshGroup, M, mCamera);
 
   glutSwapBuffers();
 }
@@ -191,7 +147,6 @@ void MyModel::Reshape(int w, int h)
 {
   glViewport(0, 0, w, h);
   mCamera->SetOnReshape(0, 0, w, h);
-  // mCamera->SetUniformProjMatrix( mShaderProgram->GetUniformLocation("P") );
 }
 
 void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)

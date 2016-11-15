@@ -1,10 +1,10 @@
 #include <gloo/light.h>
 #include <gloo/group.h>
 #include <gloo/camera.h>
-#include <gloo/renderer.h>
 #include <gloo/model_base.h>
 #include <gloo/useful_meshes.h>
 #include <gloo/shader_program.h>
+#include <gloo/debug_renderer.h>
 
 using namespace gloo;
 
@@ -32,8 +32,7 @@ public:
 
 private:
   Camera* mCamera { nullptr };
-  ShaderProgram* mShaderProgram { nullptr };
-
+  
   // XXX - Test.
   MeshGroup<Batch>* mMeshGroup { nullptr };
   MeshGroup<Interleave>* mMeshGroup2 { nullptr };
@@ -44,5 +43,7 @@ private:
   BoundingBoxMesh* mBoundingBox;
 
   LightSource* mLightSource;
+
+  DebugRenderer* mDebugRenderer;
 
 };

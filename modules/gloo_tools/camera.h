@@ -6,27 +6,27 @@
 //
 // gloo::Camera implements a general purpose camera
 // for any 3d application with perspective projecton.
+//
+//  ---------------------------------------------------------------------------
+//  INSTRUCTIONS
+//
+//  1. Create a camera:  gloo::Camera* camera = new Camera( );
+//      [Optionally pass ProjectiveParameters as arguments ^ ]
+//  2. On window resize/reshape, call OnWindowResize().
+//  3. On rendering function call SetOnRendering() before rendering objects.
 // 
+//  ...
 //
+//  You can also manually set the internal transforms by calling
+//  ViewTransform() and ProjTransform() getter methods.
+//  For more info, see "gloo_tools/transform.h"
 //
-// INSTRUCTIONS
+//  NOTE: if you are using a Renderer class, just set the camera
+//  to it and all the main work will be done by the renderer.
 //
-// 1. Create a camera:  gloo::Camera* camera = new Camera( );
-//     [Optionally pass ProjectiveParameters as arguments ^ ]
-// 2. On window resize/reshape, call OnWindowResize().
-// 3. On rendering function call SetOnRendering() before rendering objects.
-// 
-// ...
-//
-// You can also manually set the internal transforms by calling
-// ViewTransform() and ProjTransform() getter methods.
-// For more info, see "gloo_tools/transform.h"
-//
-// NOTE: if you are using a Renderer class, just set the camera
-// to it and all the main work will be done by the renderer.
-//
-// NOTE2: by calling getter methods for Transforms, you'll get
-// the transform set from the last frame.
+//  NOTE2: by calling getter methods for Transforms, you'll get
+//  the transform set from the last frame.
+//  ---------------------------------------------------------------------------
 
 #pragma once
 
