@@ -33,14 +33,13 @@ public:
 private:
   Camera* mCamera { nullptr };
   
-  // XXX - Test.
   MeshGroup<Batch>* mMeshGroup { nullptr };
-  MeshGroup<Interleave>* mMeshGroup2 { nullptr };
 
   Polygon* mPolygon;
   AxisMesh* mAxis;
   GridMesh* mGrid;
   BoundingBoxMesh* mBoundingBox;
+  WireframeSphere* mWireframeSphere;
 
   LightSource* mLightSource;
 

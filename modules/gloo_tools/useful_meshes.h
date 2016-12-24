@@ -54,7 +54,7 @@ struct BoundingBoxMesh
 {
 public:
   BoundingBoxMesh(GLint positionAttribLoc, GLint colorAttribLoc,
-                  GLfloat r = 0.8f, GLfloat g = 0.8f, GLfloat b = 0.8f);
+                  const glm::vec3 & rgb = {1.0f, 1.0f, 1.0f});
   ~BoundingBoxMesh();
 
   void Render() const;
@@ -70,7 +70,7 @@ struct GridMesh
 {
   public:
   GridMesh(GLint positionAttribLoc, GLint colorAttribLoc, int width, int height, GLfloat tileSize = 1.0f,
-           GLfloat r = 0.8f, GLfloat g = 0.8f, GLfloat b = 0.8f);
+           const glm::vec3 & rgb = {0.8f, 0.8f, 0.8f});
   ~GridMesh();
 
   void Render() const;
@@ -85,13 +85,29 @@ struct Polygon
 {
 public:
   Polygon(GLint positionAttribLoc, GLint colorAttribLoc, float sideLength, int numSides = 4,
-          float r = 0.8f, float g = 0.8f, float b = 0.8f, float xc = 0.0f, float yc = 0.0f);
+          const glm::vec3 & rgb = {0.8f, 0.8f, 0.8f}, float xc = 0.0f, float yc = 0.0f);
   ~Polygon();
 
   void Render() const;
   void Update();
 
   const MeshGroup<Batch>* GetMeshGroup() const { return mMeshGroup; }
+
+private:
+  MeshGroup<Batch>* mMeshGroup;
+};
+
+struct WireframeSphere 
+{
+public:
+  WireframeSphere(GLint positionAttribLoc, GLint colorAttribLoc, 
+                  const glm::vec3 & rgb = {0.8f, 0.8f, 0.8f}, int detail = 16);
+  ~WireframeSphere();
+
+  void Render() const;
+  void Update();
+
+  const MeshGroup<Batch>* GetMeshGroup() const { return mMeshGroup; };
 
 private:
   MeshGroup<Batch>* mMeshGroup;

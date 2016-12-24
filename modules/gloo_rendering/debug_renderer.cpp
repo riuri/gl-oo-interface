@@ -14,7 +14,7 @@ void DebugRenderer::Bind(int renderingPass)
 { 
   if (mDebugShader)
   {
-    mDebugShader->Bind();   
+    mDebugShader->Bind();
   }
   // ELSE: show an error?
 }

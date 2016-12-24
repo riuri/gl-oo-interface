@@ -4,7 +4,19 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 
-// TODO(Castiel): documentation.
+// ------------------------------------------------------------------------------------------------
+// DebugRenderer is a single-pass renderer for debug meshes that don't require illumination.
+// It can also render wireframes or "material-less/texture-less" objects.
+// Internally, it loads the following shaders: 
+//    gl-oo-interface/shaders/debug/vertex_shader.glsl
+//    gl-oo-interface/shaders/debug/fragment_shader.glsl
+//
+// These shaders are very simple and optimized, and have only two attributes:
+//   -> Vertex coordinates (3d) [use GetPositionAttribLoc()]. 
+//   -> Vertex RGB color (3d)   [use GetColorAttribLoc()].
+// and only one uniform:
+//   -> Model-view-proj matrix (4x4) [use GetModelViewProjUniformLoc()].
+// ------------------------------------------------------------------------------------------------
 
 #pragma once
 
@@ -16,13 +28,6 @@
 
 namespace gloo
 {
-
-struct DebugScene
-{
-  Camera* mCamera;
-  std::vector<std::pair<MeshGroup<Batch>*, Transform*>>      mBatchObjectList;
-  std::vector<std::pair<MeshGroup<Interleave>*, Transform*>> mInterleaveObjectList;
-};
 
 class DebugRenderer : public Renderer
 {
@@ -46,9 +51,6 @@ public:
   bool Load();
 
   virtual void Bind(int renderingPass = 0);
-
-  // Renders the entire scene at once.
-  void Render(const DebugScene* scene) const;
 
   // Renders a specific object through a point of view.
   template <StorageFormat F>
