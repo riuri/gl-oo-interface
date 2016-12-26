@@ -85,6 +85,10 @@ public:
   void SetInverseUniform(unsigned programHandle, const std::string & uniformName) const;
   void SetInverseUniform(unsigned uniformHandler) const;
 
+  // If the current matrix is M, it uploads (M^-1)' to the GPU.
+  void SetInverseTransposeUniform(unsigned programHandle, const std::string & uniformName) const;
+  void SetInverseTransposeUniform(unsigned uniformHandler) const;
+
   // -> Methods for setting the current matrix as model/view transformation.
   // Rotates theta degrees around axis [x, y, z]'.
   void Rotate(float theta, float x, float y, float z);

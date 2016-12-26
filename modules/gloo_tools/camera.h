@@ -73,12 +73,11 @@ public:
 
   // The following methods set internal transforms as uniforms in shader.
   // Please call SetOnRendering() before setting uniforms.
-  void SetUniformViewMatrix(unsigned uniformLoc);  // Just view matrix.
-  void SetUniformProjMatrix(unsigned uniformLoc);  // Just projection matrix.
+  void SetUniformViewMatrix(unsigned uniformLoc) const;  // Just view matrix.
+  void SetUniformProjMatrix(unsigned uniformLoc) const;  // Just projection matrix.
   void SetUniformViewProj(unsigned uniformLoc);    // Proj * View.
   void SetUniformModelView(unsigned uniformLoc, const Transform & model);      // View * Model.
   void SetUniformModelViewProj(unsigned uniformLoc, const Transform & model);  // Proj * View * Model.
-
 
   // Animate camera center, orientation and scale -> glm::vec3.
   void Translate(const glm::vec3 & dPos);
@@ -218,13 +217,13 @@ void Camera::SetProjectionParameters(const ProjectionParameters & projParameters
 }
 
 inline
-void Camera::SetUniformViewMatrix(unsigned uniformLoc)
+void Camera::SetUniformViewMatrix(unsigned uniformLoc) const
 {
   mView.SetUniform(uniformLoc);
 }
 
 inline
-void Camera::SetUniformProjMatrix(unsigned uniformLoc)
+void Camera::SetUniformProjMatrix(unsigned uniformLoc) const
 {
   mProj.SetUniform(uniformLoc);
 }

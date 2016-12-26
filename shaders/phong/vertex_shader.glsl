@@ -15,7 +15,7 @@ uniform mat4 N;  // Normal matrix N = (VM)^-t.
 
 void main()
 {
-  // Compute the vertex position in world coordinates.
+  // Compute vertex position in world coordinates.
   f_position = V * (M * vec4(v_position, 1.0f));
   f_position = f_position/f_position.w;
 

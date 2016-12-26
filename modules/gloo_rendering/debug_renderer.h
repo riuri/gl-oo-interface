@@ -73,6 +73,7 @@ protected:
   ShaderProgram* mDebugShader { nullptr };
 
   // Main attribute/uniform locations.
+  // It works as fast access variables (without querying the GPU).
   GLint mPositionAttribLoc { -1 };
   GLint mColorAttribLoc    { -1 };
   GLint mModelViewProjMatrixLoc { -1 };
@@ -90,5 +91,3 @@ void DebugRenderer::Render(const MeshGroup<F>* mesh, Transform & model, Camera* 
 }
 
 }  // namespace gloo.
-
-

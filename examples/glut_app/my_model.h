@@ -5,6 +5,7 @@
 #include <gloo/useful_meshes.h>
 #include <gloo/shader_program.h>
 #include <gloo/debug_renderer.h>
+#include <gloo/phong_renderer.h>
 
 using namespace gloo;
 
@@ -31,6 +32,8 @@ public:
   virtual void SpecialKeyboardChange(unsigned char key, int x, int y);
 
 private:
+  int mRendererNum { 0 };
+
   Camera* mCamera { nullptr };
   
   MeshGroup<Batch>* mMeshGroup { nullptr };
@@ -44,5 +47,5 @@ private:
   LightSource* mLightSource;
 
   DebugRenderer* mDebugRenderer;
-
+  PhongRenderer* mPhongRenderer;
 };

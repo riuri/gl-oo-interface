@@ -56,6 +56,7 @@ MyModel::~MyModel()
   delete mMeshGroup;
 
   delete mDebugRenderer;
+  delete mPhongRenderer;
 
   delete mAxis;
   delete mGrid;
@@ -71,6 +72,7 @@ bool MyModel::Init()
   glEnable(GL_DEPTH_TEST);
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   mDebugRenderer = new DebugRenderer();
+  mPhongRenderer = new PhongRenderer();
 
   if (!mDebugRenderer->Load())
   {
@@ -78,6 +80,13 @@ bool MyModel::Init()
     delete mDebugRenderer;
     return false;
   }
+
+  if (!mPhongRenderer->Load())
+  {
+    std::cout << "Couldn't initialize 'MyModel::PhongRenderer*' ..." << std::endl;
+    delete mPhongRenderer;
+  }
+
 
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
@@ -89,14 +98,18 @@ bool MyModel::Init()
   mGrid = new GridMesh(posAttribLoc, colAttribLoc, 9, 9, 0.15f, {0.4f, 0.4f, 0.4f});
   mBoundingBox = new BoundingBoxMesh(posAttribLoc, colAttribLoc);
   mPolygon = new Polygon(posAttribLoc, colAttribLoc, 1.0f, 10);
-
   mWireframeSphere = new WireframeSphere(posAttribLoc, colAttribLoc, {0.0f, 1.0f, 0.0f}, 16);
 
-  mMeshGroup = new MeshGroup<Batch>(4, 4);
-  
-  mMeshGroup->SetVertexAttribList({3, 3});
 
+  GLint posAttribLocPhong = mPhongRenderer->GetPositionAttribLoc();
+  GLint normalAttribLocPhong =  mPhongRenderer->GetNormalAttribLoc();
+  GLint textureAttribLocPhong = mPhongRenderer->GetTextureAttribLoc();
+
+  mMeshGroup = new MeshGroup<Batch>(4, 4);
+  mMeshGroup->SetVertexAttribList({3, 3});
   mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
+  mMeshGroup->AddRenderingPass({{posAttribLocPhong, true}, {normalAttribLocPhong, true}});
+
   mMeshGroup->Load(squareBuffer, nullptr);
 
   return true;
@@ -115,27 +128,41 @@ void MyModel::Display()
   blah_angle += 0.01;
 
   mCamera->SetOnRendering();
-  mDebugRenderer->Bind();
+
+  if (mRendererNum == 1)
+  {
+    mPhongRenderer->Bind();
+    mCamera->SetUniformProjMatrix(mPhongRenderer->GetProjUniformLoc());
+  }
+  else if (mRendererNum == 0)
+  {
+    mDebugRenderer->Bind();
+  }
 
   gloo::Transform M;
   M.LoadIdentity();
-  M.Translate(1.2f, 0.0f, 0.0);
 
-  M.LoadIdentity();
-  M.Rotate(-0.79*blah_angle, 0, 1, 0);
-  M.Translate(-1.2f, 0.0f, 0.0f);
-  M.Rotate(blah_angle, 0, 0, 1);
+  if (mRendererNum == 1)
+  {
+    mPhongRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
+    mPhongRenderer->Render(mMeshGroup, M, mCamera, 1);
+    mPhongRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
+    mPhongRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
 
-  // mDebugRenderer->Render(mBoundingBox->GetMeshGroup(), M, mCamera);
-  
-  M.LoadIdentity();
+    M.Rotate(-0.79*blah_angle, 0, 1, 0);
+    M.Translate(-1.2f, 0.0f, 0.0f);
+    M.Rotate(blah_angle, 0, 0, 1);
+    M.Scale(0.25f, 0.25f, 0.25f);
 
-  // mAxis->Render();
-
-  mDebugRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
-  mDebugRenderer->Render(mMeshGroup, M, mCamera);
-  mDebugRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
-  mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
+    mPhongRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
+  }
+  else if (mRendererNum == 0)
+  {
+    mDebugRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
+    mDebugRenderer->Render(mMeshGroup, M, mCamera, 0);
+    mDebugRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
+    mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
+  }
 
   glutSwapBuffers();
 }
@@ -166,6 +193,7 @@ void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)
       if (mouseEvent.mMouseState.mLftButton == MouseState::kDown)
       {
         // std::cout << "Left button dragged.\n";
+        mCamera->Translate(0.0f, 0.0f, -mouseEvent.mMouseState.mVelY * 1e-2);
       }
       if (mouseEvent.mMouseState.mRgtButton == MouseState::kDown)
       {
@@ -226,6 +254,11 @@ void MyModel::KeyboardChange(unsigned char key, int x, int y)
   {
     case 27: // ESC key
       exit(0);
+    break;
+
+    case 'u':
+    case 'U':
+      mRendererNum = (mRendererNum+1) % 2;
     break;
 
     case 'F':
