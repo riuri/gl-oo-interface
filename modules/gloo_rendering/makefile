@@ -9,7 +9,7 @@ include ../../build/makefile-header
 R ?= ../..
 
 # the object files to be compiled for this library
-GLOO_RENDERING_OBJECTS=light.o debug_renderer.o phong_renderer.o
+GLOO_RENDERING_OBJECTS=debug_renderer.o phong_renderer.o
 
 # the libraries this library depends on
 GLOO_RENDERING_LIBS=gloo_shader gloo_tools gloo_mesh

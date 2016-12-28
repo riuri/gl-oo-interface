@@ -4,41 +4,60 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 
+// PhongRenderer ...
+//
+//  
+
 #pragma once 
 
+#include "light.h"
 #include "renderer.h"
+
 #include "gloo/group.h"
 #include "gloo/camera.h"
 
 namespace gloo 
 {
 
+const int kMaxNumberLights = 8;
+
 class PhongRenderer : public Renderer
 {
 public:
   PhongRenderer(const std::string & vertexShaderPath,
-                const std::string & fragmentShaderPath)
+                const std::string & fragmentShaderPath,
+                int numLightSources=1)
   : Renderer()
   , mVertexShaderPath(vertexShaderPath)
   , mFragmentShaderPath(fragmentShaderPath)
+  , mNumLightSources(numLightSources)
   { }
 
-  PhongRenderer()
+  PhongRenderer(int numLightSources=1)
   : Renderer()
   , mVertexShaderPath(  "../../shaders/phong/vertex_shader.glsl")
   , mFragmentShaderPath("../../shaders/phong/fragment_shader.glsl")
+  , mNumLightSources(numLightSources)
   { }
 
   ~PhongRenderer();
 
+  // Load initializes all uniform/attribute locations for fast access.
+  // Please call it after allocating a new PhongRenderer instance.
   bool Load();
 
   // If you're lazy to manually set the camera and then render the mesh, just call this method.
   // Please notice that by setting the camera before every object rendering, you will be updating
-  // the M, V, P matrices without really needing.
+  // both M and V matrices without really needing.
   template <StorageFormat F>
-  void Render(const MeshGroup<F>* mesh, Transform & model, Camera* camera, int pass=0) const;
+  void Render(const MeshGroup<F>* mesh, const Transform & model, Camera* camera, int pass=0) const;
 
+  // Call this method if you want to render a single object without setting the camera.
+  // It will automatically set both model and normal matrices.
+  template <StorageFormat F>
+  void Render(const MeshGroup<F>* mesh, const Transform & model, int pass=0) const;
+
+  // Call bind before using PhongRenderer. Internally, it calls glUseProgram().
   virtual void Bind(int renderingPass = 0);
 
   inline unsigned GetNumRenderingPasses() const { return 1; }
@@ -46,7 +65,6 @@ public:
 
   GLint GetAttribLocation( const std::string & name, int renderingPass = 0) const;
   GLint GetUniformLocation(const std::string & name, int renderingPass = 0) const;
-
 
   // Extra methods (fast access).
   GLint GetPositionAttribLoc() const { return mPositionAttribLoc; }
@@ -58,9 +76,23 @@ public:
   GLint GetModelUniformLoc()  const { return mModelMatrixLoc;  }
   GLint GetNormalUniformLoc() const { return mNormalMatrixLoc; }
 
-  // Auxiliar methods.
+  GLint GetLightAmbientComponentLoc() const { return mLaLoc; }
+  LightUniformPack GetLightSourceUniformLoc(int slot) const { return mLightUniformArray[slot]; }
+
+  // Geometric transformation methods.
   void SetCamera(const Camera* camera) const;
   void SetModelNormalMatrix(const Transform & model) const;
+
+  // Lighting configuration methods.
+  void EnableLightSource(int slot)  const;
+  void DisableLightSource(int slot) const;
+  void SetNumLightSources(int numLightSources);
+  void SetLightAmbientComponent(const glm::vec3 & La) const;
+  void SetLightSource(const LightSource & lightSource, int slot) const;
+  void SetLightSourceInCameraCoordinates(const LightSource & lightSource, const Transform & view, int slot) const;
+
+  // Texture configuration methods.
+  
 
 private:
   // Shader Program.
@@ -76,19 +108,75 @@ private:
   GLint mModelMatrixLoc  { -1 };
   GLint mNormalMatrixLoc { -1 };
 
-  // even more down here...
+  // Lighting.
+  int mNumLightSources { 0 };
+  
+  GLint mLaLoc { -1 };
+  GLint mNumLightUniform { -1 };
+  GLint mLightSwitchUniformArray[kMaxNumberLights];
+  LightUniformPack mLightUniformArray[kMaxNumberLights];
+
+  // Texture.
 
   // Constant data (passed to constructor).
   const std::string mVertexShaderPath;
   const std::string mFragmentShaderPath;
 };
 
+// ----- Rendering methods ------------------------------------------------------------------------
+
 template <StorageFormat F>
-void PhongRenderer::Render(const MeshGroup<F>* mesh, Transform & model, Camera* camera, int pass) const
+void PhongRenderer::Render(const MeshGroup<F>* mesh, const Transform & model, Camera* camera, 
+                           int pass) const
 {
-  model.SetUniform(mModelMatrixLoc);
+  PhongRenderer::SetModelNormalMatrix(model);
   camera->SetUniformViewMatrix(mViewMatrixLoc);
   mesh->Render(pass);
 }
 
+template <StorageFormat F>
+void PhongRenderer::Render(const MeshGroup<F>* mesh, const Transform & model, int pass) const
+{
+  PhongRenderer::SetModelNormalMatrix(model);
+  mesh->Render(pass);
+}
+
+// ----- Inline methods ---------------------------------------------------------------------------
+
+inline
+void PhongRenderer::SetCamera(const Camera* camera) const
+{
+  camera->SetUniformProjMatrix(mProjMatrixLoc);
+  camera->SetUniformViewMatrix(mViewMatrixLoc);
+}
+
+inline
+void PhongRenderer::SetModelNormalMatrix(const Transform & model) const
+{
+  model.SetUniform(mModelMatrixLoc);
+  model.SetInverseTransposeUniform(mNormalMatrixLoc);
+}
+
+
+inline
+void PhongRenderer::SetNumLightSources(int numLightSources)
+{
+  // Make sure that (0 <= numLightSources <= kMaxNumberLights).
+  mNumLightSources = std::max(0, std::min(kMaxNumberLights, numLightSources));
+  glUniform1i(mNumLightUniform, mNumLightSources);
+}
+
+inline
+void PhongRenderer::EnableLightSource(int slot)  const
+{
+  glUniform1i(mLightSwitchUniformArray[slot], 1);
+}
+
+inline
+void PhongRenderer::DisableLightSource(int slot) const
+{
+  glUniform1i(mLightSwitchUniformArray[slot], 0);
+}
+
 }  // namespace gloo.
+

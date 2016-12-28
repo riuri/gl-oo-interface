@@ -1,5 +1,8 @@
 #include "phong_renderer.h"
 
+#define GLM_SWIZZLE
+#include "gloo/gl_header.h"
+
 #define LOG_OUTPUT_ON 1
 
 namespace gloo
@@ -8,18 +11,6 @@ namespace gloo
 PhongRenderer::~PhongRenderer()
 {
   delete mPhongShader;
-}
-
-void PhongRenderer::SetCamera(const Camera* camera) const
-{
-  camera->SetUniformProjMatrix(mProjMatrixLoc);
-  camera->SetUniformViewMatrix(mViewMatrixLoc);
-}
-
-void PhongRenderer::SetModelNormalMatrix(const Transform & model) const
-{
-  model.SetUniform(mModelMatrixLoc);
-  model.SetInverseTransposeUniform(mNormalMatrixLoc);
 }
 
 bool PhongRenderer::Load()
@@ -47,10 +38,31 @@ bool PhongRenderer::Load()
     mModelMatrixLoc  = mPhongShader->GetUniformLocation("M");
     mNormalMatrixLoc = mPhongShader->GetUniformLocation("N");
 
+    // Pre-load light uniform packs.
+    mNumLightUniform = mPhongShader->GetUniformLocation("num_lights");
+    mLaLoc = mPhongShader->GetUniformLocation("La");
+
+    for (int i = 0; i < kMaxNumberLights; i++)
+    {
+      std::string light_prefix = "light[" + std::to_string(i) + "].";
+
+      mLightUniformArray[i].mPosLoc   = mPhongShader->GetUniformLocation(light_prefix + "pos");
+      mLightUniformArray[i].mDirLoc   = mPhongShader->GetUniformLocation(light_prefix + "dir");
+      mLightUniformArray[i].mLdLoc    = mPhongShader->GetUniformLocation(light_prefix + "Ld");
+      mLightUniformArray[i].mLsLoc    = mPhongShader->GetUniformLocation(light_prefix + "Ls");
+      mLightUniformArray[i].mAlphaLoc = mPhongShader->GetUniformLocation(light_prefix + "alpha");
+
+      mLightSwitchUniformArray[i] = mPhongShader->GetUniformLocation("light_switch[" + std::to_string(i) + "]");
+    }
+
     return true;
   }
   else 
   {
+#if LOG_OUTPUT_ON == 1
+    mPhongShader->PrintCompilationLog();
+#endif
+
     return false;
   }
 }
@@ -108,5 +120,60 @@ GLint PhongRenderer::GetUniformLocation(const std::string & name, int renderingP
   }
 }
 
+namespace 
+{
+  void SetUniform3f(GLint loc, const glm::vec3 & data)
+  {
+    if (loc != kNoUniform)
+    {
+      glUniform3f(loc, data[0], data[1], data[2]);
+    }
+  }
+
+  void SetUniform1f(GLint loc, GLfloat data)
+  {
+    if (loc != kNoUniform)
+    {
+      glUniform1f(loc, data);
+    }
+  }
+}
+
+void PhongRenderer::SetLightAmbientComponent(const glm::vec3 & La) const
+{
+  SetUniform3f(mLaLoc, La);
+}
+
+void PhongRenderer::SetLightSource(const LightSource & lightSource, int slot) const
+{
+  const LightUniformPack & lightSourceUniform = mLightUniformArray[slot];
+
+  SetUniform3f(lightSourceUniform.mPosLoc, lightSource.mPos);  // Position.
+  SetUniform3f(lightSourceUniform.mDirLoc, lightSource.mDir);  // Direction.
+  SetUniform3f(lightSourceUniform.mLdLoc,  lightSource.mLd);  // Ambient component.
+  SetUniform3f(lightSourceUniform.mLsLoc,  lightSource.mLs);  // Ambient component.
+  SetUniform1f(lightSourceUniform.mAlphaLoc, lightSource.mAlpha);  // Shininess.
+}
+
+void PhongRenderer::SetLightSourceInCameraCoordinates(const LightSource & lightSource, 
+                                                      const Transform & view, int slot) const
+{
+  const LightUniformPack & lightSourceUniform = mLightUniformArray[slot];
+
+  // Transform position/direction into camera coordinates.
+  glm::vec4 p = glm::vec4(lightSource.mPos, 1.0f);
+  glm::vec4 d = glm::vec4(lightSource.mDir, 1.0f);
+  const glm::mat4 & V = view.GetMatrix();
+
+  p = V * p;
+  d = V * d;
+  p = p / p[3];  // Normalize homogenous coordinates.
+
+  SetUniform3f(lightSourceUniform.mPosLoc, p.xyz());  // Position.
+  SetUniform3f(lightSourceUniform.mDirLoc, d.xyz());  // Direction.
+  SetUniform3f(lightSourceUniform.mLdLoc,  lightSource.mLd);  // Ambient component.
+  SetUniform3f(lightSourceUniform.mLsLoc,  lightSource.mLs);  // Ambient component.
+  SetUniform1f(lightSourceUniform.mAlphaLoc, lightSource.mAlpha);  // Shininess.
+}
 
 }  // namespace gloo.

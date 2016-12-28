@@ -85,6 +85,7 @@ bool MyModel::Init()
   {
     std::cout << "Couldn't initialize 'MyModel::PhongRenderer*' ..." << std::endl;
     delete mPhongRenderer;
+    return false;
   }
 
 
@@ -129,25 +130,20 @@ void MyModel::Display()
 
   mCamera->SetOnRendering();
 
-  if (mRendererNum == 1)
-  {
-    mPhongRenderer->Bind();
-    mCamera->SetUniformProjMatrix(mPhongRenderer->GetProjUniformLoc());
-  }
-  else if (mRendererNum == 0)
-  {
-    mDebugRenderer->Bind();
-  }
-
   gloo::Transform M;
   M.LoadIdentity();
 
   if (mRendererNum == 1)
   {
-    mPhongRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
-    mPhongRenderer->Render(mMeshGroup, M, mCamera, 1);
-    mPhongRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
-    mPhongRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
+    mPhongRenderer->Bind();
+    mPhongRenderer->SetCamera(mCamera);
+
+    mPhongRenderer->SetLightAmbientComponent(glm::vec3(1, 1, 1));
+
+    mPhongRenderer->Render(mGrid->GetMeshGroup(), M, 0);
+    mPhongRenderer->Render(mMeshGroup, M, 1);
+    mPhongRenderer->Render(mAxis->GetMeshGroup(), M, 0);
+    mPhongRenderer->Render(mWireframeSphere->GetMeshGroup(), M, 0);
 
     M.Rotate(-0.79*blah_angle, 0, 1, 0);
     M.Translate(-1.2f, 0.0f, 0.0f);
@@ -158,6 +154,8 @@ void MyModel::Display()
   }
   else if (mRendererNum == 0)
   {
+    mDebugRenderer->Bind();
+
     mDebugRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
     mDebugRenderer->Render(mMeshGroup, M, mCamera, 0);
     mDebugRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
