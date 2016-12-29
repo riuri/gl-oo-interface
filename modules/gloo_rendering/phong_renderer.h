@@ -13,6 +13,7 @@
 #include "light.h"
 #include "renderer.h"
 
+#include "gloo/material.h"
 #include "gloo/group.h"
 #include "gloo/camera.h"
 
@@ -25,19 +26,16 @@ class PhongRenderer : public Renderer
 {
 public:
   PhongRenderer(const std::string & vertexShaderPath,
-                const std::string & fragmentShaderPath,
-                int numLightSources=1)
+                const std::string & fragmentShaderPath)
   : Renderer()
   , mVertexShaderPath(vertexShaderPath)
   , mFragmentShaderPath(fragmentShaderPath)
-  , mNumLightSources(numLightSources)
   { }
 
   PhongRenderer(int numLightSources=1)
   : Renderer()
   , mVertexShaderPath(  "../../shaders/phong/vertex_shader.glsl")
   , mFragmentShaderPath("../../shaders/phong/fragment_shader.glsl")
-  , mNumLightSources(numLightSources)
   { }
 
   ~PhongRenderer();
@@ -78,6 +76,7 @@ public:
 
   GLint GetLightAmbientComponentLoc() const { return mLaLoc; }
   LightUniformPack GetLightSourceUniformLoc(int slot) const { return mLightUniformArray[slot]; }
+  MaterialUniformPack GetMaterialUniformLoc() const { return mMaterialUniform; }
 
   // Geometric transformation methods.
   void SetCamera(const Camera* camera) const;
@@ -89,10 +88,13 @@ public:
   void SetNumLightSources(int numLightSources);
   void SetLightAmbientComponent(const glm::vec3 & La) const;
   void SetLightSource(const LightSource & lightSource, int slot) const;
-  void SetLightSourceInCameraCoordinates(const LightSource & lightSource, const Transform & view, int slot) const;
+  void SetLightSourceInCameraCoordinates(const LightSource & lightSource, const Camera * camera, int slot) const;
+
+  // Material configuration methods.
+  void SetMaterial(const Material & material) const;
 
   // Texture configuration methods.
-  
+
 
 private:
   // Shader Program.
@@ -108,15 +110,17 @@ private:
   GLint mModelMatrixLoc  { -1 };
   GLint mNormalMatrixLoc { -1 };
 
-  // Lighting.
-  int mNumLightSources { 0 };
-  
+  // Lighting.  
   GLint mLaLoc { -1 };
   GLint mNumLightUniform { -1 };
   GLint mLightSwitchUniformArray[kMaxNumberLights];
   LightUniformPack mLightUniformArray[kMaxNumberLights];
 
+  // Material.
+  MaterialUniformPack mMaterialUniform;  // Set of material uniforms.
+
   // Texture.
+
 
   // Constant data (passed to constructor).
   const std::string mVertexShaderPath;
@@ -162,8 +166,8 @@ inline
 void PhongRenderer::SetNumLightSources(int numLightSources)
 {
   // Make sure that (0 <= numLightSources <= kMaxNumberLights).
-  mNumLightSources = std::max(0, std::min(kMaxNumberLights, numLightSources));
-  glUniform1i(mNumLightUniform, mNumLightSources);
+  numLightSources = std::max(0, std::min(kMaxNumberLights, numLightSources));
+  glUniform1i(mNumLightUniform, numLightSources);
 }
 
 inline

@@ -35,7 +35,6 @@ private:
   int mRendererNum { 0 };
 
   Camera* mCamera { nullptr };
-  
   MeshGroup<Batch>* mMeshGroup { nullptr };
 
   Polygon* mPolygon;

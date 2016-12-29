@@ -8,20 +8,25 @@
 #include <iostream>
 
 
-GLfloat squareVertices[] = {-0.5f, 0.0f,  0.5f,
-                             0.5f, 0.0f,  0.5f,
-                            -0.5f, 0.0f, -0.5f,
-                             0.5f, 0.0f, -0.5f};
+GLfloat squareVertices[] = {-1.5f, 0.0f,  1.5f,
+                             1.5f, 0.0f,  1.5f,
+                            -1.5f, 0.0f, -1.5f,
+                             1.5f, 0.0f, -1.5f};
 
 GLfloat squareColors[] = {1.0f, 0.0f, 0.0f, 
                           0.0f, 1.0f, 0.0f,
                           0.0f, 0.0f, 1.0f,
                           0.4f, 0.4f, 0.4f};
 
-GLfloat squareNormals[] = {1.0f, 0.0f, 0.0f, 
+GLfloat squareUV[] = { 0.0f, 0.0f,
+                       1.0f, 0.0f,
+                       0.0f, 1.0f,
+                       1.0f, 1.0f };
+
+GLfloat squareNormals[] = {0.0f, 1.0f, 0.0f, 
                            0.0f, 1.0f, 0.0f,
-                           0.0f, 0.0f, 1.0f,
-                           0.4f, 0.4f, 0.4f};
+                           0.0f, 1.0f, 0.0f,
+                           0.0f, 1.0f, 0.0f};
 
 
 GLfloat squareBuffer[] = {-0.5f, 0.0f,  0.5f,
@@ -89,6 +94,8 @@ bool MyModel::Init()
   }
 
 
+  mPhongRenderer->SetNumLightSources(1);
+
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
 
@@ -107,11 +114,12 @@ bool MyModel::Init()
   GLint textureAttribLocPhong = mPhongRenderer->GetTextureAttribLoc();
 
   mMeshGroup = new MeshGroup<Batch>(4, 4);
-  mMeshGroup->SetVertexAttribList({3, 3});
-  mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
-  mMeshGroup->AddRenderingPass({{posAttribLocPhong, true}, {normalAttribLocPhong, true}});
+  mMeshGroup->SetVertexAttribList({3, 3, 2});
+  mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}, gloo::kNoAttrib});
+  mMeshGroup->AddRenderingPass({{posAttribLocPhong, true}, {normalAttribLocPhong, true}, {textureAttribLocPhong, true}});
 
-  mMeshGroup->Load(squareBuffer, nullptr);
+  // mMeshGroup->Load(squareBuffer, nullptr);
+  mMeshGroup->Load({squareVertices, squareNormals, squareUV}, nullptr);
 
   return true;
 }
@@ -133,32 +141,39 @@ void MyModel::Display()
   gloo::Transform M;
   M.LoadIdentity();
 
-  if (mRendererNum == 1)
+  mPhongRenderer->Bind();
+  mPhongRenderer->SetCamera(mCamera);
+
+  LightSource lightSource = { glm::vec3(0,    1,  0),        // Pos.
+                              glm::vec3(0,   -1,  0),  // Dir.
+                              glm::vec3(0.7, 0.7, 1),  // Ld.
+                              glm::vec3(1.0, 1.0, 1),  // Ls.
+                              5.0f*std::cos(0*blah_angle*1.9f)+10.0f};  // Alpha.
+
+  mPhongRenderer->EnableLightSource(0);
+  mPhongRenderer->SetLightSourceInCameraCoordinates(lightSource, mCamera, 0);
+
+  mPhongRenderer->SetMaterial({ glm::vec3(0,  0, 0), 
+                                glm::vec3(.8, 0, 0),
+                                glm::vec3(.2, .2, .2)});
+  
+  M.LoadIdentity();
+  M.Rotate(-0.79*cos(blah_angle), 1, 0, 1);
+  mPhongRenderer->Render(mMeshGroup, M, 1);
+  M.LoadIdentity();
+
+
+  if (mRendererNum == 1) 
   {
-    mPhongRenderer->Bind();
-    mPhongRenderer->SetCamera(mCamera);
-
-    mPhongRenderer->SetLightAmbientComponent(glm::vec3(1, 1, 1));
-
-    mPhongRenderer->Render(mGrid->GetMeshGroup(), M, 0);
-    mPhongRenderer->Render(mMeshGroup, M, 1);
-    mPhongRenderer->Render(mAxis->GetMeshGroup(), M, 0);
-    mPhongRenderer->Render(mWireframeSphere->GetMeshGroup(), M, 0);
+    mDebugRenderer->Bind();
+    mDebugRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
+    mDebugRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
+    mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
 
     M.Rotate(-0.79*blah_angle, 0, 1, 0);
     M.Translate(-1.2f, 0.0f, 0.0f);
     M.Rotate(blah_angle, 0, 0, 1);
     M.Scale(0.25f, 0.25f, 0.25f);
-
-    mPhongRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
-  }
-  else if (mRendererNum == 0)
-  {
-    mDebugRenderer->Bind();
-
-    mDebugRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
-    mDebugRenderer->Render(mMeshGroup, M, mCamera, 0);
-    mDebugRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
     mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
   }
 

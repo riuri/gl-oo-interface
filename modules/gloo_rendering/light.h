@@ -33,13 +33,13 @@ struct LightUniformPack
 struct LightSource
 {
   // Position and direction (in world coordinates).
-  glm::vec3 mPos { 0.0f, 0.0f, 0.0f };
-  glm::vec3 mDir { 0.0f, 1.0f, 0.0f };
+  glm::vec3 mPos;
+  glm::vec3 mDir;
 
   // Phong illumination model data.
-  glm::vec3 mLd { 0.8f, 0.8f, 0.8f };  // Diffuse component.
-  glm::vec3 mLs { 0.1f, 0.1f, 0.1f };  // Specular component.
-  GLfloat mAlpha { 1.0f };  // Shininess.
+  glm::vec3 mLd;  // Diffuse component.
+  glm::vec3 mLs;  // Specular component.
+  GLfloat mAlpha; // Shininess.
 };
 
 

@@ -13,6 +13,9 @@ uniform mat4 V;  // View  matrix.
 uniform mat4 P;  // Projection matrix.
 uniform mat4 N;  // Normal matrix N = (VM)^-t.
 
+const float C = 1;
+const float far = 1000;
+
 void main()
 {
   // Compute vertex position in world coordinates.
@@ -21,9 +24,11 @@ void main()
 
   // Then project f_position onto screen and store into gl_Position.
   gl_Position = P * f_position;
+  // gl_Position.z = 2.0*log(gl_Position.w*C + 1)/log(far*C + 1) - 1;
+  // gl_Position.z *= gl_Position.w;
 
   // Transform the vertex normal vector.
-  f_normal = N * vec4(v_normal, 1.0f);
+  f_normal = V * N * vec4(v_normal, 0.0);
 
   // Pass uv coordinates to be interpolated.
   f_uv = vec4(v_uv, 1.0f);

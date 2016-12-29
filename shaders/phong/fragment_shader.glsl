@@ -29,18 +29,19 @@ in vec4 f_uv;
 
 out vec4 pixel_color;
 
-// Light Sources:
+// === Light Sources === //
 const int max_num_lights = 8;
 
-uniform vec3 La;                            // Ambient light component.
-uniform int num_lights;                     // Number of light sources.
-uniform LightSource light[max_num_lights];  // Array of light sources.
+uniform int num_lights = 1;                 // Number of light sources.
 uniform int light_switch[max_num_lights];   // Array of light source states (on/off).
 
-// Texture:
+uniform vec3 La = vec3(0.1);                // Ambient light component.
+uniform LightSource light[max_num_lights];  // Array of light sources.
+
+// === Texture === //
 
 
-// Material:
+// === Material === //
 uniform Material material;
 
 
@@ -48,14 +49,30 @@ uniform Material material;
 
 void main()
 {
+  vec3 Ka = material.Ka;
+  vec3 Kd = material.Kd;
+  vec3 Ks = material.Ks;
+
   // Fragment data and light sources are in camera coordinates.
-  vec3 I = La;  // TODO: multiply by Ka.
+  vec3 n = f_normal.xyz;
+  vec3 I = Ka*La;
 
-  // for (int i = 0; i < num_lights; i++)
-  // {
-  //   I += ;
+  for (int i = 0; i < num_lights; i++)
+  {
+    if (light_switch[i] == 0)  // Off!
+      continue;
 
-  // }
+    vec3 l  = normalize(light[i].pos - f_position.xyz);  // Unit vector from fragment to light source.
+    vec3 r  = -reflect(l, n);                            // Reflection of light ray on fragment.
+    vec3 f = normalize(-f_position.xyz);                 // Unit vector from fragment to camera (origin).
+    float d =    length(light[i].pos - f_position.xyz);  // Distance from fragment to light source.
+    float alpha = light[i].alpha;
+
+    vec3 Id = light[i].Ld * max(dot(n, l), 0);              // Diffuse component.
+    vec3 Is = light[i].Ls * pow(max(dot(r, f), 0), alpha);  // Specular component. TODO: shininess.
+
+    I += (Kd*Id + Ks*Is);
+  }
 
   // TODO: implement phong shading model.
   pixel_color = vec4(I, 1.0);

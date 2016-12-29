@@ -38,6 +38,11 @@ bool PhongRenderer::Load()
     mModelMatrixLoc  = mPhongShader->GetUniformLocation("M");
     mNormalMatrixLoc = mPhongShader->GetUniformLocation("N");
 
+    // Pre-load material uniform pack.
+    mMaterialUniform.mKaLoc = mPhongShader->GetUniformLocation("material.Ka");
+    mMaterialUniform.mKdLoc = mPhongShader->GetUniformLocation("material.Kd");
+    mMaterialUniform.mKsLoc = mPhongShader->GetUniformLocation("material.Ks");
+
     // Pre-load light uniform packs.
     mNumLightUniform = mPhongShader->GetUniformLocation("num_lights");
     mLaLoc = mPhongShader->GetUniformLocation("La");
@@ -150,20 +155,20 @@ void PhongRenderer::SetLightSource(const LightSource & lightSource, int slot) co
 
   SetUniform3f(lightSourceUniform.mPosLoc, lightSource.mPos);  // Position.
   SetUniform3f(lightSourceUniform.mDirLoc, lightSource.mDir);  // Direction.
-  SetUniform3f(lightSourceUniform.mLdLoc,  lightSource.mLd);  // Ambient component.
-  SetUniform3f(lightSourceUniform.mLsLoc,  lightSource.mLs);  // Ambient component.
+  SetUniform3f(lightSourceUniform.mLdLoc,  lightSource.mLd);  // Diffuse component.
+  SetUniform3f(lightSourceUniform.mLsLoc,  lightSource.mLs);  // Specular component.
   SetUniform1f(lightSourceUniform.mAlphaLoc, lightSource.mAlpha);  // Shininess.
 }
 
 void PhongRenderer::SetLightSourceInCameraCoordinates(const LightSource & lightSource, 
-                                                      const Transform & view, int slot) const
+                                                      const Camera * camera, int slot) const
 {
   const LightUniformPack & lightSourceUniform = mLightUniformArray[slot];
 
   // Transform position/direction into camera coordinates.
   glm::vec4 p = glm::vec4(lightSource.mPos, 1.0f);
   glm::vec4 d = glm::vec4(lightSource.mDir, 1.0f);
-  const glm::mat4 & V = view.GetMatrix();
+  const glm::mat4 & V = camera->ViewTransform().GetMatrix();
 
   p = V * p;
   d = V * d;
@@ -171,9 +176,16 @@ void PhongRenderer::SetLightSourceInCameraCoordinates(const LightSource & lightS
 
   SetUniform3f(lightSourceUniform.mPosLoc, p.xyz());  // Position.
   SetUniform3f(lightSourceUniform.mDirLoc, d.xyz());  // Direction.
-  SetUniform3f(lightSourceUniform.mLdLoc,  lightSource.mLd);  // Ambient component.
-  SetUniform3f(lightSourceUniform.mLsLoc,  lightSource.mLs);  // Ambient component.
+  SetUniform3f(lightSourceUniform.mLdLoc,  lightSource.mLd);  // Diffuse component.
+  SetUniform3f(lightSourceUniform.mLsLoc,  lightSource.mLs);  // Specular component.
   SetUniform1f(lightSourceUniform.mAlphaLoc, lightSource.mAlpha);  // Shininess.
+}
+
+void PhongRenderer::SetMaterial(const Material & material) const
+{
+  SetUniform3f(mMaterialUniform.mKaLoc,  material.mKa);  // Ambient component.
+  SetUniform3f(mMaterialUniform.mKdLoc,  material.mKd);  // Diffuse component.
+  SetUniform3f(mMaterialUniform.mKsLoc,  material.mKs);  // Specular component.
 }
 
 }  // namespace gloo.
