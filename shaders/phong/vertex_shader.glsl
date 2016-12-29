@@ -2,11 +2,11 @@
 
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec3 v_normal;
-layout (location = 2) in vec3 v_uv;
+layout (location = 2) in vec2 v_uv;
 
 out vec4 f_position;  // Fragment position in camera coordinates.
 out vec4 f_normal;    // Fragment normal in camera coordinates.
-out vec4 f_uv;        // Fragment uv coordinates.
+out vec2 f_uv;        // Fragment uv coordinates.
 
 uniform mat4 M;  // Model matrix.
 uniform mat4 V;  // View  matrix.
@@ -31,5 +31,5 @@ void main()
   f_normal = V * N * vec4(v_normal, 0.0);
 
   // Pass uv coordinates to be interpolated.
-  f_uv = vec4(v_uv, 1.0f);
+  f_uv = v_uv;
 }

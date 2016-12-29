@@ -68,6 +68,7 @@ MyModel::~MyModel()
   delete mPolygon;
   delete mBoundingBox;
   delete mWireframeSphere;
+  delete mTexture;
 
   delete mLightSource;
 }
@@ -75,6 +76,7 @@ MyModel::~MyModel()
 bool MyModel::Init()
 {
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_TEXTURE_2D);
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   mDebugRenderer = new DebugRenderer();
   mPhongRenderer = new PhongRenderer();
@@ -118,6 +120,11 @@ bool MyModel::Init()
   mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}, gloo::kNoAttrib});
   mMeshGroup->AddRenderingPass({{posAttribLocPhong, true}, {normalAttribLocPhong, true}, {textureAttribLocPhong, true}});
 
+  mTexture = new Texture2d();
+  mTexture->Load("textures/mount_fuji_1024x682.jpg");
+  mTexture->Bind(0);
+  glUniform1i(glGetUniformLocation(mPhongRenderer->GetShaderProgram()->GetHandle(), "color_texture"), 0);
+
   // mMeshGroup->Load(squareBuffer, nullptr);
   mMeshGroup->Load({squareVertices, squareNormals, squareUV}, nullptr);
 
@@ -144,21 +151,24 @@ void MyModel::Display()
   mPhongRenderer->Bind();
   mPhongRenderer->SetCamera(mCamera);
 
-  LightSource lightSource = { glm::vec3(0,    1,  0),        // Pos.
+  LightSource lightSource = { glm::vec3(std::cos(blah_angle*2.0f), 1, std::sin(blah_angle*2.0f)),  // Pos.
                               glm::vec3(0,   -1,  0),  // Dir.
                               glm::vec3(0.7, 0.7, 1),  // Ld.
                               glm::vec3(1.0, 1.0, 1),  // Ls.
-                              5.0f*std::cos(0*blah_angle*1.9f)+10.0f};  // Alpha.
+                              5.0f};  // Alpha.
 
   mPhongRenderer->EnableLightSource(0);
   mPhongRenderer->SetLightSourceInCameraCoordinates(lightSource, mCamera, 0);
 
-  mPhongRenderer->SetMaterial({ glm::vec3(0,  0, 0), 
-                                glm::vec3(.8, 0, 0),
+  mPhongRenderer->SetMaterial({ glm::vec3(0, 0, 0), 
+                                glm::vec3(.7, .7, .9),
                                 glm::vec3(.2, .2, .2)});
-  
+
+
+  // mTexture->Bind(0);
+
   M.LoadIdentity();
-  M.Rotate(-0.79*cos(blah_angle), 1, 0, 1);
+  // M.Rotate(-0.79*cos(blah_angle), 1, 0, 1);
   mPhongRenderer->Render(mMeshGroup, M, 1);
   M.LoadIdentity();
 

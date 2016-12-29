@@ -1,6 +1,8 @@
 #include <gloo/light.h>
 #include <gloo/group.h>
 #include <gloo/camera.h>
+#include <gloo/texture.h>
+#include <gloo/material.h>
 #include <gloo/model_base.h>
 #include <gloo/useful_meshes.h>
 #include <gloo/shader_program.h>
@@ -36,6 +38,7 @@ private:
 
   Camera* mCamera { nullptr };
   MeshGroup<Batch>* mMeshGroup { nullptr };
+  Texture2d* mTexture { nullptr };
 
   Polygon* mPolygon;
   AxisMesh* mAxis;

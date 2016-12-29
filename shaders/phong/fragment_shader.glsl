@@ -25,7 +25,7 @@ struct Material
 // Per-fragment data:
 in vec4 f_position;
 in vec4 f_normal;
-in vec4 f_uv;
+in vec2 f_uv;
 
 out vec4 pixel_color;
 
@@ -39,11 +39,10 @@ uniform vec3 La = vec3(0.1);                // Ambient light component.
 uniform LightSource light[max_num_lights];  // Array of light sources.
 
 // === Texture === //
-
+uniform sampler2D color_texture;
 
 // === Material === //
 uniform Material material;
-
 
 // === Code === //
 
@@ -75,5 +74,5 @@ void main()
   }
 
   // TODO: implement phong shading model.
-  pixel_color = vec4(I, 1.0);
+  pixel_color = mix(vec4(I, 1.0), texture(color_texture, f_uv), 0.65);
 }
