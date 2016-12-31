@@ -3,10 +3,12 @@
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec3 v_normal;
 layout (location = 2) in vec2 v_uv;
+// layout (location = 3) in vec3 v_tangent;
 
 out vec4 f_position;  // Fragment position in camera coordinates.
 out vec4 f_normal;    // Fragment normal in camera coordinates.
 out vec2 f_uv;        // Fragment uv coordinates.
+// out vec4 f_tangent;   // Fragment tangent vector in camera coordinates.
 
 uniform mat4 M;  // Model matrix.
 uniform mat4 V;  // View  matrix.

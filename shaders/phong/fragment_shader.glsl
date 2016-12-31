@@ -39,8 +39,8 @@ uniform vec3 La = vec3(0.1);                // Ambient light component.
 uniform LightSource light[max_num_lights];  // Array of light sources.
 
 // === Texture === //
-uniform sampler2D color_texture;
-uniform sampler2D normal_texture;
+uniform sampler2D color_map;
+uniform sampler2D normal_map;
 
 // === Material === //
 uniform Material material;
@@ -75,5 +75,5 @@ void main()
   }
 
   // TODO: implement phong shading model.
-  pixel_color = mix(vec4(I, 1.0), texture(color_texture, f_uv), 0.65);
+  pixel_color = mix(vec4(I, 1.0), texture(color_map, f_uv), 0.65);
 }

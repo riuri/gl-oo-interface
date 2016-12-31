@@ -41,7 +41,7 @@ public:
   , mFragmentShaderPath(fragmentShaderPath)
   { }
 
-  PhongRenderer(int numLightSources=1)
+  PhongRenderer()
   : Renderer()
   , mVertexShaderPath(  "../../shaders/phong/vertex_shader.glsl")
   , mFragmentShaderPath("../../shaders/phong/fragment_shader.glsl")
@@ -77,6 +77,7 @@ public:
   GLint GetPositionAttribLoc() const { return mPositionAttribLoc; }
   GLint GetTextureAttribLoc()  const { return mTextureAttribLoc;  }
   GLint GetNormalAttribLoc()   const { return mNormalAttribLoc;   }
+  GLint GetTangentAttribLoc()  const { return mTangentAttribLoc;  }
 
   GLint GetViewUniformLoc()   const { return mViewMatrixLoc; }
   GLint GetProjUniformLoc()   const { return mProjMatrixLoc; }
@@ -125,6 +126,7 @@ private:
   GLint mPositionAttribLoc { -1 };
   GLint mTextureAttribLoc  { -1 };
   GLint mNormalAttribLoc   { -1 };
+  GLint mTangentAttribLoc  { -1 };
 
   GLint mViewMatrixLoc   { -1 };
   GLint mProjMatrixLoc   { -1 };
@@ -216,4 +218,3 @@ void PhongRenderer::DisableLightSource(int slot) const
 }
 
 }  // namespace gloo.
-

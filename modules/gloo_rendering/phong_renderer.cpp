@@ -32,6 +32,7 @@ bool PhongRenderer::Load()
     mPositionAttribLoc = mPhongShader->GetAttribLocation("v_position");
     mNormalAttribLoc   = mPhongShader->GetAttribLocation("v_normal");
     mTextureAttribLoc  = mPhongShader->GetAttribLocation("v_uv");
+    mTangentAttribLoc  = mPhongShader->GetAttribLocation("v_tangent");
 
     mProjMatrixLoc   = mPhongShader->GetUniformLocation("P");
     mViewMatrixLoc   = mPhongShader->GetUniformLocation("V");
@@ -93,6 +94,10 @@ GLint PhongRenderer::GetAttribLocation(const std::string & name, int renderingPa
   else if (name == "normal" || name == "v_normal")
   {
     return mNormalAttribLoc;
+  }
+  else if (name == "tangent" || name == "v_tangent")
+  {
+    return mTangentAttribLoc;
   }
   else  // Search it up.
   {
