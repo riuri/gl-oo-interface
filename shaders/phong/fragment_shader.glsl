@@ -40,6 +40,7 @@ uniform LightSource light[max_num_lights];  // Array of light sources.
 
 // === Texture === //
 uniform sampler2D color_texture;
+uniform sampler2D normal_texture;
 
 // === Material === //
 uniform Material material;

@@ -42,7 +42,6 @@ bool Texture2d::Load(ImageIO* source, GLenum format, GLenum type)
 bool Texture2d::Load(int width, int height, GLenum format, GLenum type)
 {
   glGenTextures(1, &mBuffer);
-  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, mBuffer);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

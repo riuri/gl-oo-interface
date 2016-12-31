@@ -95,7 +95,6 @@ bool MyModel::Init()
     return false;
   }
 
-
   mPhongRenderer->SetNumLightSources(1);
 
   mCamera = new Camera();
@@ -122,8 +121,12 @@ bool MyModel::Init()
 
   mTexture = new Texture2d();
   mTexture->Load("textures/mount_fuji_1024x682.jpg");
-  mTexture->Bind(0);
-  glUniform1i(glGetUniformLocation(mPhongRenderer->GetShaderProgram()->GetHandle(), "color_texture"), 0);
+
+  mPhongRenderer->SetTextureUnit("normal_texture", 1);
+  mPhongRenderer->SetTextureUnit("color_texture", 0);
+  // mTexture->Bind(GL_TEXTURE0);
+  mTexture->Bind(GL_TEXTURE0);
+  
 
   // mMeshGroup->Load(squareBuffer, nullptr);
   mMeshGroup->Load({squareVertices, squareNormals, squareUV}, nullptr);

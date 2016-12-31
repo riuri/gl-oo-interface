@@ -19,7 +19,7 @@ public:
   Texture2d()  { }
   ~Texture2d();
 
-  void Bind(GLenum slot=0) const;
+  void Bind(GLenum unit=GL_TEXTURE0) const;
 
   // Loads image source from buffer on memory.
   bool Load(ImageIO* source, GLenum format=GL_RGB, GLenum type=GL_UNSIGNED_BYTE);
@@ -35,9 +35,9 @@ private:
 };
 
 inline
-void Texture2d::Bind(GLenum slot) const
+void Texture2d::Bind(GLenum unit) const
 {
-  glActiveTexture(GL_TEXTURE0 + slot);
+  glActiveTexture(unit);
   glBindTexture(GL_TEXTURE_2D, mBuffer);
 }
 

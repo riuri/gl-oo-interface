@@ -94,9 +94,9 @@ GLint PhongRenderer::GetAttribLocation(const std::string & name, int renderingPa
   {
     return mNormalAttribLoc;
   }
-  else  // There is no other attributes.
+  else  // Search it up.
   {
-    return -1;
+    return mPhongShader->GetAttribLocation(name);
   }
 }
 
@@ -118,10 +118,9 @@ GLint PhongRenderer::GetUniformLocation(const std::string & name, int renderingP
   {
     return mNormalMatrixLoc;
   }
-  
-  else  // There is no other uniforms.
+  else // Search it up.
   {
-    return -1;
+    return mPhongShader->GetUniformLocation(name);
   }
 }
 

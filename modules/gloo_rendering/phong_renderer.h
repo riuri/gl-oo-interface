@@ -4,11 +4,20 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 
-// PhongRenderer ...
+// PhongRenderer is an interface for rendering objects using phong shading model or any variant.
+// It provides general functionalities to any phong shader program, such as the following attri-
+// butes and uniforms:
 //
-//  
+// Attributes: vertex position, normal and texture coordinates.
+// Uniform: matrices, light sources, texture and material.
+
+// Usage:
+// TODO.
+//
 
 #pragma once 
+
+#include <string>
 
 #include "light.h"
 #include "renderer.h"
@@ -82,10 +91,17 @@ public:
   void SetCamera(const Camera* camera) const;
   void SetModelNormalMatrix(const Transform & model) const;
 
-  // Lighting configuration methods.
+  // === Lighting configuration methods ===
+  
+  // Activate light source on shader.
   void EnableLightSource(int slot)  const;
+  // Deactivate light source on shader.
   void DisableLightSource(int slot) const;
-  void SetNumLightSources(int numLightSources);
+
+  // Change number of light sources on shader (for rendering optimization).
+  void SetNumLightSources(int numLightSources) const;
+
+  // Set light source/light properties.
   void SetLightAmbientComponent(const glm::vec3 & La) const;
   void SetLightSource(const LightSource & lightSource, int slot) const;
   void SetLightSourceInCameraCoordinates(const LightSource & lightSource, const Camera * camera, int slot) const;
@@ -95,12 +111,17 @@ public:
 
   // Texture configuration methods.
 
+  // Use the following methods to link a texture unit to a sampler on shader.
+  // samplerName is your sampler uniform name on the shader.
+  // slot is the number of the texture unit.
+  void SetTextureUnit(const char * samplerName, GLuint slot) const;
+  void SetTextureUnit(const std::string & samplerName, GLuint slot) const;
 
 private:
   // Shader Program.
   ShaderProgram* mPhongShader { nullptr };
 
-  // Add fast-access uniform/attribute locations here...
+  // Fast-access attribute/uniform locations.
   GLint mPositionAttribLoc { -1 };
   GLint mTextureAttribLoc  { -1 };
   GLint mNormalAttribLoc   { -1 };
@@ -148,6 +169,18 @@ void PhongRenderer::Render(const MeshGroup<F>* mesh, const Transform & model, in
 // ----- Inline methods ---------------------------------------------------------------------------
 
 inline
+void PhongRenderer::SetTextureUnit(const char * samplerName, GLuint slot) const
+{
+  glUniform1i(mPhongShader->GetUniformLocation(samplerName), slot);
+}
+
+inline
+void PhongRenderer::SetTextureUnit(const std::string & samplerName, GLuint slot) const
+{
+  PhongRenderer::SetTextureUnit(samplerName.c_str(), slot);
+}
+
+inline
 void PhongRenderer::SetCamera(const Camera* camera) const
 {
   camera->SetUniformProjMatrix(mProjMatrixLoc);
@@ -163,7 +196,7 @@ void PhongRenderer::SetModelNormalMatrix(const Transform & model) const
 
 
 inline
-void PhongRenderer::SetNumLightSources(int numLightSources)
+void PhongRenderer::SetNumLightSources(int numLightSources) const
 {
   // Make sure that (0 <= numLightSources <= kMaxNumberLights).
   numLightSources = std::max(0, std::min(kMaxNumberLights, numLightSources));
