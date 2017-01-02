@@ -9,6 +9,8 @@ out vec4 f_position;  // Fragment position in camera coordinates.
 out vec4 f_normal;    // Fragment normal in camera coordinates.
 out vec2 f_uv;        // Fragment uv coordinates.
 
+out vec3 barycentric; // Barycentric coordinates.
+
 // out vec4 f_tangent;   // Fragment tangent vector in camera coordinates.
 
 uniform mat4 M;  // Model matrix.
@@ -16,11 +18,26 @@ uniform mat4 V;  // View  matrix.
 uniform mat4 P;  // Projection matrix.
 uniform mat4 N;  // Normal matrix N = (VM)^-t.
 
-// const float C = 1;
-// const float far = 1000;
+//const float C = 1;
+//const float far = 1000;
 
 void main()
 {
+  int index = (gl_VertexID % 3);
+
+  if (index == 0)
+  {
+    barycentric = vec3(1, 0, 0);  
+  }
+  else if (index == 1)
+  {
+    barycentric = vec3(0, 1, 0);
+  }
+  else
+  {
+    barycentric = vec3(0, 0, 1);
+  }
+
   // Compute vertex position in world coordinates.
   f_position = V * (M * vec4(v_position, 1.0f));
   f_position = f_position/f_position.w;

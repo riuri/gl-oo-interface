@@ -65,10 +65,8 @@ bool PhongRenderer::Load()
   }
   else 
   {
-#if LOG_OUTPUT_ON == 1
     mPhongShader->PrintCompilationLog();
-#endif
-
+    
     return false;
   }
 }

@@ -27,6 +27,8 @@ in vec4 f_position;
 in vec4 f_normal;
 in vec2 f_uv;
 
+in vec3 barycentric;
+
 out vec4 pixel_color;
 
 // === Light Sources === //
@@ -55,23 +57,31 @@ void main()
 
   // Fragment data and light sources are in camera coordinates.
   vec3 I = Ka*La;
-  vec3 n = f_normal.xyz;
-
-  for (int i = 0; i < num_lights; i++)
+  
+  if (barycentric.x < 0.02 || barycentric.y < 0.02 || barycentric.z < 0.02)  // Edge.
   {
-    if (light_switch[i] == 0)  // Off!
-      continue;
+    I = vec3(1.0) - Kd;
+  }
+  else  // Interior of a triangle.
+  {
+    vec3 n = f_normal.xyz;
 
-    vec3 l  = normalize(light[i].pos - f_position.xyz);  // Unit vector from fragment to light source.
-    vec3 r  = -reflect(l, n);                            // Reflection of light ray on fragment.
-    vec3 f = normalize(-f_position.xyz);                 // Unit vector from fragment to camera (origin).
-    float d =    length(light[i].pos - f_position.xyz);  // Distance from fragment to light source.
-    float alpha = light[i].alpha;
+    for (int i = 0; i < num_lights; i++)
+    {
+      if (light_switch[i] == 0)  // Off!
+        continue;
 
-    vec3 Id = light[i].Ld * max(dot(n, l), 0);              // Diffuse component.
-    vec3 Is = light[i].Ls * pow(max(dot(r, f), 0), alpha);  // Specular component. TODO: shininess.
+      vec3 l  = normalize(light[i].pos - f_position.xyz);  // Unit vector from fragment to light source.
+      vec3 r  = -reflect(l, n);                            // Reflection of light ray on fragment.
+      vec3 f = normalize(-f_position.xyz);                 // Unit vector from fragment to camera (origin).
+      float d =    length(light[i].pos - f_position.xyz);  // Distance from fragment to light source.
+      float alpha = light[i].alpha;
 
-    I += (Kd*Id + Ks*Is);
+      vec3 Id = light[i].Ld * max(dot(n, l), 0);              // Diffuse component.
+      vec3 Is = light[i].Ls * pow(max(dot(r, f), 0), alpha);  // Specular component. TODO: shininess.
+
+      I += (Kd*Id + Ks*Is);
+    }
   }
 
   pixel_color = vec4(I, 1.0);
