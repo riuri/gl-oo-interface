@@ -1,7 +1,5 @@
 #include "useful_meshes.h"
 
-// #include ""
-
 namespace gloo
 {
 
@@ -393,6 +391,108 @@ void WireframeSphere::Update()
 void WireframeSphere::Render() const
 {
   mMeshGroup->Render();
+}
+
+// ============================================================================================= //
+
+TexturedSphere::TexturedSphere(GLint positionAttribLoc, GLint normalAttribLoc, GLint uvAttribLoc,
+  const Material & material)
+{
+  mMaterial = material;
+
+  int w = 65;
+  int h = 65;
+
+  const int numVertices = (w * h);
+  const int numElements = 2*(h-2)*w + 2*w + 2*(h-2);
+  const GLenum drawMode = GL_TRIANGLE_STRIP;
+
+  std::vector<GLfloat> positions;
+  std::vector<GLfloat> normals;
+  std::vector<GLfloat> uvs;
+  std::vector<GLuint> indices;
+
+  positions.reserve(numVertices * 3);
+  normals.reserve(numVertices * 3);
+  uvs.reserve(numVertices * 2);
+  indices.reserve(numElements);
+
+  // Initialize vertices.
+  for (int v = 0; v < h; v++)
+  {
+    for (int u = 0; u < w; u++)
+    {
+      GLfloat theta_u = (2*M_PI * u) / (w-1);
+      GLfloat theta_v =   (M_PI * v) / (h-1);
+      GLfloat position[3];
+
+      position[0] = cos(theta_u) * sin(theta_v);
+      position[2] = sin(theta_u) * sin(theta_v);
+      position[1] = cos(theta_v);
+
+      // Vertex coordinates.
+      positions.push_back(position[0]);
+      positions.push_back(position[1]);
+      positions.push_back(position[2]);
+
+      // Vertex normals.
+      normals.push_back(2*position[0]);
+      normals.push_back(2*position[1]);
+      normals.push_back(2*position[2]);
+
+      // Vertex uvs.
+      uvs.push_back(static_cast<float>(u)/(w-1));
+      uvs.push_back(1 - static_cast<float>(v)/(h-1));
+    }
+  }
+
+  for (int v = 0; v < h-1; v++)
+  {
+    // Zig-zag pattern: alternate between top and bottom.
+    for (int u = 0; u < w; u++)
+    {
+      indices.push_back((v+0)*w + u);
+      indices.push_back((v+1)*w + u);
+    }
+
+    // Triangle row transition: handle discontinuity.
+    if (v < h-2)
+    {
+      // Repeat last vertex and the next row first vertex to generate 
+      // two invalid triangles and get continuity in the mesh.
+      indices.push_back((v+1)*w + (w-1)); //INDEX(this->width-1, y+1);
+      indices.push_back((v+1)*w + 0);     //INDEX(0, y+1);
+    }
+  }
+
+  // Allocate mesh.
+  mMeshGroup = new MeshGroup<Batch>(numVertices, numElements, drawMode);
+
+  // Specify its attributes.
+  mMeshGroup->SetVertexAttribList({3, 3, 2});
+
+  // Add rendering pass.
+  mMeshGroup->AddRenderingPass({{positionAttribLoc, true},
+                                {normalAttribLoc, true},
+                                {uvAttribLoc, true}});
+
+  // Load data.
+  mMeshGroup->Load({positions.data(), normals.data(), uvs.data()}, indices.data());
+}
+
+TexturedSphere::~TexturedSphere() 
+{
+  delete mMeshGroup;
+}
+
+void TexturedSphere::Update() 
+{
+  // Do nothing.
+}
+
+void TexturedSphere::Render() const
+{
+  mMeshGroup->Render(0);
 }
 
 }  // namespace gloo.

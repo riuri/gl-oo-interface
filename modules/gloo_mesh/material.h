@@ -8,6 +8,8 @@
 
 #include "gloo/gl_header.h"
 
+#include <glm/glm.hpp>
+
 namespace gloo
 {
 

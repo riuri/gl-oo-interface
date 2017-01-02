@@ -34,6 +34,7 @@ const int kMaxNumberLights = 8;
 class PhongRenderer : public Renderer
 {
 public:
+  // Load a custom phong renderer if you need it. 
   PhongRenderer(const std::string & vertexShaderPath,
                 const std::string & fragmentShaderPath)
   : Renderer()
@@ -107,10 +108,10 @@ public:
   void SetLightSource(const LightSource & lightSource, int slot) const;
   void SetLightSourceInCameraCoordinates(const LightSource & lightSource, const Camera * camera, int slot) const;
 
-  // Material configuration methods.
+  // === Material configuration methods ===
   void SetMaterial(const Material & material) const;
 
-  // Texture configuration methods.
+  // === Texture configuration methods ===
 
   // Use the following methods to link a texture unit to a sampler on shader.
   // samplerName is your sampler uniform name on the shader.
@@ -141,9 +142,6 @@ private:
 
   // Material.
   MaterialUniformPack mMaterialUniform;  // Set of material uniforms.
-
-  // Texture.
-
 
   // Constant data (passed to constructor).
   const std::string mVertexShaderPath;

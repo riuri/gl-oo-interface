@@ -30,7 +30,7 @@ void main()
   // gl_Position.z *= gl_Position.w;
 
   // Transform the vertex normal vector.
-  f_normal = V * N * vec4(v_normal, 0.0);
+  f_normal = normalize(V * N * vec4(v_normal, 0.0));
 
   // Pass uv coordinates to be interpolated.
   f_uv = v_uv;

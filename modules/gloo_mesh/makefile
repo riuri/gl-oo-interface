@@ -36,7 +36,7 @@ $(L)/gloo_mesh/libgloo_mesh.a: $(GLOO_MESH_OBJECTS_FILENAMES)
 	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/gloo_mesh/*.h $(L)/include/gloo
 
 $(GLOO_MESH_OBJECTS_FILENAMES): %.o: %.cpp $(GLOO_MESH_FILENAMES) $(GLOO_MESH_HEADER_FILENAMES)
-	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $(JPEG_INCLUDE) $< -o $@ 
+	$(CXX) $(CXXFLAGS) -c $(INCLUDE) $(JPEG_INCLUDE) $(GLM_INCLUDE) $< -o $@  -I../../dependencies/glm
 
 ifeq ($(CLEANFOLDER), GLOO_MESH)
 cleanGLOO_MESH: cleanGLOO_MESH

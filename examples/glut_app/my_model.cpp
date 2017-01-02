@@ -69,6 +69,7 @@ MyModel::~MyModel()
   delete mBoundingBox;
   delete mWireframeSphere;
   delete mTexture;
+  delete mDome;
 
   delete mLightSource;
 }
@@ -95,7 +96,9 @@ bool MyModel::Init()
     return false;
   }
 
-  mPhongRenderer->SetNumLightSources(1);
+  mPhongRenderer->SetNumLightSources(2);
+  mPhongRenderer->EnableLightSource(0);
+  mPhongRenderer->EnableLightSource(1);
 
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
@@ -114,18 +117,21 @@ bool MyModel::Init()
   GLint normalAttribLocPhong =  mPhongRenderer->GetNormalAttribLoc();
   GLint textureAttribLocPhong = mPhongRenderer->GetTextureAttribLoc();
 
+  mDome = new TexturedSphere(posAttribLocPhong, normalAttribLocPhong, textureAttribLocPhong, 
+                             {glm::vec3(0, 0, 0), glm::vec3(0), glm::vec3(0.07, 0.07, 0.07)});
+
   mMeshGroup = new MeshGroup<Batch>(4, 4);
   mMeshGroup->SetVertexAttribList({3, 3, 2});
   mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}, gloo::kNoAttrib});
   mMeshGroup->AddRenderingPass({{posAttribLocPhong, true}, {normalAttribLocPhong, true}, {textureAttribLocPhong, true}});
 
   mTexture = new Texture2d();
-  mTexture->Load("textures/mount_fuji_1024x682.jpg");
+  mTexture->Load("textures/jupiter.jpg");
 
   mPhongRenderer->SetTextureUnit("normal_texture", 1);
   mPhongRenderer->SetTextureUnit("color_texture", 0);
   // mTexture->Bind(GL_TEXTURE0);
-  mTexture->Bind(GL_TEXTURE0);
+  // mTexture->Bind(GL_TEXTURE0);
   
 
   // mMeshGroup->Load(squareBuffer, nullptr);
@@ -154,27 +160,35 @@ void MyModel::Display()
   mPhongRenderer->Bind();
   mPhongRenderer->SetCamera(mCamera);
 
-  LightSource lightSource = { glm::vec3(std::cos(blah_angle*2.0f), 1, std::sin(blah_angle*2.0f)),  // Pos.
+  LightSource lightSource = { glm::vec3(0*std::cos(blah_angle*2.0f), 10.0f, 0*std::sin(blah_angle*2.0f)),  // Pos.
                               glm::vec3(0,   -1,  0),  // Dir.
-                              glm::vec3(0.7, 0.7, 1),  // Ld.
-                              glm::vec3(1.0, 1.0, 1),  // Ls.
-                              5.0f};  // Alpha.
+                              glm::vec3(0.9, 0.9, 1),  // Ld.
+                              glm::vec3(0.6, 0.6, 0.6),  // Ls.
+                              2.0f};  // Alpha.
 
-  mPhongRenderer->EnableLightSource(0);
   mPhongRenderer->SetLightSourceInCameraCoordinates(lightSource, mCamera, 0);
 
+  LightSource lightSource2 = { glm::vec3(std::cos(blah_angle*2.0f), std::sin(blah_angle*2.0f), 2.0f),  // Pos.
+                               glm::vec3(0,   -1,  0),  // Dir.
+                               glm::vec3(1.0,  1.0, 1),  // Ld.
+                               glm::vec3(1.0, 1.0, 1),  // Ls.
+                               5.0f};  // Alpha.
+
+  mPhongRenderer->SetLightSourceInCameraCoordinates(lightSource2, mCamera, 1);
   mPhongRenderer->SetMaterial({ glm::vec3(0, 0, 0), 
                                 glm::vec3(.7, .7, .9),
                                 glm::vec3(.2, .2, .2)});
 
-
-  // mTexture->Bind(0);
-
+  mTexture->Bind(GL_TEXTURE0);
   M.LoadIdentity();
   // M.Rotate(-0.79*cos(blah_angle), 1, 0, 1);
-  mPhongRenderer->Render(mMeshGroup, M, 1);
+  // mPhongRenderer->Render(mMeshGroup, M, 1);
   M.LoadIdentity();
 
+  M.Scale(0.5, 0.5, 0.5);
+  mPhongRenderer->SetMaterial(mDome->GetMaterial());
+  mPhongRenderer->Render(mDome->GetMeshGroup(), M, 0);
+  M.LoadIdentity();
 
   if (mRendererNum == 1) 
   {

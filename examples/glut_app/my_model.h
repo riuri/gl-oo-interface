@@ -43,6 +43,7 @@ private:
   Polygon* mPolygon;
   AxisMesh* mAxis;
   GridMesh* mGrid;
+  TexturedSphere*  mDome;
   BoundingBoxMesh* mBoundingBox;
   WireframeSphere* mWireframeSphere;
 

@@ -6,12 +6,14 @@
 
 #include "gloo/gl_header.h"
 
+#include "gloo/material.h"
+#include "gloo/texture.h"
 #include "gloo/group.h"
 #include "transform.h"
 
 // ============================================================================================= //
-// This file provides a set of useful meshes for debugging, such as
-// xyz-axis, grids, bounding boxes, bounding spheres and so on.
+// This file provides a set of useful meshes for genral purpose and debugging, such as
+// xyz-axis, grids, bounding boxes, bounding spheres, textured-sphere and so on.
 // They require a very simple shader that considers positions and 
 // colors only. You can find this shaders in the folder '../../shaders'.
 //
@@ -110,6 +112,26 @@ public:
   const MeshGroup<Batch>* GetMeshGroup() const { return mMeshGroup; };
 
 private:
+  MeshGroup<Batch>* mMeshGroup;
+};
+
+struct TexturedSphere
+{
+public:
+  TexturedSphere(GLint positionAttribLoc, GLint normalAttribLoc, GLint uvAttribLoc, 
+    const Material & material);
+  ~TexturedSphere();
+
+  void Render() const;
+  void Update();
+
+  Material GetMaterial() const { return mMaterial; }
+  void SetMaterial(const Material & material) { mMaterial = material; }
+
+  const MeshGroup<Batch>* GetMeshGroup() const { return mMeshGroup; }
+
+private:
+  Material mMaterial;
   MeshGroup<Batch>* mMeshGroup;
 };
 

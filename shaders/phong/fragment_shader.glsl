@@ -50,7 +50,7 @@ uniform Material material;
 void main()
 {
   vec3 Ka = material.Ka;
-  vec3 Kd = material.Kd;
+  vec3 Kd = texture(color_map, f_uv).xyz;
   vec3 Ks = material.Ks;
 
   // Fragment data and light sources are in camera coordinates.
@@ -75,5 +75,5 @@ void main()
   }
 
   // TODO: implement phong shading model.
-  pixel_color = mix(vec4(I, 1.0), texture(color_map, f_uv), 0.65);
+  pixel_color = vec4(I, 1.0);
 }
