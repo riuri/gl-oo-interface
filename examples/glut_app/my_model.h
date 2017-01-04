@@ -38,7 +38,8 @@ private:
 
   Camera* mCamera { nullptr };
   MeshGroup<Batch>* mMeshGroup { nullptr };
-  Texture2d* mTexture { nullptr };
+  Texture2d* mTexture   { nullptr };
+  Texture2d* mNormalMap { nullptr };
 
   Polygon* mPolygon;
   AxisMesh* mAxis;

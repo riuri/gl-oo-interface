@@ -119,7 +119,7 @@ struct TexturedSphere
 {
 public:
   TexturedSphere(GLint positionAttribLoc, GLint normalAttribLoc, GLint uvAttribLoc, 
-    const Material & material);
+                 GLint tangentAttribLoc, const Material & material);
   ~TexturedSphere();
 
   void Render() const;

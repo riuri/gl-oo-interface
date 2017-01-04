@@ -95,6 +95,9 @@ public:
 
   // === Lighting configuration methods ===
   
+  void EnableLighting() const;
+  void DisableLighting() const;
+
   // Activate light source on shader.
   void EnableLightSource(int slot)  const;
   // Deactivate light source on shader.
@@ -135,6 +138,7 @@ private:
   GLint mNormalMatrixLoc { -1 };
 
   // Lighting.  
+  GLint mLightingLoc { -1 };
   GLint mLaLoc { -1 };
   GLint mNumLightUniform { -1 };
   GLint mLightSwitchUniformArray[kMaxNumberLights];
@@ -213,6 +217,18 @@ inline
 void PhongRenderer::DisableLightSource(int slot) const
 {
   glUniform1i(mLightSwitchUniformArray[slot], 0);
+}
+
+inline
+void PhongRenderer::EnableLighting()  const
+{
+  glUniform1i(mLightingLoc, 1);
+}
+
+inline
+void PhongRenderer::DisableLighting() const
+{
+  glUniform1i(mLightingLoc, 0);
 }
 
 }  // namespace gloo.

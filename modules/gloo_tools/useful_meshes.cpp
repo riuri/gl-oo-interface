@@ -396,7 +396,7 @@ void WireframeSphere::Render() const
 // ============================================================================================= //
 
 TexturedSphere::TexturedSphere(GLint positionAttribLoc, GLint normalAttribLoc, GLint uvAttribLoc,
-  const Material & material)
+                               GLint tangentAttribLoc, const Material & material)
 {
   mMaterial = material;
 
@@ -410,11 +410,13 @@ TexturedSphere::TexturedSphere(GLint positionAttribLoc, GLint normalAttribLoc, G
   std::vector<GLfloat> positions;
   std::vector<GLfloat> normals;
   std::vector<GLfloat> uvs;
+  std::vector<GLfloat> tangents;
   std::vector<GLuint> indices;
 
   positions.reserve(numVertices * 3);
   normals.reserve(numVertices * 3);
   uvs.reserve(numVertices * 2);
+  tangents.reserve(numVertices * 3);
   indices.reserve(numElements);
 
   // Initialize vertices.
@@ -435,14 +437,23 @@ TexturedSphere::TexturedSphere(GLint positionAttribLoc, GLint normalAttribLoc, G
       positions.push_back(position[1]);
       positions.push_back(position[2]);
 
+      glm::vec3 n(2*position[0], 2*position[1], 2*position[2]);
+      n = glm::normalize(n);
+      glm::vec3 t(-n[2], 0.0f, n[0]);
+      t = -glm::normalize(t);
+
       // Vertex normals.
-      normals.push_back(2*position[0]);
-      normals.push_back(2*position[1]);
-      normals.push_back(2*position[2]);
+      normals.push_back(n[0]);
+      normals.push_back(n[1]);
+      normals.push_back(n[2]);
 
       // Vertex uvs.
-      uvs.push_back(static_cast<float>(u)/(w-1));
-      uvs.push_back(1 - static_cast<float>(v)/(h-1));
+      uvs.push_back(1.0f - static_cast<float>(u)/(w-1));
+      uvs.push_back(1.0f - static_cast<float>(v)/(h-1));
+
+      tangents.push_back(t[0]);
+      tangents.push_back(t[1]);
+      tangents.push_back(t[2]);
     }
   }
 
@@ -469,15 +480,17 @@ TexturedSphere::TexturedSphere(GLint positionAttribLoc, GLint normalAttribLoc, G
   mMeshGroup = new MeshGroup<Batch>(numVertices, numElements, drawMode);
 
   // Specify its attributes.
-  mMeshGroup->SetVertexAttribList({3, 3, 2});
+  mMeshGroup->SetVertexAttribList({3, 3, 2, 3});
 
   // Add rendering pass.
   mMeshGroup->AddRenderingPass({{positionAttribLoc, true},
                                 {normalAttribLoc, true},
-                                {uvAttribLoc, true}});
+                                {uvAttribLoc, true}, 
+                                {tangentAttribLoc, true}
+                              });
 
   // Load data.
-  mMeshGroup->Load({positions.data(), normals.data(), uvs.data()}, indices.data());
+  mMeshGroup->Load({positions.data(), normals.data(), uvs.data(), tangents.data()}, indices.data());
 }
 
 TexturedSphere::~TexturedSphere() 

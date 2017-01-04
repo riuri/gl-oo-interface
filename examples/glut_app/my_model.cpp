@@ -23,31 +23,17 @@ GLfloat squareUV[] = { 0.0f, 0.0f,
                        0.0f, 1.0f,
                        1.0f, 1.0f };
 
+GLfloat squareTangents[] = { -1.0f, 0.0f, 0.0f,
+                             -1.0f, 0.0f, 0.0f,
+                             1.0f, 0.0f, 0.0f,
+                             1.0f, 0.0f, 0.0f };
+
 GLfloat squareNormals[] = {0.0f, 1.0f, 0.0f, 
                            0.0f, 1.0f, 0.0f,
                            0.0f, 1.0f, 0.0f,
                            0.0f, 1.0f, 0.0f};
 
-
-GLfloat squareBuffer[] = {-0.5f, 0.0f,  0.5f,
-                           0.5f, 0.0f,  0.5f,
-                          -0.5f, 0.0f, -0.5f,
-                           0.5f, 0.0f, -0.5f,
-
-                          1.0f, 0.0f, 0.0f,
-                          0.0f, 1.0f, 0.0f,
-                          0.0f, 0.0f, 1.0f,
-                          0.4f, 0.4f, 0.4f
-                           };
-
-
-GLfloat squareBufferInterleaved[] =  {-0.5f, 0.0f,  0.5f,   1.0f, 0.0f, 0.0f,
-                                       0.5f, 0.0f,  0.5f,   0.0f, 1.0f, 0.0f,
-                                      -0.5f, 0.0f, -0.5f,   0.0f, 0.0f, 1.0f,
-                                       0.5f, 0.0f, -0.5f,   0.4f, 0.4f, 0.4f};
-
 GLuint indices[] = {0, 2, 1, 3};
-
 GLuint program; 
 
 MyModel::MyModel()
@@ -70,6 +56,7 @@ MyModel::~MyModel()
   delete mWireframeSphere;
   delete mTexture;
   delete mDome;
+  delete mNormalMap;
 
   delete mLightSource;
 }
@@ -80,7 +67,8 @@ bool MyModel::Init()
   glEnable(GL_TEXTURE_2D);
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   mDebugRenderer = new DebugRenderer();
-  mPhongRenderer = new PhongRenderer();
+  mPhongRenderer = new PhongRenderer("../../shaders/normal_mapping_phong/vertex_shader.glsl",
+                                     "../../shaders/normal_mapping_phong/fragment_shader.glsl");
 
   if (!mDebugRenderer->Load())
   {
@@ -97,7 +85,7 @@ bool MyModel::Init()
   }
 
   mPhongRenderer->SetNumLightSources(2);
-  mPhongRenderer->EnableLightSource(0);
+  mPhongRenderer->DisableLightSource(0);
   mPhongRenderer->EnableLightSource(1);
 
   mCamera = new Camera();
@@ -116,26 +104,32 @@ bool MyModel::Init()
   GLint posAttribLocPhong = mPhongRenderer->GetPositionAttribLoc();
   GLint normalAttribLocPhong =  mPhongRenderer->GetNormalAttribLoc();
   GLint textureAttribLocPhong = mPhongRenderer->GetTextureAttribLoc();
+  GLint tangentAttribLocPhong = mPhongRenderer->GetTangentAttribLoc();
 
-  mDome = new TexturedSphere(posAttribLocPhong, normalAttribLocPhong, textureAttribLocPhong, 
+  mDome = new TexturedSphere(posAttribLocPhong, normalAttribLocPhong, textureAttribLocPhong, tangentAttribLocPhong,
                              {glm::vec3(0, 0, 0), glm::vec3(0), glm::vec3(0.07, 0.07, 0.07)});
 
   mMeshGroup = new MeshGroup<Batch>(4, 4);
-  mMeshGroup->SetVertexAttribList({3, 3, 2});
-  mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}, gloo::kNoAttrib});
-  mMeshGroup->AddRenderingPass({{posAttribLocPhong, true}, {normalAttribLocPhong, true}, {textureAttribLocPhong, true}});
+  mMeshGroup->SetVertexAttribList({3, 3, 2, 3});
+  mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}, gloo::kNoAttrib, gloo::kNoAttrib});
+  mMeshGroup->AddRenderingPass({{posAttribLocPhong, true}, 
+                                {normalAttribLocPhong, true}, 
+                                {textureAttribLocPhong, true},
+                                {tangentAttribLocPhong, true}});
+
+  mMeshGroup->Load({squareVertices, squareNormals, squareUV, squareTangents}, nullptr);
 
   mTexture = new Texture2d();
-  mTexture->Load("textures/jupiter.jpg");
+  mTexture->Load("textures/154.jpg");
 
-  mPhongRenderer->SetTextureUnit("normal_texture", 1);
-  mPhongRenderer->SetTextureUnit("color_texture", 0);
-  // mTexture->Bind(GL_TEXTURE0);
-  // mTexture->Bind(GL_TEXTURE0);
+  mNormalMap = new Texture2d();
+  mNormalMap->Load("textures/154_norm.jpg");
+
+  mPhongRenderer->SetTextureUnit("color_map",  0);
+  mPhongRenderer->SetTextureUnit("normal_map", 1);
   
+  mPhongRenderer->EnableLighting();
 
-  // mMeshGroup->Load(squareBuffer, nullptr);
-  mMeshGroup->Load({squareVertices, squareNormals, squareUV}, nullptr);
 
   return true;
 }
@@ -160,7 +154,7 @@ void MyModel::Display()
   mPhongRenderer->Bind();
   mPhongRenderer->SetCamera(mCamera);
 
-  LightSource lightSource = { glm::vec3(0*std::cos(blah_angle*2.0f), 10.0f, 0*std::sin(blah_angle*2.0f)),  // Pos.
+  LightSource lightSource = { glm::vec3(0, 10.0f, 0),  // Pos.
                               glm::vec3(0,   -1,  0),  // Dir.
                               glm::vec3(0.9, 0.9, 1),  // Ld.
                               glm::vec3(0.6, 0.6, 0.6),  // Ls.
@@ -168,7 +162,7 @@ void MyModel::Display()
 
   mPhongRenderer->SetLightSourceInCameraCoordinates(lightSource, mCamera, 0);
 
-  LightSource lightSource2 = { glm::vec3(std::cos(blah_angle*2.0f), std::sin(blah_angle*2.0f), 2.0f),  // Pos.
+  LightSource lightSource2 = { glm::vec3(0.5f*std::cos(blah_angle*3.0f), 2.0f, 3*std::sin(blah_angle*1.4f + 2.0f)),  // Pos.
                                glm::vec3(0,   -1,  0),  // Dir.
                                glm::vec3(1.0,  1.0, 1),  // Ld.
                                glm::vec3(1.0, 1.0, 1),  // Ls.
@@ -176,18 +170,20 @@ void MyModel::Display()
 
   mPhongRenderer->SetLightSourceInCameraCoordinates(lightSource2, mCamera, 1);
   mPhongRenderer->SetMaterial({ glm::vec3(0, 0, 0), 
-                                glm::vec3(.7, .7, .9),
-                                glm::vec3(.2, .2, .2)});
+                                glm::vec3(.9, .9, .9),
+                                glm::vec3(.05, .05, .05)});
 
   mTexture->Bind(GL_TEXTURE0);
+  mNormalMap->Bind(GL_TEXTURE1);
   M.LoadIdentity();
   // M.Rotate(-0.79*cos(blah_angle), 1, 0, 1);
-  // mPhongRenderer->Render(mMeshGroup, M, 1);
+  mPhongRenderer->Render(mMeshGroup, M, 1);
   M.LoadIdentity();
 
-  M.Scale(0.5, 0.5, 0.5);
+  M.Scale(0.7f, 0.7f, 0.7f);
+  // M.Rotate(blah_angle/10.0f, 0, 1, 0);
   mPhongRenderer->SetMaterial(mDome->GetMaterial());
-  mPhongRenderer->Render(mDome->GetMeshGroup(), M, 0);
+  // mPhongRenderer->Render(mDome->GetMeshGroup(), M, 0);
   M.LoadIdentity();
 
   if (mRendererNum == 1) 
@@ -195,13 +191,13 @@ void MyModel::Display()
     mDebugRenderer->Bind();
     mDebugRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
     mDebugRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
-    mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
+    // mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
 
-    M.Rotate(-0.79*blah_angle, 0, 1, 0);
-    M.Translate(-1.2f, 0.0f, 0.0f);
-    M.Rotate(blah_angle, 0, 0, 1);
-    M.Scale(0.25f, 0.25f, 0.25f);
-    mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
+    // M.Rotate(-0.79*blah_angle, 0, 1, 0);
+    // M.Translate(-1.2f, 0.0f, 0.0f);
+    // M.Rotate(blah_angle, 0, 0, 1);
+    // M.Scale(0.25f, 0.25f, 0.25f);
+    // mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
   }
 
   glutSwapBuffers();

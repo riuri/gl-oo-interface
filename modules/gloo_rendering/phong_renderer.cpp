@@ -45,6 +45,7 @@ bool PhongRenderer::Load()
     mMaterialUniform.mKsLoc = mPhongShader->GetUniformLocation("material.Ks");
 
     // Pre-load light uniform packs.
+    mLightingLoc = mPhongShader->GetUniformLocation("lighting");
     mNumLightUniform = mPhongShader->GetUniformLocation("num_lights");
     mLaLoc = mPhongShader->GetUniformLocation("La");
 
@@ -66,7 +67,6 @@ bool PhongRenderer::Load()
   else 
   {
     mPhongShader->PrintCompilationLog();
-    
     return false;
   }
 }
