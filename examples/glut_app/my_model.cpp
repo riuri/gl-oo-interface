@@ -8,41 +8,32 @@
 #include <iostream>
 
 
-GLfloat squareVertices[] = {-0.5f, 0.0f,  0.5f,
-                             0.5f, 0.0f,  0.5f,
-                            -0.5f, 0.0f, -0.5f,
-                             0.5f, 0.0f, -0.5f};
+GLfloat squareVertices[] = {-1.5f, 0.0f,  1.5f,
+                             1.5f, 0.0f,  1.5f,
+                            -1.5f, 0.0f, -1.5f,
+                             1.5f, 0.0f, -1.5f};
 
 GLfloat squareColors[] = {1.0f, 0.0f, 0.0f, 
                           0.0f, 1.0f, 0.0f,
                           0.0f, 0.0f, 1.0f,
                           0.4f, 0.4f, 0.4f};
 
-GLfloat squareNormals[] = {1.0f, 0.0f, 0.0f, 
+GLfloat squareUV[] = { 0.0f, 0.0f,
+                       1.0f, 0.0f,
+                       0.0f, 1.0f,
+                       1.0f, 1.0f };
+
+GLfloat squareTangents[] = { -1.0f, 0.0f, 0.0f,
+                             -1.0f, 0.0f, 0.0f,
+                             1.0f, 0.0f, 0.0f,
+                             1.0f, 0.0f, 0.0f };
+
+GLfloat squareNormals[] = {0.0f, 1.0f, 0.0f, 
                            0.0f, 1.0f, 0.0f,
-                           0.0f, 0.0f, 1.0f,
-                           0.4f, 0.4f, 0.4f};
-
-
-GLfloat squareBuffer[] = {-0.5f, 0.0f,  0.5f,
-                           0.5f, 0.0f,  0.5f,
-                          -0.5f, 0.0f, -0.5f,
-                           0.5f, 0.0f, -0.5f,
-
-                          1.0f, 0.0f, 0.0f,
-                          0.0f, 1.0f, 0.0f,
-                          0.0f, 0.0f, 1.0f,
-                          0.4f, 0.4f, 0.4f
-                           };
-
-
-GLfloat squareBufferInterleaved[] =  {-0.5f, 0.0f,  0.5f,   1.0f, 0.0f, 0.0f,
-                                       0.5f, 0.0f,  0.5f,   0.0f, 1.0f, 0.0f,
-                                      -0.5f, 0.0f, -0.5f,   0.0f, 0.0f, 1.0f,
-                                       0.5f, 0.0f, -0.5f,   0.4f, 0.4f, 0.4f};
+                           0.0f, 1.0f, 0.0f,
+                           0.0f, 1.0f, 0.0f};
 
 GLuint indices[] = {0, 2, 1, 3};
-
 GLuint program; 
 
 MyModel::MyModel()
@@ -53,13 +44,19 @@ MyModel::MyModel()
 MyModel::~MyModel()
 {
   delete mCamera;
-  delete mShaderProgram;
   delete mMeshGroup;
-  delete mMeshGroup2;
+
+  delete mDebugRenderer;
+  delete mPhongRenderer;
 
   delete mAxis;
   delete mGrid;
+  delete mPolygon;
   delete mBoundingBox;
+  delete mWireframeSphere;
+  delete mTexture;
+  delete mDome;
+  delete mNormalMap;
 
   delete mLightSource;
 }
@@ -67,67 +64,72 @@ MyModel::~MyModel()
 bool MyModel::Init()
 {
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_TEXTURE_2D);
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-  glPointSize(2);
-  
-  mShaderProgram = new gloo::ShaderProgram();
-  mShaderProgram->BuildFromFiles("../../shaders/debug/vertex_shader.glsl", 
-                                 "../../shaders/debug/fragment_shader.glsl");
-  mShaderProgram->PrintCompilationLog();
-  gloo::CompilationStatus status = mShaderProgram->GetCompilationStatus();
-  // std::cout << "Compilation Status = " << status << std::endl;
+  mDebugRenderer = new DebugRenderer();
+  mPhongRenderer = new PhongRenderer("../../shaders/normal_mapping_phong/vertex_shader.glsl",
+                                     "../../shaders/normal_mapping_phong/fragment_shader.glsl");
 
-  if (status != gloo::CompilationStatus::kSuccess) 
+  if (!mDebugRenderer->Load())
   {
-    delete mShaderProgram;
+    std::cout << "Couldn't initialize 'MyModel::DebugRenderer*' ..." << std::endl;
+    delete mDebugRenderer;
     return false;
   }
 
-  program = mShaderProgram->GetHandle();
-  mShaderProgram->Bind();
+  if (!mPhongRenderer->Load())
+  {
+    std::cout << "Couldn't initialize 'MyModel::PhongRenderer*' ..." << std::endl;
+    delete mPhongRenderer;
+    return false;
+  }
+
+  mPhongRenderer->SetNumLightSources(2);
+  mPhongRenderer->DisableLightSource(0);
+  mPhongRenderer->EnableLightSource(1);
 
   mCamera = new Camera();
   mCamera->SetPosition(0, 0, 3.0f);
 
-  GLint posAttribLoc  = mShaderProgram->GetAttribLocation("v_position");
-  GLint colAttribLoc  = mShaderProgram->GetAttribLocation("v_color");
-  GLint normAttribLoc = mShaderProgram->GetAttribLocation("v_normal");
-  GLint uvAttribLoc   = mShaderProgram->GetAttribLocation("v_uv");
+  GLint posAttribLoc  = mDebugRenderer->GetPositionAttribLoc();
+  GLint colAttribLoc  = mDebugRenderer->GetColorAttribLoc();
 
   mAxis = new AxisMesh(posAttribLoc, colAttribLoc);
-  mGrid = new GridMesh(posAttribLoc, colAttribLoc, 9, 9, 0.15f, 0.4f, 0.4f, 0.4f);
+  mGrid = new GridMesh(posAttribLoc, colAttribLoc, 9, 9, 0.15f, {0.4f, 0.4f, 0.4f});
   mBoundingBox = new BoundingBoxMesh(posAttribLoc, colAttribLoc);
+  mPolygon = new Polygon(posAttribLoc, colAttribLoc, 1.0f, 10);
+  mWireframeSphere = new WireframeSphere(posAttribLoc, colAttribLoc, {0.0f, 1.0f, 0.0f}, 16);
+
+
+  GLint posAttribLocPhong = mPhongRenderer->GetPositionAttribLoc();
+  GLint normalAttribLocPhong =  mPhongRenderer->GetNormalAttribLoc();
+  GLint textureAttribLocPhong = mPhongRenderer->GetTextureAttribLoc();
+  GLint tangentAttribLocPhong = mPhongRenderer->GetTangentAttribLoc();
+
+  mDome = new TexturedSphere(posAttribLocPhong, normalAttribLocPhong, textureAttribLocPhong, tangentAttribLocPhong,
+                             {glm::vec3(0, 0, 0), glm::vec3(0), glm::vec3(0.07, 0.07, 0.07)});
 
   mMeshGroup = new MeshGroup<Batch>(4, 4);
-  mMeshGroup2 = new MeshGroup<Interleave>(4, 4);
+  mMeshGroup->SetVertexAttribList({3, 3, 2, 3});
+  mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}, gloo::kNoAttrib, gloo::kNoAttrib});
+  mMeshGroup->AddRenderingPass({{posAttribLocPhong, true}, 
+                                {normalAttribLocPhong, true}, 
+                                {textureAttribLocPhong, true},
+                                {tangentAttribLocPhong, true}});
+
+  mMeshGroup->Load({squareVertices, squareNormals, squareUV, squareTangents}, nullptr);
+
+  mTexture = new Texture2d();
+  mTexture->Load("textures/154.jpg");
+
+  mNormalMap = new Texture2d();
+  mNormalMap->Load("textures/154_norm.jpg");
+
+  mPhongRenderer->SetTextureUnit("color_map",  0);
+  mPhongRenderer->SetTextureUnit("normal_map", 1);
   
-  mMeshGroup->SetVertexAttribList({3, 3});
+  mPhongRenderer->EnableLighting();
 
-  mMeshGroup->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
-
-  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
-  // mMeshGroup->AddRenderingPass({{0, posAttribLoc}, {2, colAttribLoc}});
-
-  // TODO: correct disabled attributes.
-
-  // mMeshGroup->Load( {nullptr, squareVertices, squareColors, nullptr}, nullptr);
-  mMeshGroup->Load(squareBuffer, nullptr);
-
-
-  mMeshGroup2->SetVertexAttribList({3, 3});
-  mMeshGroup2->AddRenderingPass({{posAttribLoc, true}, {colAttribLoc, true}});
-  // mMeshGroup2->AddRenderingPass({{0, posAttribLoc}, {1, colAttribLoc}});
-  mMeshGroup2->Load( {squareVertices, squareColors}, nullptr);
-  
-  // mMeshGroup2->Load(squareBufferInterleaved, indices);
-
-
-  GLint posUniformLoc = mShaderProgram->GetUniformLocation("light.pos");
-  GLint dirUniformLoc = mShaderProgram->GetUniformLocation("light.dir");
-  GLint LaUniformLoc  = mShaderProgram->GetUniformLocation("light.La");
-
-  mLightSource = new LightSource();
-  mLightSource->AddRenderingPass({posUniformLoc, dirUniformLoc, LaUniformLoc, -1, -1, -1});
 
   return true;
 }
@@ -145,44 +147,58 @@ void MyModel::Display()
   blah_angle += 0.01;
 
   mCamera->SetOnRendering();
-  mCamera->SetUniformViewMatrix( mShaderProgram->GetUniformLocation("V") );
-
-  // mLightSource->SetShininess(0.5f*cos(blah_angle) + 1.0f);
-  mLightSource->SetLightInCameraCoordinates(mCamera->ViewTransform());
 
   gloo::Transform M;
   M.LoadIdentity();
-  M.Translate(1.2f, 0.0f, 0.0);
 
-  GLuint uniformLoc = glGetUniformLocation(mShaderProgram->GetHandle(), "M");
-  M.SetUniform(uniformLoc);
+  mPhongRenderer->Bind();
+  mPhongRenderer->SetCamera(mCamera);
 
+  LightSource lightSource = { glm::vec3(0, 10.0f, 0),  // Pos.
+                              glm::vec3(0,   -1,  0),  // Dir.
+                              glm::vec3(0.9, 0.9, 1),  // Ld.
+                              glm::vec3(0.6, 0.6, 0.6),  // Ls.
+                              2.0f};  // Alpha.
 
+  mPhongRenderer->SetLightSourceInCameraCoordinates(lightSource, mCamera, 0);
+
+  LightSource lightSource2 = { glm::vec3(0.5f*std::cos(blah_angle*3.0f), 2.0f, 3*std::sin(blah_angle*1.4f + 2.0f)),  // Pos.
+                               glm::vec3(0,   -1,  0),  // Dir.
+                               glm::vec3(1.0,  1.0, 1),  // Ld.
+                               glm::vec3(1.0, 1.0, 1),  // Ls.
+                               5.0f};  // Alpha.
+
+  mPhongRenderer->SetLightSourceInCameraCoordinates(lightSource2, mCamera, 1);
+  mPhongRenderer->SetMaterial({ glm::vec3(0, 0, 0), 
+                                glm::vec3(.9, .9, .9),
+                                glm::vec3(.05, .05, .05)});
+
+  mTexture->Bind(GL_TEXTURE0);
+  mNormalMap->Bind(GL_TEXTURE1);
   M.LoadIdentity();
-  M.Rotate(-0.79*blah_angle, 0, 1, 0);
-  M.Translate(-1.2f, 0.0f, 0.0f);
-  M.Rotate(blah_angle, 0, 0, 1);
-
-  M.SetUniform(uniformLoc);
-
-  mBoundingBox->Render();
-
-  mMeshGroup2->Render();
-  
+  // M.Rotate(-0.79*cos(blah_angle), 1, 0, 1);
+  mPhongRenderer->Render(mMeshGroup, M, 1);
   M.LoadIdentity();
-  // M.Rotate(blah_angle, -1, 0, 0);
-  M.SetUniform(uniformLoc);
 
-  mGrid->Render();
+  M.Scale(0.7f, 0.7f, 0.7f);
+  // M.Rotate(blah_angle/10.0f, 0, 1, 0);
+  mPhongRenderer->SetMaterial(mDome->GetMaterial());
+  // mPhongRenderer->Render(mDome->GetMeshGroup(), M, 0);
+  M.LoadIdentity();
 
-  // squareVertices[5] *= 0.999;
+  if (mRendererNum == 1) 
+  {
+    mDebugRenderer->Bind();
+    mDebugRenderer->Render(mGrid->GetMeshGroup(), M, mCamera);
+    mDebugRenderer->Render(mAxis->GetMeshGroup(), M, mCamera);
+    // mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
 
-  // mMeshGroup2->Update({squareVertices, squareColors, nullptr});
-
-  // mAxis->Update(5*cos(blah_angle), 2*sin(3.1*blah_angle), 0.3*cos(blah_angle));
-  mAxis->Render();
-
-  mMeshGroup->Render();
+    // M.Rotate(-0.79*blah_angle, 0, 1, 0);
+    // M.Translate(-1.2f, 0.0f, 0.0f);
+    // M.Rotate(blah_angle, 0, 0, 1);
+    // M.Scale(0.25f, 0.25f, 0.25f);
+    // mDebugRenderer->Render(mWireframeSphere->GetMeshGroup(), M, mCamera);
+  }
 
   glutSwapBuffers();
 }
@@ -191,7 +207,6 @@ void MyModel::Reshape(int w, int h)
 {
   glViewport(0, 0, w, h);
   mCamera->SetOnReshape(0, 0, w, h);
-  mCamera->SetUniformProjMatrix( mShaderProgram->GetUniformLocation("P") );
 }
 
 void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)
@@ -214,6 +229,7 @@ void MyModel::ActiveMouseMotion(const MouseEvent & mouseEvent)
       if (mouseEvent.mMouseState.mLftButton == MouseState::kDown)
       {
         // std::cout << "Left button dragged.\n";
+        mCamera->Translate(0.0f, 0.0f, -mouseEvent.mMouseState.mVelY * 1e-2);
       }
       if (mouseEvent.mMouseState.mRgtButton == MouseState::kDown)
       {
@@ -274,6 +290,11 @@ void MyModel::KeyboardChange(unsigned char key, int x, int y)
   {
     case 27: // ESC key
       exit(0);
+    break;
+
+    case 'u':
+    case 'U':
+      mRendererNum = (mRendererNum+1) % 2;
     break;
 
     case 'F':

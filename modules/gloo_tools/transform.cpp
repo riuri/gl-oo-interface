@@ -45,6 +45,21 @@ void Transform::SetInverseUniform(unsigned uniformHandler) const
   glUniformMatrix4fv(uniformHandler, 1, GL_FALSE, m_inv);
 }
 
+void Transform::SetInverseTransposeUniform(unsigned programHandle, const std::string & uniformName) const
+{
+  GLint uniformLoc = glGetUniformLocation(programHandle, uniformName.c_str());
+  glm::mat4 N = Transform::GetInverseMatrix();
+  N = glm::transpose(N);
+  glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(N));
+}
+
+void Transform::SetInverseTransposeUniform(unsigned uniformHandler) const
+{
+  glm::mat4 N = Transform::GetInverseMatrix();
+  N = glm::transpose(N);
+  glUniformMatrix4fv(uniformHandler, 1, GL_FALSE, glm::value_ptr(N));
+}
+
 // ------------------------------------------------------------------------------------------------
 // -> Methods for setting the current matrix as model/view transformation.
 

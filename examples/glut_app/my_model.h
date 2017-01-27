@@ -1,9 +1,13 @@
 #include <gloo/light.h>
 #include <gloo/group.h>
 #include <gloo/camera.h>
+#include <gloo/texture.h>
+#include <gloo/material.h>
 #include <gloo/model_base.h>
 #include <gloo/useful_meshes.h>
 #include <gloo/shader_program.h>
+#include <gloo/debug_renderer.h>
+#include <gloo/phong_renderer.h>
 
 using namespace gloo;
 
@@ -30,17 +34,22 @@ public:
   virtual void SpecialKeyboardChange(unsigned char key, int x, int y);
 
 private:
+  int mRendererNum { 0 };
+
   Camera* mCamera { nullptr };
-  ShaderProgram* mShaderProgram { nullptr };
-
-  // XXX - Test.
   MeshGroup<Batch>* mMeshGroup { nullptr };
-  MeshGroup<Interleave>* mMeshGroup2 { nullptr };
+  Texture2d* mTexture   { nullptr };
+  Texture2d* mNormalMap { nullptr };
 
+  Polygon* mPolygon;
   AxisMesh* mAxis;
   GridMesh* mGrid;
+  TexturedSphere*  mDome;
   BoundingBoxMesh* mBoundingBox;
+  WireframeSphere* mWireframeSphere;
 
   LightSource* mLightSource;
 
+  DebugRenderer* mDebugRenderer;
+  PhongRenderer* mPhongRenderer;
 };

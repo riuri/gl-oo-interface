@@ -26,6 +26,7 @@ struct Material
 in vec4 f_position;
 in vec4 f_normal;
 in vec2 f_uv;
+in vec4 f_tangent;
 
 out vec4 pixel_color;
 
@@ -63,6 +64,20 @@ void main()
     // Fragment data and light sources are in camera coordinates.
     vec3 I = Ka*La;
     vec3 n = f_normal.xyz;
+    vec3 t = f_tangent.xyz;
+
+    // Normal map provides coordinates in the fragment coordinate system.
+    // Since we have both normal and tangent vectors, we can calculate the bitangent,
+    // build a basis and transform normal map coordinates to world coordinates to
+    // compute the lighting.
+    vec3 b = cross(t, n);   // b = n x t.
+    mat3 M = mat3(t, b, n);
+
+    // rgb to normal.
+    vec3 normal = texture(normal_map, f_uv).xyz;
+    normal = 2*normal - vec3(1.0);
+
+    n = M * normal;
 
     for (int i = 0; i < num_lights; i++)
     {
