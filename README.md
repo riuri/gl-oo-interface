@@ -3,4 +3,4 @@ OpenGL Objected-Oriented Interface provides classes and functionalities to use O
 
 Please download dependencies using the link bellow and extract the .zip into gl-oo-interface folder (together with build, modules and examples)
 
-https://www.dropbox.com/s/9dro7l6y2stielf/dependencies.zip?dl=0
+https://www.dropbox.com/s/0xgt1hb3u8v4d2d/dependencies.zip?dl=0
