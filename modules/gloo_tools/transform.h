@@ -4,7 +4,7 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 //
-//  gloo::Transform implements geometry transform
+//  gloo::Transform implements geometry transformation
 //  of an object/mesh or anything by combining
 //  individual rotations/translations and scales.
 //  It also implements projective transforms.

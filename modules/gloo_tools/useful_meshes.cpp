@@ -437,6 +437,7 @@ TexturedSphere::TexturedSphere(GLint positionAttribLoc, GLint normalAttribLoc, G
       positions.push_back(position[1]);
       positions.push_back(position[2]);
 
+      // TODO: generate better tangets.
       glm::vec3 n(2*position[0], 2*position[1], 2*position[2]);
       n = glm::normalize(n);
       glm::vec3 t(-n[2], 0.0f, n[0]);

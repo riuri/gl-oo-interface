@@ -25,7 +25,7 @@
 //  to it and all the main work will be done by the renderer.
 //
 //  NOTE2: by calling getter methods for Transforms, you'll get
-//  the transform set from the last frame.
+//  the transform set from the last rendering.
 //  ---------------------------------------------------------------------------
 
 #pragma once

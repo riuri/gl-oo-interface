@@ -9,9 +9,9 @@
 //  It provides an interface for rendering general scenes with light sources and objects.
 //  gloo-rendering provides a few custom renderers. Please refer to:
 //  
-//  1. debug_renderer.h                 [DOING]
-//  2. phong_renderer.h                 [TODO]
-//  3. phong_shadow_mapping_renderer.h  [TODO]
+//  1. debug_renderer.h
+//  2. phong_renderer.h
+//  3. phong_shadow_mapping_renderer.h
 //
 //  The derived class should implement all methods in a custom way, according to each rendering
 //  pass. For example, when you're implementing a shadow mapping with phong shading, you should
@@ -21,6 +21,9 @@
 //  In your derived class, you should add a custom Render() method to take your custom scene as
 //  input (I recommend you to create a scene struct to pass all elements, including lights, ca-
 //  mera and objects).
+//
+//  Recommended usage: construct, load, bind, get/set attributes, render.
+//
 //  -------------------------------------------------------------------------------------------
 
 #pragma once

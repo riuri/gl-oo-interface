@@ -3,17 +3,82 @@
 // |         Module: GLOO Rendering.          |
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
-
+// ------------------------------------------------------------------------------------------------
 // PhongRenderer is an interface for rendering objects using phong shading model or any variant.
-// It provides general functionalities to any phong shader program, such as the following attri-
-// butes and uniforms:
+// It provides general functionalities of any phong shader program.
+// As default, it loads the following shaders:
 //
-// Attributes: vertex position, normal and texture coordinates.
-// Uniform: matrices, light sources, texture and material.
-
-// Usage:
-// TODO.
+//  Vertex:   "../../shaders/phong/vertex_shader.glsl"
+//  Fragment: "../../shaders/phong/fragment_shader.glsl"
 //
+// Optionally, you can write custom shaders based on the above shaders to extend the features.
+// As example, in the folder 'shaders' you can find the normal_mapping_phong shaders.
+// Perhaps, you could also add more texture samplers or anything to improve your rendering.
+// PhongRenderer contains several methods for querying attribute/uniform locations in an 
+// optimized way (it stores in the client memory all IDs). 
+// 
+// This is the list of mandatory uniforms/attributes that the Phong Shader must have:
+// Reference of Attributes:
+//  vec3 v_position;  // Vertex position (object coordinates).
+//  vec3 v_normal;    // Vertex normal   (object coordinates).
+//  vec2 v_uv;        // Texture coordinates.
+//
+// Reference of Uniforms:
+// (Vertex)
+//  mat4 M;  // Model matrix.
+//  mat4 V;  // View  matrix.
+//  mat4 P;  // Projection matrix.
+//  mat4 N;  // Normal matrix N = (VM)^-t.
+//
+// (Fragment)
+//  int lighting = 0;                   // Light switch (toggle on/off).
+//  int num_lights = 1;                 // Number of light sources.
+//  int light_switch[max_num_lights];   // Array of light source states (on/off).
+//  vec3 La = vec3(0.1);                // Ambient light component.
+//  LightSource light[max_num_lights];  // Array of light sources.
+//  sampler2D color_map;  // Color texture sampler.
+//  Material material;    // Material properties (Ka, Kd, Ks).
+//
+// Basic Usage:
+//
+// 1. Construct:
+//  Default: PhongRenderer* mPhongRenderer = new PhongRenderer();
+//  Custom:  PhongRenderer* mPhongRenderer = new PhongRenderer(vtxShaderPath, fragShaderPath); 
+// 
+// 2. Load and check for errors:
+//  bool success = mPhongRenderer->Load();
+//
+// 3. Get default shader attribute/uniform locations (please read the method declarations):
+//  GLint attribLoc  = mPhongRenderer->Get<Name>AttribLoc();
+//  GLint uniformLoc = mPhongRenderer->Get<Name>UniformLoc();
+//  ...
+//
+// 4. Get custom shader attribute/uniform locations (please read the method declarations):
+//  GLint customAttribLoc  = mPhongRenderer->GetAttribLocation( "<name>");
+//  GLint customUniformLoc = mPhongRenderer->GetUniformLocation("<name>");
+//  ...
+//
+// 5. Before use (i.e. rendering calls):
+//  mPhongRenderer->Bind();
+//
+// 6. Lighting management:
+//  (a) EnableLighting() or DisableLighting() to toggle on/off the lighting.
+//  (b) EnableLightSource() or DisableLightSource() to toggle on/off a specific light source.
+//  (c) SetNumLightSources() for setting the loop size when rendering on shader.
+//  (d) SetLightSource() for setting the light source properties in world coordinates.
+//  (e) SetLightSourceInCameraCoordinates() to set the light source properties in camera reference.
+//
+// 7. Material and texture management:
+//  (a) SetMaterial() to update the current material properties.
+//  (b) SetTextureUnit(name, slot) 
+//     It binds the sampler name to a texture slot. It does not set the texture.
+//     In order to set a texture, you should link the sampler name to a slot:
+//      GLuint slot = 0;
+//      mPhongRenderer->SetTextureUnit(color_map, slot);
+//     And then bind your Texture* to this slot:
+//      myTexture->Bind(slot);
+//
+// ------------------------------------------------------------------------------------------------
 
 #pragma once 
 
