@@ -1,7 +1,5 @@
 #include "useful_meshes.h"
 
-// #include ""
-
 namespace gloo
 {
 
@@ -57,11 +55,15 @@ void AxisMesh::Render() const
 // ============================================================================================= //
 
 BoundingBoxMesh::BoundingBoxMesh(GLint positionAttribLoc, GLint colorAttribLoc, 
-                                 GLfloat r, GLfloat g, GLfloat b)
+                                 const glm::vec3 & rgb)
 {
   const int numVertices = 8;
   const int numElements = 12*2;
   const GLenum drawMode = GL_LINES;
+
+  const GLfloat r = rgb[0];
+  const GLfloat g = rgb[1];
+  const GLfloat b = rgb[2];
 
   // Initialize vertices.
   GLfloat positions[] = {-0.5f, +0.5f, +0.5f,  +0.5f, +0.5f, +0.5f,
@@ -113,7 +115,7 @@ void BoundingBoxMesh::Render() const
 // ============================================================================================= //
 
 GridMesh::GridMesh(GLint positionAttribLoc, GLint colorAttribLoc, int width, int height, 
-                   GLfloat tileSize, GLfloat r, GLfloat g, GLfloat b)
+                   GLfloat tileSize, const glm::vec3 & rgb)
 {
   const int w = std::max(width,  2);
   const int h = std::max(height, 2);
@@ -124,6 +126,10 @@ GridMesh::GridMesh(GLint positionAttribLoc, GLint colorAttribLoc, int width, int
 
   std::vector<GLfloat> vertices;
   std::vector<GLuint> indices;
+
+  const GLfloat r = rgb[0];
+  const GLfloat g = rgb[1];
+  const GLfloat b = rgb[2];
 
   vertices.reserve(numVertices * 6);
 
@@ -200,6 +206,307 @@ void GridMesh::Render() const
   mMeshGroup->Render();
 }
 
+// ============================================================================================= //
 
+Polygon::Polygon(GLint positionAttribLoc, GLint colorAttribLoc, float sideLength, int numSides,
+                 const glm::vec3 & rgb, float xc, float yc)
+{
+  const int N = numSides;
+  const float L = sideLength;
+
+  const int numVertices = N+1;  // Center + N vertices.
+  const int numElements = 3*N;  // Specify N triangles.
+  const GLenum drawMode = GL_TRIANGLES;
+
+  std::vector<GLfloat> positions;
+  std::vector<GLfloat> colors;
+  std::vector<GLuint> indices;
+
+  positions.reserve(numVertices * 3);
+  colors.reserve(numVertices * 3);
+  indices.reserve(numElements);
+
+  const GLfloat r = rgb[0];
+  const GLfloat g = rgb[1];
+  const GLfloat b = rgb[2];
+
+  // Add center:
+  positions.push_back(xc);
+  positions.push_back(yc);
+  positions.push_back(0.0f);
+
+  colors.push_back(r);
+  colors.push_back(g);
+  colors.push_back(b);
+
+  const float radius = (L/2.0f)/std::sin((M_PI)/N);
+
+  // Add all vertices:
+  for (int i = 0; i < N; i++) {
+    float theta = static_cast<float>(i)/(N) * M_PI * 2.0f;
+
+    positions.push_back(xc + radius * std::cos(theta));
+    positions.push_back(yc + radius * std::sin(theta));
+    positions.push_back(0.0f);
+
+    colors.push_back(r*0.5f);
+    colors.push_back(g*0.5f);
+    colors.push_back(b*0.5f);
+
+    indices.push_back(0);
+    indices.push_back(i+1);
+    if (i+2 > N) {
+      indices.push_back(1);
+    } else {
+      indices.push_back(i+2);
+    }
+  }
+
+  // Allocate mesh.
+  mMeshGroup = new MeshGroup<Batch>(numVertices, numElements, drawMode);
+
+  // Specify its attributes.
+  mMeshGroup->SetVertexAttribList({3, 3});
+
+  // Add rendering pass.
+  mMeshGroup->AddRenderingPass({{positionAttribLoc, true}, {colorAttribLoc, true}});
+
+  // Load data.
+  mMeshGroup->Load({positions.data(), colors.data()}, indices.data());
+}
+
+Polygon::~Polygon()
+{
+  delete mMeshGroup;
+}
+
+void Polygon::Update()
+{
+
+}
+
+void Polygon::Render() const
+{
+  mMeshGroup->Render();
+}
+
+// ============================================================================================= //
+
+WireframeSphere::WireframeSphere(GLint positionAttribLoc, GLint colorAttribLoc, 
+                                 const glm::vec3 & rgb, int detail) 
+{
+  int w = detail+1;
+  int h = detail+1;
+
+  const int numVertices = (w * h);
+  const int numElements = (2 * w * h);
+  const GLenum drawMode = GL_LINE_STRIP;
+
+  std::vector<GLfloat> positions;
+  std::vector<GLfloat> colors;
+  std::vector<GLuint> indices;
+
+  positions.reserve(numVertices * 3);
+  colors.reserve(numVertices * 3);
+  indices.reserve(numElements);
+
+  const GLfloat r = rgb[0];
+  const GLfloat g = rgb[1];
+  const GLfloat b = rgb[2];
+
+  // Initialize vertices.
+  for (int v = 0; v < h; v++)
+  {
+    for (int u = 0; u < w; u++)
+    {
+      GLfloat theta_u = (2*M_PI * u) / (w-1);
+      GLfloat theta_v =   (M_PI * v) / (h-1);
+      GLfloat position[3];
+
+      position[0] = cos(theta_u) * sin(theta_v);
+      position[2] = sin(theta_u) * sin(theta_v);
+      position[1] = cos(theta_v);
+
+      // Vertex coordinates.
+      positions.push_back(position[0]);
+      positions.push_back(position[1]);
+      positions.push_back(position[2]);
+
+      // Vertex colors.
+      colors.push_back(r);
+      colors.push_back(g);
+      colors.push_back(b);
+    }
+  }
+  
+  // Wireframe Element array - indices are written in a zig-zag pattern,
+  // first horizontally and then vertically. It uses GL_LINE_STRIP. 
+  int index = 0;
+  int x = 0, y = 0;
+  int dx = 1, dy = -1;
+
+  for (y = 0; y < h; y++)  // Horizontally.
+  {
+    x = ((dx == 1) ? 0 : w-1);
+    for (int k = 0; k < w; k++, x += dx)
+      indices.push_back(w*y + x);  // INDEX(x, y).
+    dx *= -1;
+  }
+
+  // Start from the last point to allow continuity in GL_LINE_STRIP.
+  x = ((dx == 1) ? 0 : w-1);
+  y = h-1;  
+  dy = -1;
+  for (int i = 0; i < w; i++, x += dx)  // Vertically.
+  {
+    y = ((dy == 1) ? 0 : h-1);
+    for (int j = 0; j < h; j++, y += dy)
+      indices.push_back(w*y + x);  // INDEX(x, y).
+    dy *= -1;
+  }
+
+  // Allocate mesh.
+  mMeshGroup = new MeshGroup<Batch>(numVertices, numElements, drawMode);
+
+  // Specify its attributes.
+  mMeshGroup->SetVertexAttribList({3, 3});
+
+  // Add rendering pass.
+  mMeshGroup->AddRenderingPass({{positionAttribLoc, true}, {colorAttribLoc, true}});
+
+  // Load data.
+  mMeshGroup->Load({positions.data(), colors.data()}, indices.data());
+}
+
+WireframeSphere::~WireframeSphere() 
+{
+  delete mMeshGroup;
+}
+
+void WireframeSphere::Update() 
+{
+  // Do nothing.
+}
+
+void WireframeSphere::Render() const
+{
+  mMeshGroup->Render();
+}
+
+// ============================================================================================= //
+
+TexturedSphere::TexturedSphere(GLint positionAttribLoc, GLint normalAttribLoc, GLint uvAttribLoc,
+                               GLint tangentAttribLoc, const Material & material)
+{
+  mMaterial = material;
+
+  int w = 65;
+  int h = 65;
+
+  const int numVertices = (w * h);
+  const int numElements = 2*(h-2)*w + 2*w + 2*(h-2);
+  const GLenum drawMode = GL_TRIANGLE_STRIP;
+
+  std::vector<GLfloat> positions;
+  std::vector<GLfloat> normals;
+  std::vector<GLfloat> uvs;
+  std::vector<GLfloat> tangents;
+  std::vector<GLuint> indices;
+
+  positions.reserve(numVertices * 3);
+  normals.reserve(numVertices * 3);
+  uvs.reserve(numVertices * 2);
+  tangents.reserve(numVertices * 3);
+  indices.reserve(numElements);
+
+  // Initialize vertices.
+  for (int v = 0; v < h; v++)
+  {
+    for (int u = 0; u < w; u++)
+    {
+      GLfloat theta_u = (2*M_PI * u) / (w-1);
+      GLfloat theta_v =   (M_PI * v) / (h-1);
+      GLfloat position[3];
+
+      position[0] = cos(theta_u) * sin(theta_v);
+      position[2] = sin(theta_u) * sin(theta_v);
+      position[1] = cos(theta_v);
+
+      // Vertex coordinates.
+      positions.push_back(position[0]);
+      positions.push_back(position[1]);
+      positions.push_back(position[2]);
+
+      // TODO: generate better tangets.
+      glm::vec3 n(2*position[0], 2*position[1], 2*position[2]);
+      n = glm::normalize(n);
+      glm::vec3 t(-n[2], 0.0f, n[0]);
+      t = -glm::normalize(t);
+
+      // Vertex normals.
+      normals.push_back(n[0]);
+      normals.push_back(n[1]);
+      normals.push_back(n[2]);
+
+      // Vertex uvs.
+      uvs.push_back(1.0f - static_cast<float>(u)/(w-1));
+      uvs.push_back(1.0f - static_cast<float>(v)/(h-1));
+
+      tangents.push_back(t[0]);
+      tangents.push_back(t[1]);
+      tangents.push_back(t[2]);
+    }
+  }
+
+  for (int v = 0; v < h-1; v++)
+  {
+    // Zig-zag pattern: alternate between top and bottom.
+    for (int u = 0; u < w; u++)
+    {
+      indices.push_back((v+0)*w + u);
+      indices.push_back((v+1)*w + u);
+    }
+
+    // Triangle row transition: handle discontinuity.
+    if (v < h-2)
+    {
+      // Repeat last vertex and the next row first vertex to generate 
+      // two invalid triangles and get continuity in the mesh.
+      indices.push_back((v+1)*w + (w-1)); //INDEX(this->width-1, y+1);
+      indices.push_back((v+1)*w + 0);     //INDEX(0, y+1);
+    }
+  }
+
+  // Allocate mesh.
+  mMeshGroup = new MeshGroup<Batch>(numVertices, numElements, drawMode);
+
+  // Specify its attributes.
+  mMeshGroup->SetVertexAttribList({3, 3, 2, 3});
+
+  // Add rendering pass.
+  mMeshGroup->AddRenderingPass({{positionAttribLoc, true},
+                                {normalAttribLoc, true},
+                                {uvAttribLoc, true}, 
+                                {tangentAttribLoc, true}
+                              });
+
+  // Load data.
+  mMeshGroup->Load({positions.data(), normals.data(), uvs.data(), tangents.data()}, indices.data());
+}
+
+TexturedSphere::~TexturedSphere() 
+{
+  delete mMeshGroup;
+}
+
+void TexturedSphere::Update() 
+{
+  // Do nothing.
+}
+
+void TexturedSphere::Render() const
+{
+  mMeshGroup->Render(0);
+}
 
 }  // namespace gloo.

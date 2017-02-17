@@ -38,17 +38,12 @@ TIFF_LIB=
 # set PATH to LibTIFF here:
 #TIFF_DIR=/Users/barbic/software/imageLibraries/tiff-4.0.3
 #TIFF_INCLUDE=-I$(TIFF_DIR)/libtiff
-#TIFF_LIB=$(TIFF_DIR)/libtiff/.libs/libtiff.a
+# TIFF_LIB=$(TIFF_DIR)/libtiff/.libs/libtiff.a
 
-JPEG_DIR=
-JPEG_INCLUDE=
-JPEG_LIB=
 # set PATH to jpeglib here:
-# we are now using jpeglib-9 not jpeglib-6b which will give you hard time !!
-# jpeglib-9 can be found at ~/code/software/imageLibraries/jpeg-9
-#JPEG_DIR=/Users/barbic/software/imageLibraries/jpeg-9
-#JPEG_INCLUDE=-I$(JPEG_DIR)
-#JPEG_LIB=-L$(JPEG_DIR)/.libs -ljpeg
+JPEG_DIR=../../dependencies/jpeg-9a-mac/
+JPEG_INCLUDE=-I$(JPEG_DIR)
+JPEG_LIB=-L$(JPEG_DIR).libs -ljpeg
 
 PNG_DIR=
 PNG_INCLUDE=

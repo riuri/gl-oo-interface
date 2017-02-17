@@ -4,7 +4,7 @@
 // |        Author: Rodrigo Castiel, 2016.    |
 // + ======================================== +
 //
-//  gloo::Transform implements geometry transform
+//  gloo::Transform implements geometry transformation
 //  of an object/mesh or anything by combining
 //  individual rotations/translations and scales.
 //  It also implements projective transforms.
@@ -84,6 +84,10 @@ public:
   // Has the same functionality as SetUniform, but uses the inverse current matrix.
   void SetInverseUniform(unsigned programHandle, const std::string & uniformName) const;
   void SetInverseUniform(unsigned uniformHandler) const;
+
+  // If the current matrix is M, it uploads (M^-1)' to the GPU.
+  void SetInverseTransposeUniform(unsigned programHandle, const std::string & uniformName) const;
+  void SetInverseTransposeUniform(unsigned uniformHandler) const;
 
   // -> Methods for setting the current matrix as model/view transformation.
   // Rotates theta degrees around axis [x, y, z]'.

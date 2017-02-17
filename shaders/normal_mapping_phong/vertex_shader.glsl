@@ -3,13 +3,12 @@
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec3 v_normal;
 layout (location = 2) in vec2 v_uv;
-// layout (location = 3) in vec3 v_tangent;
+layout (location = 3) in vec3 v_tangent;
 
 out vec4 f_position;  // Fragment position in camera coordinates.
 out vec4 f_normal;    // Fragment normal in camera coordinates.
 out vec2 f_uv;        // Fragment uv coordinates.
-
-// out vec4 f_tangent;   // Fragment tangent vector in camera coordinates.
+out vec4 f_tangent;   // Fragment tangent vector in camera coordinates.
 
 uniform mat4 M;  // Model matrix.
 uniform mat4 V;  // View  matrix.
@@ -31,7 +30,8 @@ void main()
   // gl_Position.z *= gl_Position.w;
 
   // Transform the vertex normal vector.
-  f_normal = normalize(V * N * vec4(v_normal, 0.0));
+  f_normal  = normalize(V * N * vec4(v_normal,  0.0));
+  f_tangent = normalize(V * N * vec4(v_tangent, 0.0));
 
   // Pass uv coordinates to be interpolated.
   f_uv = v_uv;

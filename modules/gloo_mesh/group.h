@@ -58,10 +58,11 @@
  
     // Specify vertex attribute data.
     // 3 attributes: the first has 3 floats, the second has 3 floats and the third has 2 floats.
-    group->SetVertexAttribList({3, 3, 2});  
+    group->SetVertexAttribList({3, 3, 2});
 
     // Create a rendering pass.
-    group->AddRenderingPass({posAttribLoc, true}, {normalAttribLoc, true}, {uvAttribLoc, true});
+    group->AddRenderingPass({{posAttribLoc, true}, kNoAttrib, kNoAttrib});
+    group->AddRenderingPass({{posAttribLoc, true}, {normalAttribLoc, true}, {uvAttribLoc, true}});  // Phong.
 
     // Load data into GPU (from separate buffers).
     group->Load({positions.data(), normals.data(), uv.data()}, indices.data());

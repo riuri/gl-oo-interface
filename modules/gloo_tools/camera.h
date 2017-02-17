@@ -6,27 +6,27 @@
 //
 // gloo::Camera implements a general purpose camera
 // for any 3d application with perspective projecton.
+//
+//  ---------------------------------------------------------------------------
+//  INSTRUCTIONS
+//
+//  1. Create a camera:  gloo::Camera* camera = new Camera( );
+//      [Optionally pass ProjectiveParameters as arguments ^ ]
+//  2. On window resize/reshape, call OnWindowResize().
+//  3. On rendering function call SetOnRendering() before rendering objects.
 // 
+//  ...
 //
+//  You can also manually set the internal transforms by calling
+//  ViewTransform() and ProjTransform() getter methods.
+//  For more info, see "gloo_tools/transform.h"
 //
-// INSTRUCTIONS
+//  NOTE: if you are using a Renderer class, just set the camera
+//  to it and all the main work will be done by the renderer.
 //
-// 1. Create a camera:  gloo::Camera* camera = new Camera( );
-//     [Optionally pass ProjectiveParameters as arguments ^ ]
-// 2. On window resize/reshape, call OnWindowResize().
-// 3. On rendering function call SetOnRendering() before rendering objects.
-// 
-// ...
-//
-// You can also manually set the internal transforms by calling
-// ViewTransform() and ProjTransform() getter methods.
-// For more info, see "gloo_tools/transform.h"
-//
-// NOTE: if you are using a Renderer class, just set the camera
-// to it and all the main work will be done by the renderer.
-//
-// NOTE2: by calling getter methods for Transforms, you'll get
-// the transform set from the last frame.
+//  NOTE2: by calling getter methods for Transforms, you'll get
+//  the transform set from the last rendering.
+//  ---------------------------------------------------------------------------
 
 #pragma once
 
@@ -42,10 +42,10 @@ namespace gloo
 // of this camera.
 struct ProjectionParameters
 {
-  float mFovy   { M_PI/3.0 } ;  // Field of view in Y [angle in radians].
-  float mFarZ   { 100.0 };      // Maximum rendering distance.
-  float mNearZ  {   0.1 };      // Minimum rendering distance.
-  float mAspect { 4.0/3.0 } ;   // Ratio a = W / H  [width/height].
+  float mFovy   {  M_PI/3.0 } ;  // Field of view in Y [angle in radians].
+  float mFarZ   { 1000.0 };      // Maximum rendering distance.
+  float mNearZ  {    0.1 };      // Minimum rendering distance.
+  float mAspect {  4.0/3.0 } ;   // Ratio a = W / H  [width/height].
 };
 
 class Camera
@@ -73,12 +73,11 @@ public:
 
   // The following methods set internal transforms as uniforms in shader.
   // Please call SetOnRendering() before setting uniforms.
-  void SetUniformViewMatrix(unsigned uniformLoc);  // Just view matrix.
-  void SetUniformProjMatrix(unsigned uniformLoc);  // Just projection matrix.
+  void SetUniformViewMatrix(unsigned uniformLoc) const;  // Just view matrix.
+  void SetUniformProjMatrix(unsigned uniformLoc) const;  // Just projection matrix.
   void SetUniformViewProj(unsigned uniformLoc);    // Proj * View.
   void SetUniformModelView(unsigned uniformLoc, const Transform & model);      // View * Model.
   void SetUniformModelViewProj(unsigned uniformLoc, const Transform & model);  // Proj * View * Model.
-
 
   // Animate camera center, orientation and scale -> glm::vec3.
   void Translate(const glm::vec3 & dPos);
@@ -218,13 +217,13 @@ void Camera::SetProjectionParameters(const ProjectionParameters & projParameters
 }
 
 inline
-void Camera::SetUniformViewMatrix(unsigned uniformLoc)
+void Camera::SetUniformViewMatrix(unsigned uniformLoc) const
 {
   mView.SetUniform(uniformLoc);
 }
 
 inline
-void Camera::SetUniformProjMatrix(unsigned uniformLoc)
+void Camera::SetUniformProjMatrix(unsigned uniformLoc) const
 {
   mProj.SetUniform(uniformLoc);
 }
